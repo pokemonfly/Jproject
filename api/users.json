@@ -1,0 +1,41 @@
+{
+    "data": {
+        "users": {
+            "userId": 1732912933,
+            "userNick": "tp_快云科技~~~",
+            "signupTime": 1478832698000,
+            "signinTime": 1501040085000,
+            "expireDate": 1501776000000,
+            "userTel": "fd50fae98f1991559823f20d1d4c8081aaa",
+            "versionNum": 4,
+            "level": 3,
+            "userType": "C",
+            "engineHostingAdgroupsLimit": {
+                "0": 2000,
+                "1": 50,
+                "2": 100,
+                "4": 10,
+                "5": 20,
+                "6": 2000,
+                "7": 200,
+                "8": 100,
+                "9": 100,
+                "10": 200
+            },
+            "hostingCampaignCountLimit": 16,
+            "canHostingEngines": [0, 1, 2, 4, 5, 6, 7, 8, 9, 10],
+            "from": "opr",
+            "sessionTimeStr": "1501050466009",
+            "version": "tips",
+            "toExpireDaysDiff": 9,
+            "isAdminOp": true,
+            "inBlackList": false,
+            "canUseDualEngine": true,
+            "cids": ["2311", "50009047", "50007003"],
+            "sign": "6d50628ab837d00597d7887acd37a5fe",
+            "viewMode": -1,
+            "pops": ["POP#GRABCUT"]
+        }
+    },
+    "success": true
+}
