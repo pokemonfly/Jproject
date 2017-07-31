@@ -1,17 +1,8 @@
-import Frame from '../layouts/frame';
+import Frame from '../layouts/Frame';
 import Home from '../containers/Home/index';
 import Todo from '../containers/Todo/index';
 import Root from '../containers/Root/index';
-
-// const searchContainer = (location, callback) => {
-//     require.ensure([], require => {
-//         callback(null, require('../containers/Root/Root').default)
-//     },'Root')
-// }
-
-// <IndexRoute component={Home}/>
-// <Route path="todo" component={Todo}/>
-// <Route path="root" getComponent={searchContainer}/>
+import Keyword from '../containers/Keyword/index';
 
 export const createRoutes = ( store ) => ( {
     path: '/',
@@ -20,9 +11,7 @@ export const createRoutes = ( store ) => ( {
     childRoutes: [
          Todo( store ),
          Root( store ),
-        //   ZenRoute(store),
-        //   ElapseRoute(store),
-        //   RouteRoute(store),
+         Keyword( store ),
         //   PageNotFound(),
         //   Redirect
     ]

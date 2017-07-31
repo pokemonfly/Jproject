@@ -4,6 +4,8 @@ import { connect } from 'react-redux'
 import MHeader from './components/header';
 import { fetchUserInfo } from '../redux/userBase'
 import { Layout, Checkbox } from 'antd';
+import './FrameStyle.less'
+
 const { Header, Sider, Content } = Layout;
 @connect()
 export default class Frame extends React.Component {
@@ -16,14 +18,16 @@ export default class Frame extends React.Component {
     render() {
         return (
             <Layout>
-                      <Header>
-                          <MHeader/>
-                      </Header>
-                          <Layout>
-                            <Sider>Sider</Sider>
-                            <Content>    {this.props.children}</Content>
-                          </Layout>
+                <Header>
+                    <MHeader/>
+                </Header>
+                <Layout>
+                    <Sider>Sider</Sider>
+                    <Content className="frame-content">
+                        {this.props.children}
+                    </Content>
                 </Layout>
+            </Layout>
         );
     }
 }
