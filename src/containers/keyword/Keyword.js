@@ -8,7 +8,6 @@ import KeywordOverview from './components/KeywordOverview';
 import st from './KeywordStyle.less';
 
 @connect( state => ( { keyword: state.keyword } ) )
-
 export default class Keyword extends Component {
     render() {
         return (

@@ -1,8 +1,7 @@
 /* eslint key-spacing:0 spaced-comment:0 */
 const path = require( 'path' )
 const debug = require( 'debug' )( 'app:setting' )
-const argv = require( 'yargs' )
-    .argv
+const argv = require( 'yargs' ).argv
 const ip = require( 'ip' )
 
 debug( 'Creating default configuration.' )
@@ -26,7 +25,7 @@ const config = {
     // ----------------------------------
     // Server Configuration
     // ----------------------------------
-    server_host: ip.address(), // use string 'localhost' to prevent exposure on local network
+    server_host: ip.address( ), // use string 'localhost' to prevent exposure on local network
     server_port: process.env.PORT || 3100,
 
     api_server: 'http://f002.quicloud.cn',
@@ -41,7 +40,17 @@ const config = {
     // ----------------------------------
     compiler_babel: {
         cacheDirectory: true,
-        plugins: [ 'transform-runtime', 'transform-decorators-legacy', [ "import", { "libraryName": "antd", "style": true } ] ],
+        plugins: [
+            'transform-runtime',
+            'transform-decorators-legacy',
+            'lodash',
+            [
+                "import", {
+                    "libraryName": "antd",
+                    "style": true
+                }
+            ]
+        ],
         presets: [ 'es2015', 'react', 'stage-0' ]
     },
     compiler_devtool: 'source-map',
@@ -102,25 +111,23 @@ config.globals = {
 // ------------------------------------
 const pkg = require( '../package.json' )
 
-config.compiler_vendors = config.compiler_vendors.filter( ( dep ) => {
-    if ( pkg.dependencies[ dep ] )
+config.compiler_vendors = config.compiler_vendors.filter(( dep ) => {
+    if (pkg.dependencies[dep])
         return true
 
     debug( `Package "${ dep }" was not found as an npm dependency in package.json; ` + `it won't be included in the webpack vendor bundle.
        Consider removing it from compiler_vendors in ~/config/index.js` )
-} )
+})
 
 // ------------------------------------
 // Utilities
 // ------------------------------------
-function base() {
-    const args = [ config.path_base ].concat( [].slice.call( arguments ) )
+function base( ) {
+    const args = [ config.path_base ].concat([ ].slice.call( arguments ))
     return path.resolve.apply( path, args )
 }
 
-function mock() {
-
-}
+function mock( ) {}
 config.utils_paths = {
     base: base,
     client: base.bind( null, config.dir_client ),
@@ -133,10 +140,10 @@ config.utils_paths = {
 // ========================================================
 debug( `Looking for environment overrides for NODE_ENV "${ config.env }".` )
 const environments = require( './environments' )
-const overrides = environments[ config.env ]
+const overrides = environments[config.env]
 if ( overrides ) {
     debug( 'Found overrides, applying to default configuration.' )
-    Object.assign( config, overrides( config ) )
+    Object.assign(config, overrides( config ))
 } else {
     debug( 'No environment overrides found, defaults will be used.' )
 }

@@ -3,10 +3,10 @@ import { connect } from 'react-redux'
 import styles from './header.less';
 import logoImg from '../../static/images/logo.png';
 
-@connect( state => ( { user: state.user } ) )
+@connect(state => ({ user: state.user }))
 export default class Header extends React.Component {
 
-    render() {
+    render( ) {
         let { user } = this.props
         console.dir( styles );
         return (

@@ -3,26 +3,30 @@ import { connect } from 'react-redux'
 // import Sider from './sider';
 import MHeader from './components/header';
 import { fetchUserInfo } from '../redux/userBase'
-import { Layout, Checkbox } from 'antd';
+import { Layout } from 'antd';
+import Sider from './components/sider'
 import './FrameStyle.less'
 
-const { Header, Sider, Content } = Layout;
-@connect()
+const { Header, Content } = Layout;
+Sider.__ANT_LAYOUT_SIDER = true;
+
+@connect( )
 export default class Frame extends React.Component {
     constructor( props ) {
         super( props )
     }
-    componentWillMount() {
-        this.props.dispatch( fetchUserInfo() );
+    componentWillMount( ) {
+        this.props.dispatch(fetchUserInfo( ));
     }
-    render() {
+    render( ) {
         return (
             <Layout>
                 <Header>
                     <MHeader/>
                 </Header>
                 <Layout>
-                    <Sider>Sider</Sider>
+                    <Sider/>
+
                     <Content className="frame-content">
                         {this.props.children}
                     </Content>
@@ -31,8 +35,6 @@ export default class Frame extends React.Component {
         );
     }
 }
-
-
 
 /* <div className="frame">
     <div className="header">
