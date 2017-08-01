@@ -4,7 +4,4 @@ import { combineReducers } from 'redux';
 import table from './components/TableRedux';
 import modal from './components/ModalRedux';
 
-export default combineReducers({
-  table,
-  modal,
-});
+export default combineReducers({ table, modal });

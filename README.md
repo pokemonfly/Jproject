@@ -2,8 +2,9 @@
 - ES6 及以上
 - React
 - Redux
-- Sass
+- less
 - ANTD
+- lodash
 - redux-form 表单自动绑定
 - ....
 
@@ -18,14 +19,16 @@
 │  ├─assets                 项目中用到的资料文档
 │  ├─containers         容器组件
 │  │  └─shared              共通组件
+│  │      └─Icon              iconfont 组件
 │  │  └─xxx                xxx业务模块
 │  │      ├─components       业务表现组件
 │  │      │  └─xxxa.js                
-│  │      │  └─xxxa.sass    
-│  │      └─index.js                 
-│  │      └─style.sass                 
-│  │      └─actions.js
-│  │      └─reducer.js
+│  │      │  └─xxxaStyle.less    
+│  │      │  └─xxxaRedux.js
+│  │      └─index.js       入口 设置懒加载             
+│  │      └─xxx.js           模块本身                
+│  │      └─xxxStyle.less                 
+│  │      └─xxxRedux.js    模块 action  reducer
 │  ├─layouts              单页面的框架
 │  ├─redux                 redux 相关配置  store reducer
 │  │  └─middleware   redux扩展的中间件
@@ -33,7 +36,8 @@
 │  │  └─reducers.js    reducer注册
 │  ├─static                 不参与编译的静态脚本 用于临时需要注入的逻辑
 │  └─styles                 共通样式
-│  └─utils                 函数
+│  │  └─theme.js             组件库 覆盖 主题
+│  └─utils                  函数
 │  └─app.js                入口
 │  └─index.js              入口页面
 └─tests                     测试相关（预留）
