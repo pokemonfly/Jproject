@@ -8,3 +8,7 @@ componentWillUpdate
 componentDidUpdate  在组件完成更新后立即执行
 
 componentWillUnmount
+
+
+##normalizr API
+https://github.com/paularmstrong/normalizr/blob/master/docs/api.md

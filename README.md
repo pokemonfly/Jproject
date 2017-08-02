@@ -5,6 +5,7 @@
 - less
 - ANTD
 - lodash
+- normalizr
 - redux-form 表单自动绑定
 - ....
 

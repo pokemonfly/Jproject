@@ -6,7 +6,7 @@ const { Group, Button } = Radio
 export default class KeywordFilter extends Component {
     render( ) {
         return (
-            <div>
+            <div className="keyword-filter">
                 <Group className="keyword-filter">
                     <Dropdown overlay={< div > 出价的下拉框组件 < /div>} trigger={[ 'click' ]}>
                         <Button value="a">出价

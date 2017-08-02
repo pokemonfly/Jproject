@@ -88,6 +88,7 @@
     "lodash": "^4.17.4",
     "node-sass": "^3.10.1",
     "nodemon": "^1.10.2",
+    "normalizr": "^3.2.3",
     "postcss-loader": "^1.1.0",
     "react": "^15.0.0",
     "react-dom": "^15.0.0",
