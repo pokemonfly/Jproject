@@ -7,7 +7,7 @@
 - lodash
 - normalizr
 - redux-form 表单自动绑定
-- ....
+- .....
 
 
 # 目录结构
