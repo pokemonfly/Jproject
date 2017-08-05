@@ -3,18 +3,18 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
 import { Layout, Button, Avatar } from 'antd';
 import Icon from '../../containers/shared/Icon';
-import { toggleSider } from './redux'
+import { toggleSider } from './LayoutsRedux'
 import './SiderStyle.less'
 
-@connect(state => ({ user: state.user, sider: state.layout.sider }), dispatch => (bindActionCreators( {
+@connect( state => ( { user: state.user, sider: state.layout.sider } ), dispatch => ( bindActionCreators( {
     toggleSider
-}, dispatch )))
+}, dispatch ) ) )
 export default class MenuSider extends React.Component {
-    render( ) {
+    render() {
         const { user, sider } = this.props;
-        const avatarSize = sider.collapsed
-            ? 'default'
-            : "large"
+        const avatarSize = sider.collapsed ?
+            'default' :
+            "large"
         return (
             <Layout.Sider collapsible collapsed={sider.collapsed} width="160" collapsedWidth="60" trigger={null} className="sider">
                 <div className="sider-trigger" onClick={this.props.toggleSider}>

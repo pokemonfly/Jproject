@@ -4,10 +4,10 @@ import './KeywordFilter.less'
 
 const { Group, Button } = Radio
 export default class KeywordFilter extends Component {
-    render( ) {
+    render() {
         return (
             <div className="keyword-filter">
-                <Group className="keyword-filter">
+                <Group>
                     <Dropdown overlay={< div > 出价的下拉框组件 < /div>} trigger={[ 'click' ]}>
                         <Button value="a">出价
                             <Icon type="down"/>
