@@ -1,4 +1,5 @@
 import React from 'react';
+import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux'
 import MHeader from './components/header';
 import { fetchUserInfo } from '../redux/userBase'
@@ -10,15 +11,17 @@ import './FrameStyle.less'
 const { Header, Content } = Layout;
 Sider.__ANT_LAYOUT_SIDER = true;
 
-@connect( )
+@connect( null, dispatch => ( bindActionCreators( {
+    fetchUserInfo
+}, dispatch ) ) )
 export default class Frame extends React.Component {
     constructor( props ) {
         super( props )
     }
-    componentWillMount( ) {
-        this.props.dispatch(fetchUserInfo( ));
+    componentWillMount() {
+        this.props.fetchUserInfo();
     }
-    render( ) {
+    render() {
         return (
             <Layout>
                 <Header>

@@ -1,23 +1,67 @@
 import React from 'react';
 import { connect } from 'react-redux'
-import { Menu } from 'antd';
+import { bindActionCreators } from 'redux';
+import { Menu, Button } from 'antd';
 import classNames from 'classnames'
 import Icon from '../../containers/shared/Icon';
+import { fetchCampaignInfo, fetchEnginesInfo } from './LayoutsRedux'
 import './MenuStyle.less'
 const { Item, SubMenu, ItemGroup } = Menu;
 
 /*
 mode :  vertical   horizontal
 */
-@connect(state => ({ user: state.user, campaign: state.campaign, menu: state.layout.menu, sider: state.layout.sider }))
+@connect( state => ( {
+    user: state.user,
+    engines: state.layout.engines,
+    manual: state.layout.manual,
+    campaignMap: state.layout.campaignMap,
+    menu: state.layout.menu,
+    sider: state.layout.sider
+} ), dispatch => ( bindActionCreators( {
+    fetchCampaignInfo,
+    fetchEnginesInfo
+}, dispatch ) ) )
 export default class MenuEX extends React.Component {
-
-    render( ) {
-        const { user, menu } = this.props;
-        const mode = this.props.sider.collapsed
-            ? 'vertical'
-            : "inline";
-        const menuClz = classNames({ menu: true, collapsed: this.props.sider.collapsed })
+    componentWillMount() {
+        this.props.fetchEnginesInfo();
+        this.props.fetchCampaignInfo();
+    }
+    render() {
+        const { user, menu, engines, manual, campaignMap } = this.props;
+        const mode = this.props.sider.collapsed ?
+            'vertical' :
+            "inline";
+        const menuClz = classNames( { menu: true, collapsed: this.props.sider.collapsed } )
+        const enginesChild = engines.map( ( id, ind ) => {
+            const index = ind + 1
+            if ( id ) {
+                return (
+                    <Item key={"engine_" + index}>
+                        <a href="">
+                            {index}号引擎：{campaignMap[id].typeName}策略
+                        </a>
+                    </Item>
+                )
+            } else {
+                return (
+                    <Item key={"engine_" + index}>
+                        <a href="">
+                                {index}号引擎：<Button size="small">未启动</Button>
+                        </a>
+                    </Item>
+                )
+            }
+        } )
+        const manualChild = manual.map( ( id, ind ) => {
+            return (
+                <Item key={"manual_" + id}>
+                    <a href="">
+                        {campaignMap[id].title}
+                    </a>
+                </Item>
+            )
+        } )
         return (
             <Menu
                 onClick={this.handleClick}
@@ -32,10 +76,14 @@ export default class MenuEX extends React.Component {
                 </Item>
                 <SubMenu
                     key="auto"
-                    title={< span > <Icon type="zhinengtuiguang"/> < span className = 'menu-title' > 智能推广 < /span> </span >}></SubMenu>
+                    title={< span > <Icon type="zhinengtuiguang"/> < span className = 'menu-title' > 智能推广 < /span> </span >}>
+                    {enginesChild}
+                    </SubMenu>
                 <SubMenu
                     key="manual"
-                    title={< span > <Icon type="shoudongtuiguang"/> < span className = 'menu-title' > 手动推广 < /span></span >}></SubMenu>
+                    title={< span > <Icon type="shoudongtuiguang"/> < span className = 'menu-title' > 手动推广 < /span></span >}>
+                        {manualChild}
+                    </SubMenu>
                 <Item key="smart">
                     <Icon type="jinnang"/>
                     <span className='menu-title'>锦囊服务</span>

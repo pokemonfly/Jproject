@@ -4,10 +4,8 @@ import moment from 'moment'
 import { versionNameMap } from '../utils/constant'
 export const REQ_USER_INFO = 'REQ_USER_INFO'
 export const RES_USER_INFO = 'RES_USER_INFO'
-export const REQ_CAMPAIGN_INFO = 'REQ_CAMPAIGN_INFO'
-export const RES_CAMPAIGN_INFO = 'RES_CAMPAIGN_INFO'
 
-export const reqUserInfo = ( ) => {
+export const reqUserInfo = () => {
     return {
         type: REQ_USER_INFO,
         data: {
@@ -19,23 +17,24 @@ export const resUserInfo = ( data ) => {
     return { type: RES_USER_INFO, data }
 }
 
-export function fetchUserInfo( ) {
+export function fetchUserInfo() {
     return dispatch => {
-        dispatch(reqUserInfo( ))
-        return ajax({
+        dispatch( reqUserInfo() )
+        return ajax( {
             api: '/sources/users.mock',
             format: json => {
                 let obj = json.data.users
-                obj.versionName = versionNameMap[obj.versionNum] || '未知'
-                obj.expireDate = moment( obj.expireDate ).format( 'YYYY-MM-DD' );
+                obj.versionName = versionNameMap[ obj.versionNum ] || '未知'
+                obj.expireDate = moment( obj.expireDate )
+                    .format( 'YYYY-MM-DD' );
                 return obj;
             },
-            success: data => dispatch(resUserInfo( data )),
+            success: data => dispatch( resUserInfo( data ) ),
             error: err => console.error( err )
-        })
+        } )
     }
 }
-export function fetchCampaignInfo( ) {}
+
 
 export default function userBaseReducer( state = {}, action ) {
     switch ( action.type ) {

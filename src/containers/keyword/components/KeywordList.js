@@ -1,9 +1,10 @@
 import React, { PropTypes } from 'react';
+import { bindActionCreators } from 'redux';
 import { Radio, Tabs, Button, Table } from 'antd';
 import { connect } from 'react-redux'
 import KeywordFilter from './KeywordFilter'
 import Icon from '../../shared/Icon'
-import { fetchKeywordList } from '../KeywordRedux'
+import { fetchKeywordList, keywordTableChange } from './KeywordListRedux'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -11,52 +12,81 @@ const rowSelection = {
     onChange: ( selectedRowKeys, selectedRows ) => {
         console.log( `selectedRowKeys: ${ selectedRowKeys }`, 'selectedRows: ', selectedRows );
     },
-    getCheckboxProps: record => ({
+    getCheckboxProps: record => ( {
         disabled: record.name === 'Disabled User'
-    })
+    } )
 };
-const columns = [
-    {
-        title: 'Name',
-        dataIndex: 'name',
-        render: text => <a href="#">{text}</a>
-    }, {
-        title: 'Age',
-        dataIndex: 'age'
-    }, {
-        title: 'Address',
-        dataIndex: 'address'
-    }
-];
-@connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword }))
+
+@connect( state => ( { user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, view: state.keyword.keywordView } ),
+    dispatch => ( bindActionCreators( {
+        keywordTableChange,
+        fetchKeywordList
+    }, dispatch ) ) )
 export default class KeywordList extends React.Component {
-    componentWillMount( ) {
-        this.props.dispatch(fetchKeywordList( ));
+    componentWillMount() {
+        this.props.fetchKeywordList();
     }
-    render( ) {
-        const data = [
+    getTableCols() {
+        const { sorter } = this.props.keyword
+        let cols = [
             {
-                key: '1',
-                name: 'John Brown',
-                age: 32,
-                address: 'New York No. 1 Lake Park'
+                title: '关键词',
+                dataIndex: 'word',
+                width: 200,
+                render: text => <a href="#">{text}</a>
             }, {
-                key: '2',
-                name: 'Jim Green',
-                age: 42,
-                address: 'London No. 1 Lake Park'
+                title: 'PC出价',
+                dataIndex: 'maxPrice',
+                render: text => <span>{text / 100}元</span>
             }, {
-                key: '3',
-                name: 'Joe Black',
-                age: 32,
-                address: 'Sidney No. 1 Lake Park'
+                title: '移动出价',
+                dataIndex: 'maxMobilePrice',
+                render: text => <span>{text / 100}元</span>
             }, {
-                key: '4',
-                name: 'Disabled User',
-                age: 99,
-                address: 'Sidney No. 1 Lake Park'
+                title: '抢排名',
+                dataIndex: ''
+            }, {
+                title: '实时排名',
+                dataIndex: '',
+                sorter: ( a, b ) => a.age - b.age,
+                sortOrder: sorter.columnKey === 'age' && sorter.order,
+            }, {
+                title: 'PC质量分',
+                dataIndex: '',
+                sorter: ( a, b ) => a.age - b.age,
+                sortOrder: sorter.columnKey === 'age' && sorter.order,
+            }, {
+                title: '移动质量分',
+                dataIndex: '',
+                sorter: ( a, b ) => a.age - b.age,
+                sortOrder: sorter.columnKey === 'age' && sorter.order,
             }
         ];
+
+        cols.push( {
+            title: '优化方式',
+
+            render: val => {
+
+            }
+        } )
+        return cols;
+    }
+    getTableData() {
+        const { keywords, keywordMap } = this.props.keyword;
+        const { filters } = this.props.view;
+        let arr = []
+        if ( keywords ) {
+            arr = keywords.map( id => keywordMap[ id ] )
+            if ( filters ) {
+                for ( let f in filters ) {
+                    arr = arr.filter( f.bind( null, f.key ) )
+                }
+            }
+        }
+        return arr
+    }
+    render() {
         return (
             <div className="keyword-list">
                 <div>
@@ -71,7 +101,9 @@ export default class KeywordList extends React.Component {
                     <Button>细分数据</Button>
                     <KeywordFilter onSetFilter/>
                 </div>
-                <Table dataSource={data} rowSelection={rowSelection} columns={columns}></Table>
+                <Table dataSource={this.getTableData()} rowSelection={rowSelection} columns={this.getTableCols()}
+                    pagination={false}
+                    onChange={this.props.keywordTableChange}></Table>
             </div>
         );
     }

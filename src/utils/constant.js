@@ -11,3 +11,18 @@ export const versionNameMap = {
     8: 'VIP大客户',
     9: '快车托管'
 }
+
+export const getEngineType = ( type ) => {
+    switch ( type ) {
+        case 0:
+            return '长尾'
+        case 1:
+            return '加力'
+        case 2:
+            return '无线'
+        case 6:
+            return 'ROI'
+        default:
+            return '未知'
+    }
+}

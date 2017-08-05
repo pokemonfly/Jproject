@@ -1,21 +1,25 @@
 import React, { Component, PropTypes } from 'react';
+import { bindActionCreators } from 'redux';
 import KeywordList from './KeywordList'
 import { Tabs, Button, Input, Dropdown, Icon } from 'antd';
+import { connect } from 'react-redux'
+import { filterKeywordName } from './KeywordViewRedux'
 import Search from '../../shared/Search'
 import './KeywordView.less'
 const { TabPane } = Tabs
 
+@connect( state => ( { user: state.user, keyword: state.keyword.keywordView } ), dispatch => ( bindActionCreators( {
+    filterKeywordName
+}, dispatch ) ) )
 export default class KeywordView extends React.Component {
-    render( ) {
+    render() {
         const tabBarContent = (
             <div className="keyword-float-panel">
                 <Search
                     placeholder="请输入关键词"
                     id="keywordFilter"
                     className="keyword-search"
-                    onSearch={value => {
-                    console.log( value )
-                }}
+                    onSearch={this.props.filterKeywordName}
                     suffix=''/>
                 <Dropdown overlay={< div > 更多数据的下拉框组件 < /div>} trigger={[ 'click' ]}>
                     <Button>
