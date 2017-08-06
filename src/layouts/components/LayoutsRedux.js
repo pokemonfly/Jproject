@@ -25,7 +25,7 @@ export const resEnginesInfo = ( data ) => {
         type: RES_ENGINES_INFO,
         data: {
             engines: data.result.engines,
-            // 瀹為檯涓奻etchCampaignInfo閮芥嬁鍒颁簡
+            // 实际上fetchCampaignInfo都拿到了
             // campaign: data.entities.campaign,
             isFetching: false
         }
@@ -88,7 +88,7 @@ export function fetchCampaignInfo() {
                 obj = normalize( data, {
                     campaigns: [ campaign ],
                 } );
-                // 鎵嬪姩璁″垝
+                // 手动计划
                 obj.manual = data.campaigns.filter( obj => !obj.isMandate )
                     .map( obj => obj.campaignId )
                 return obj;
