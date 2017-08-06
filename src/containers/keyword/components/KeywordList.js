@@ -80,7 +80,8 @@ export default class KeywordList extends React.Component {
             arr = keywords.map( id => keywordMap[ id ] )
             if ( filters ) {
                 for ( let f in filters ) {
-                    arr = arr.filter( f.bind( null, f.key ) )
+                    let o = filters[ f ];
+                    arr = arr.filter( o.fn.bind( null, o.type, o.key ) )
                 }
             }
         }

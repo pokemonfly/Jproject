@@ -1,6 +1,7 @@
 import ajax from '../../utils/ajax'
 import { normalize, schema } from 'normalizr'
 import { getEngineType } from '@/utils/constant'
+import { union, omit } from 'lodash'
 const { Entity } = schema;
 
 export const SIDER_TOGGLE = 'SIDER_TOGGLE'
@@ -25,8 +26,8 @@ export const resEnginesInfo = ( data ) => {
         type: RES_ENGINES_INFO,
         data: {
             engines: data.result.engines,
-            // ʵ����fetchCampaignInfo���õ���
-            // campaign: data.entities.campaign,
+            // 虽然fetchCampaignInfo都拿到了，因为是异步的所以这里也要有,最后合并
+            campaignMap: data.entities.campaign,
             isFetching: false
         }
     }
@@ -88,7 +89,6 @@ export function fetchCampaignInfo() {
                 obj = normalize( data, {
                     campaigns: [ campaign ],
                 } );
-                // �ֶ��ƻ�
                 obj.manual = data.campaigns.filter( obj => !obj.isMandate )
                     .map( obj => obj.campaignId )
                 return obj;
@@ -125,7 +125,11 @@ export default function layoutReducer( state = defaultState, action ) {
         case RES_CAMPAIGN_INFO:
             return {
                 ...state,
-                ...action.data
+                ...omit( action.data, 'campaignMap' ),
+                campaignMap: {
+                    ...state.campaignMap,
+                    ...action.data.campaignMap
+                }
             }
         default:
             return state
