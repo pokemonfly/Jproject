@@ -18,76 +18,67 @@ const webpackConfig = {
     target: 'web',
     devtool: config.compiler_devtool,
     resolve: {
-        root: paths.client(),
+        root: paths.client( ),
         alias: {
-            '@': paths.client()
+            '@': paths.client( )
         },
         extensions: [ '', '.js', '.jsx', '.json' ]
     },
     module: {}
 }
-// ------------------------------------
-// Entry Points
-// ------------------------------------
+// ------------------------------------ Entry Points ------------------------------------
 const APP_ENTRY = paths.client( 'app.js' )
 
 webpackConfig.entry = {
-    app: __DEV__ ? [ APP_ENTRY ].concat( `webpack-hot-middleware/client?path=${ config.compiler_public_path }__webpack_hmr` ) : [ APP_ENTRY ],
+    app: __DEV__
+        ? [ APP_ENTRY ].concat( `webpack-hot-middleware/client?path=${ config.compiler_public_path }__webpack_hmr` )
+        : [APP_ENTRY],
     vendor: config.compiler_vendors
 }
 
-// ------------------------------------
-// Bundle Output
-// ------------------------------------
+// ------------------------------------ Bundle Output ------------------------------------
 webpackConfig.output = {
     filename: `[name].[${ config.compiler_hash_type }].js`,
     chunkFilename: '[name].[chunkhash:8].js',
-    path: paths.dist(),
+    path: paths.dist( ),
     publicPath: config.compiler_public_path
 }
 
-// ------------------------------------
-// Plugins
-// ------------------------------------
+// ------------------------------------ Plugins ------------------------------------
 webpackConfig.plugins = [
     new webpack.DefinePlugin( config.globals ),
-    new HtmlWebpackPlugin( {
-        template: paths.client( 'index.html' ),
-        hash: false,
-        //TODO 临时注掉
-        // favicon: paths.client('static/favicon.ico'),
+    new HtmlWebpackPlugin({
+        template: paths.client( 'index.html' ), hash: false,
+        //TODO 临时注掉 favicon: paths.client('static/favicon.ico'),
         filename: 'index.html',
         inject: 'body',
         minify: {
             collapseWhitespace: true
         }
-    } )
+    })
 ]
 
 if ( __DEV__ ) {
     debug( 'Enable plugins for live development (HMR, NoErrors).' )
-    webpackConfig.plugins.push( new webpack.HotModuleReplacementPlugin(), new webpack.NoErrorsPlugin() )
+    webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin( ), new webpack.NoErrorsPlugin( ))
 } else if ( __PROD__ ) {
     debug( 'Enable plugins for production (OccurenceOrder, Dedupe & UglifyJS).' )
-    webpackConfig.plugins.push( new webpack.optimize.OccurrenceOrderPlugin(), new webpack.optimize.DedupePlugin(), new webpack.optimize.UglifyJsPlugin( {
+    webpackConfig.plugins.push(new webpack.optimize.OccurrenceOrderPlugin( ), new webpack.optimize.DedupePlugin( ), new webpack.optimize.UglifyJsPlugin({
         compress: {
             unused: true,
             dead_code: true,
             warnings: false
         }
-    } ) )
+    }))
 }
 
 // Don't split bundles during testing, since we only want import one bundle
 if ( !__TEST__ ) {
     //提取所有的公共模块
-    webpackConfig.plugins.push( new webpack.optimize.CommonsChunkPlugin( { names: [ 'vendor' ] } ) )
+    webpackConfig.plugins.push(new webpack.optimize.CommonsChunkPlugin({names: [ 'vendor' ]}))
 }
 
-// ------------------------------------
-// Loaders
-// ------------------------------------
-// JavaScript / JSON
+// ------------------------------------ Loaders ------------------------------------ JavaScript / JSON
 webpackConfig.module.loaders = [
     {
         test: /\.(js|jsx)$/,
@@ -100,42 +91,38 @@ webpackConfig.module.loaders = [
     }
 ]
 
-// ------------------------------------
-// Style Loaders
-// ------------------------------------
-// We use cssnano with the postcss loader, so we tell
-// css-loader not to duplicate minimization.
-// add &module 应用css模块
+// ------------------------------------ Style Loaders ------------------------------------ We use cssnano with the postcss loader, so we
+// tell css-loader not to duplicate minimization. add &module 应用css模块
 const BASE_CSS_LOADER = 'css?sourceMap&-minimize'
 
 let theme = {};
-if ( pkg.theme && typeof ( pkg.theme ) === 'string' ) {
+if ( pkg.theme && typeof( pkg.theme ) === 'string' ) {
     let cfgPath = pkg.theme;
     // relative path
     if ( cfgPath.charAt( 0 ) === '.' ) {
         cfgPath = resolve( './', cfgPath );
     }
     const getThemeConfig = require( cfgPath );
-    theme = getThemeConfig();
-} else if ( pkg.theme && typeof ( pkg.theme ) === 'object' ) {
+    theme = getThemeConfig( );
+} else if ( pkg.theme && typeof( pkg.theme ) === 'object' ) {
     theme = pkg.theme;
 }
-webpackConfig.module.loaders.push( {
+webpackConfig.module.loaders.push({
     test: /\.scss$/,
     exclude: null,
     loaders: [ 'style', BASE_CSS_LOADER, 'postcss', 'sass?sourceMap' ]
-} )
-webpackConfig.module.loaders.push( {
+})
+webpackConfig.module.loaders.push({
     test: /\.less$/,
     exclude: null,
-    loaders: [ 'style', BASE_CSS_LOADER, 'postcss', `less-loader?{"sourceMap":true,"modifyVars":${JSON.stringify(theme)}}` ]
-} )
+    loaders: [ 'style', BASE_CSS_LOADER, 'postcss', `less-loader?{"sourceMap":true,"modifyVars":${ JSON.stringify( theme ) }}` ]
+})
 
-webpackConfig.module.loaders.push( {
+webpackConfig.module.loaders.push({
     test: /\.css$/,
     exclude: null,
     loaders: [ 'style', BASE_CSS_LOADER, 'postcss' ]
-} )
+})
 
 webpackConfig.sassLoader = {
     includePaths: paths.client( 'styles' )
@@ -144,25 +131,25 @@ webpackConfig.lessLoader = {
     includePaths: paths.client( 'styles' )
 }
 
-webpackConfig.postcss = [ cssnano( {
-    autoprefixer: {
-        add: true,
-        remove: true,
-        browsers: [ 'last 2 versions' ]
-    },
-    discardComments: {
-        removeAll: true
-    },
-    discardUnused: false,
-    mergeIdents: false,
-    reduceIdents: false,
-    safe: true,
-    sourcemap: true
-} ) ]
+webpackConfig.postcss = [cssnano({
+        autoprefixer: {
+            add: true,
+            remove: true,
+            browsers: [ 'last 2 versions' ]
+        },
+        discardComments: {
+            removeAll: true
+        },
+        discardUnused: false,
+        mergeIdents: false,
+        reduceIdents: false,
+        safe: true,
+        sourcemap: true
+    })]
 
 // File loaders
 /* eslint-disable */
-webpackConfig.module.loaders.push( {
+webpackConfig.module.loaders.push({
     test: /\.woff(\?.*)?$/,
     loader: 'url?prefix=fonts/&name=[hash:base64:20].[ext]&limit=10000&mimetype=application/font-woff'
 }, {
@@ -183,26 +170,22 @@ webpackConfig.module.loaders.push( {
 }, {
     test: /\.(png|jpg|gif)$/,
     loader: 'url?limit=8192'
-} )
+})
 /* eslint-enable */
 
-// ------------------------------------
-// Finalize Configuration
-// ------------------------------------
-// when we don't know the public path (we know it only when HMR is enabled [in development]) we
-// need to use the extractTextPlugin to fix this issue:
+// ------------------------------------ Finalize Configuration ------------------------------------ when we don't know the public path (we
+// know it only when HMR is enabled [in development]) we need to use the extractTextPlugin to fix this issue:
 // http://stackoverflow.com/questions/34133808/webpack-ots-parsing-error-loading-fonts/34133809#34133809
 if ( !__DEV__ ) {
     debug( 'Apply ExtractTextPlugin to CSS loaders.' )
-    webpackConfig.module.loaders.filter( ( loader ) => loader.loaders && loader.loaders.find( ( name ) => /css/.test( name.split( '?' )[ 0 ] ) ) )
-        .forEach( ( loader ) => {
-            const first = loader.loaders[ 0 ]
-            const rest = loader.loaders.slice( 1 )
-            loader.loader = ExtractTextPlugin.extract( first, rest.join( '!' ) )
-            delete loader.loaders
-        } )
+    webpackConfig.module.loaders.filter(( loader ) => loader.loaders && loader.loaders.find(( name ) => /css/.test( name.split( '?' )[ 0 ]))).forEach(( loader ) => {
+        const first = loader.loaders[0]
+        const rest = loader.loaders.slice( 1 )
+        loader.loader = ExtractTextPlugin.extract(first, rest.join( '!' ))
+        delete loader.loaders
+    })
 
-    webpackConfig.plugins.push( new ExtractTextPlugin( '[contenthash].css', { allChunks: true } ) )
+    webpackConfig.plugins.push(new ExtractTextPlugin('[contenthash].css', { allChunks: true }))
 }
 
 module.exports = webpackConfig

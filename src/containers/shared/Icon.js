@@ -7,15 +7,17 @@ const Icon = ( props ) => {
     const {
         type,
         className = '',
-        spin
+        spin,
+        size
     } = props;
 
     let classString = classNames( {
         iconfont: true,
         'anticon-spin': !!spin,
-        [ `icon-${ type }` ]: true
+        [ `icon-${ type }` ]: true,
+        'iconfont-small': size == 'small'
     }, className )
 
-    return <i {...omit(props, ['spin', 'type'])} className={classString}></i>
+    return <i {...omit(props, ['spin', 'type', 'size'])} className={classString}></i>
 }
 export default Icon;

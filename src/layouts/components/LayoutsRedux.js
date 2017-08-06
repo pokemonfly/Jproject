@@ -1,6 +1,7 @@
 import ajax from '../../utils/ajax'
 import { normalize, schema } from 'normalizr'
-import { getEngineType } from '@/utils/constant'
+import { getEngineType } from '@/utils/constants'
+import { union, omit } from 'lodash'
 const { Entity } = schema;
 
 export const SIDER_TOGGLE = 'SIDER_TOGGLE'
@@ -9,10 +10,10 @@ export const RES_ENGINES_INFO = 'RES_ENGINES_INFO'
 export const REQ_CAMPAIGN_INFO = 'REQ_CAMPAIGN_INFO'
 export const RES_CAMPAIGN_INFO = 'RES_CAMPAIGN_INFO'
 
-export function toggleSider() {
+export function toggleSider( ) {
     return { type: SIDER_TOGGLE }
 }
-export const reqEnginesInfo = () => {
+export const reqEnginesInfo = ( ) => {
     return {
         type: REQ_ENGINES_INFO,
         data: {
@@ -25,40 +26,37 @@ export const resEnginesInfo = ( data ) => {
         type: RES_ENGINES_INFO,
         data: {
             engines: data.result.engines,
-            // ʵ����fetchCampaignInfo���õ���
-            // campaign: data.entities.campaign,
+            // 虽然fetchCampaignInfo都拿到了，因为是异步的所以这里也要有,最后合并
+            campaignMap: data.entities.campaign,
             isFetching: false
         }
     }
 }
-const campaign = new Entity( 'campaign', {}, {
+const campaign = new Entity('campaign', {}, {
     idAttribute: 'campaignId',
-    processStrategy: ( obj ) => ( {
+    processStrategy: ( obj ) => ({
         ...obj,
         typeName: getEngineType( obj.type )
-    } )
-} );
+    })
+});
 
-export function fetchEnginesInfo() {
+export function fetchEnginesInfo( ) {
     return dispatch => {
-        dispatch( reqEnginesInfo() )
-        return ajax( {
+        dispatch(reqEnginesInfo( ))
+        return ajax({
             api: '/sources/users/engines.mock',
             format: json => {
                 let obj;
-                obj = normalize( json.data, {
-                    engines: [ campaign ],
-                } );
+                obj = normalize(json.data, {engines: [ campaign ]});
                 return obj;
             },
-            success: data => dispatch( resEnginesInfo( data ) ),
+            success: data => dispatch(resEnginesInfo( data )),
             error: err => console.error( err )
-        } )
+        })
     }
 }
 
-
-export const reqCampaignInfo = () => {
+export const reqCampaignInfo = ( ) => {
     return {
         type: REQ_CAMPAIGN_INFO,
         data: {
@@ -77,25 +75,21 @@ export const resCampaignInfo = ( data ) => {
     }
 }
 
-export function fetchCampaignInfo() {
+export function fetchCampaignInfo( ) {
     return dispatch => {
-        dispatch( reqCampaignInfo() )
-        return ajax( {
+        dispatch(reqCampaignInfo( ))
+        return ajax({
             api: '/sources/campaign.mock',
             format: json => {
                 const { data } = json;
                 let obj;
-                obj = normalize( data, {
-                    campaigns: [ campaign ],
-                } );
-                // �ֶ��ƻ�
-                obj.manual = data.campaigns.filter( obj => !obj.isMandate )
-                    .map( obj => obj.campaignId )
+                obj = normalize(data, {campaigns: [ campaign ]});
+                obj.manual = data.campaigns.filter( obj => !obj.isMandate ).map( obj => obj.campaignId )
                 return obj;
             },
-            success: data => dispatch( resCampaignInfo( data ) ),
+            success: data => dispatch(resCampaignInfo( data )),
             error: err => console.error( err )
-        } )
+        })
     }
 }
 
@@ -125,7 +119,11 @@ export default function layoutReducer( state = defaultState, action ) {
         case RES_CAMPAIGN_INFO:
             return {
                 ...state,
-                ...action.data
+                ...omit( action.data, 'campaignMap' ),
+                campaignMap: {
+                    ...state.campaignMap,
+                    ...action.data.campaignMap
+                }
             }
         default:
             return state

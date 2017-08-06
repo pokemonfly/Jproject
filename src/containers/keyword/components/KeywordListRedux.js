@@ -7,7 +7,7 @@ const { Entity } = schema;
 export const REQ_KEYWORD_LIST = 'REQ_KEYWORD_LIST'
 export const RES_KEYWORD_LIST = 'RES_KEYWORD_LIST'
 export const KEYWORD_TABLE_CHANGE = 'KEYWORD_TABLE_CHANGE'
-export const reqKeywordList = () => {
+export const reqKeywordList = ( ) => {
     return {
         type: REQ_KEYWORD_LIST,
         data: {
@@ -19,22 +19,22 @@ export const resKeywordList = ( data ) => {
     return {
         type: RES_KEYWORD_LIST,
         data: {
-            ...omit( data.result, [ 'mobileAutoGrabStatusMap', 'mobileStatusMap', 'pcAutoGrabStatusMap', 'pcStatusMap', 'strategy' ] ),
+            ...omit(data.result, [ 'mobileAutoGrabStatusMap', 'mobileStatusMap', 'pcAutoGrabStatusMap', 'pcStatusMap', 'strategy' ]),
             keywordMap: data.entities.keyword,
             isFetching: false
         }
     }
 }
-export const keywordTableChange = ( pagination, filters, sorter ) => ( {
+export const keywordTableChange = ( pagination, filters, sorter ) => ({
     type: KEYWORD_TABLE_CHANGE,
     data: {
         pagination,
         filters,
         sorter
     }
-} )
+})
 
-const keyword = new Entity( 'keyword', {}, {
+const keyword = new Entity('keyword', {}, {
     idAttribute: 'keywordId',
     processStrategy: ( obj, parent ) => {
         return {
@@ -45,36 +45,35 @@ const keyword = new Entity( 'keyword', {}, {
             wordBase: obj.wordBase,
             wordscorelist: obj.wordscorelist,
             grab: {
-                mobileAuto: parent.mobileAutoGrabStatusMap[ obj.keywordId ],
-                mobile: parent.mobileStatusMap[ obj.keywordId ],
-                pcAuto: parent.pcAutoGrabStatusMap[ obj.keywordId ],
-                pc: parent.pcStatusMap[ obj.keywordId ],
+                mobileAuto: parent.mobileAutoGrabStatusMap[obj.keywordId],
+                mobile: parent.mobileStatusMap[obj.keywordId],
+                pcAuto: parent.pcAutoGrabStatusMap[obj.keywordId],
+                pc: parent.pcStatusMap[obj.keywordId]
             }
         }
     }
-} );
+});
 
-export function fetchKeywordList() {
+export function fetchKeywordList( ) {
     return dispatch => {
-        dispatch( reqKeywordList() )
-        return ajax( {
+        dispatch(reqKeywordList( ))
+        return ajax({
             api: '/sources/keywords.mock',
             format: json => {
                 let obj;
-                obj = normalize( json.data, {
-                    keywords: [ keyword ],
-                } );
+                obj = normalize(json.data, {keywords: [ keyword ]});
                 return obj;
             },
-            success: data => dispatch( resKeywordList( data ) ),
+            success: data => dispatch(resKeywordList( data )),
             error: err => console.error( err )
-        } )
+        })
     }
 }
 const defaultState = {
     pagination: {},
     filters: {},
-    sorter: {}
+    sorter: {},
+    adgroup: {}
 }
 export default function keywordReducer( state = defaultState, action ) {
     switch ( action.type ) {
@@ -86,8 +85,7 @@ export default function keywordReducer( state = defaultState, action ) {
                 ...action.data
             }
 
-            // return {
-            //     ...state,
+            // return {     ...state,
             //
             // }
         default:

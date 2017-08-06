@@ -3,13 +3,13 @@ import { bindActionCreators } from 'redux';
 import KeywordList from './KeywordList'
 import { Tabs, Button, Input, Dropdown, Icon } from 'antd';
 import { connect } from 'react-redux'
-import { filterKeywordName } from './KeywordViewRedux'
+import { filterKeywordWord } from './KeywordViewRedux'
 import Search from '../../shared/Search'
 import './KeywordView.less'
 const { TabPane } = Tabs
 
 @connect( state => ( { user: state.user, keyword: state.keyword.keywordView } ), dispatch => ( bindActionCreators( {
-    filterKeywordName
+    filterKeywordWord
 }, dispatch ) ) )
 export default class KeywordView extends React.Component {
     render() {
@@ -19,7 +19,7 @@ export default class KeywordView extends React.Component {
                     placeholder="请输入关键词"
                     id="keywordFilter"
                     className="keyword-search"
-                    onSearch={this.props.filterKeywordName}
+                    onSearch={this.props.filterKeywordWord}
                     suffix=''/>
                 <Dropdown overlay={< div > 更多数据的下拉框组件 < /div>} trigger={[ 'click' ]}>
                     <Button>
