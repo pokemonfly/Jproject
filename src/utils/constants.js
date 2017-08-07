@@ -29,7 +29,8 @@ export const getEngineType = ( type ) => {
 
 export const grabRankStatusMap = {
     '-1': {
-        title: '抢排名',
+        // 抢PC  抢无限
+        title: '抢',
         type: 'btn'
     },
     0: {
@@ -37,7 +38,7 @@ export const grabRankStatusMap = {
         type: 'link'
     },
     1: {
-        title: '正在抢排名',
+        title: '正在抢',
         type: 'link',
         className: 'success'
     },
@@ -47,28 +48,23 @@ export const grabRankStatusMap = {
         className: 'success'
     },
     3: {
-        title: '抢排名失败',
+        title: '抢失败',
         type: 'link',
         className: 'error'
     },
     4: {
-        title: '暂停抢排名',
+        title: '暂停抢',
         type: 'link',
         className: 'warning'
     },
     5: {
-        title: '暂停抢排名',
+        title: '暂停抢',
         type: 'link',
         className: 'warning'
     },
-    9: {
-        title: '体验结束',
-        type: 'link',
-        className: 'warning'
-    },
-    // 非后端定义的类型
+    // 9: {     title: '体验结束',     type: 'link',     className: 'warning' }, 非后端定义的类型
     11: {
-        title: '手动抢排名',
+        title: '手动抢',
         type: 'link',
         className: 'warning'
     }
