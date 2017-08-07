@@ -2,19 +2,16 @@ import Frame from '../layouts/Frame';
 import Home from '../containers/Home/index';
 import Todo from '../containers/Todo/index';
 import Root from '../containers/Root/index';
-import Keyword from '../containers/Keyword/index';
+import Keyword from '../containers/keyword/index';
 
-export const createRoutes = ( store ) => ( {
+export const createRoutes = ( store ) => ({
     path: '/',
     component: Frame,
     indexRoute: Home( store ),
     childRoutes: [
-         Todo( store ),
-         Root( store ),
-         Keyword( store ),
-        //   PageNotFound(),
-        //   Redirect
+        Todo( store ), Root( store ), Keyword( store ),
+        //   PageNotFound(),   Redirect
     ]
-} )
+})
 
 export default createRoutes

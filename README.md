@@ -6,6 +6,7 @@
 - ANTD
 - lodash
 - normalizr
+- react-sortable-hoc  列表拖动
 - redux-form 表单自动绑定
 - .....
 
@@ -55,3 +56,6 @@
 #todos
 *按需加载
 *mock
+
+# 参考
+- https://github.com/wangtao0101/react-virtualized-transfer

@@ -1,23 +1,63 @@
 @import 'constants';
-
 .hide {
     display: none;
 }
 // 表格hover显示
-
 .table-row-hover {
     .show-on-row-hover {
         display: none;
     }
-
     tr:hover .show-on-row-hover {
         display: inline-block;
     }
 }
 // 表格的修改笔站位
-
 .table-edit-icon {
-    width: 24px;
+    width  : 24px;
     display: inline-block;
-    color: @primary-color;
+    color  : @primary-color;
+}
+// 弹窗之类浮动面板的边框
+.float-panel {
+    position        : relative;
+    border          : 1px solid #fff;
+    outline         : none;
+    background-color: #fff;
+    border-radius   : 4px;
+    box-shadow      : 0 1px 6px rgba(0,0,0,.2);
+    background-clip : padding-box;
+}
+// 覆盖默认浏览器的样式
+::-webkit-scrollbar,
+::-webkit-scrollbar-button:end:decrement,
+::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:start:increment {
+    width  : 9px;
+    height : 9px;
+    display: none;
+}
+::-webkit-scrollbar,
+::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:start:decrement {
+    display: block;
+}
+::-webkit-scrollbar-track {
+    border-radius: 4.5px;
+    background   : rgba(0, 0, 0, .15);
+    :disabled {
+        display: none;
+    }
+}
+::-webkit-scrollbar-thumb {
+    border-radius     : 4.5px;
+    background        : rgba(0, 0, 0, .25);
+    border            : 1px inset rgba(0, 0, 0, .15);
+    -webkit-transition: background-color 2.5s linear;
+}
+:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .35);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, .55);
 }

@@ -20,6 +20,8 @@ module.exports = ( ) => {
         'layout-sider-background': '#fff',
         // link
         'link-color': '#51b95b',
+        // Border color
+        "border-color-base": "#d9d9d9",
         // avatar
         'avatar-size-lg': '60px',
         'avatar-size-base': '30px'

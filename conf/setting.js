@@ -6,15 +6,11 @@ const ip = require( 'ip' )
 
 debug( 'Creating default configuration.' )
 
-// ========================================================
-// Default Configuration
-// ========================================================
+// ======================================================== Default Configuration ========================================================
 const config = {
     env: process.env.NODE_ENV || 'development',
 
-    // ----------------------------------
-    // Project Structure
-    // ----------------------------------
+    // ---------------------------------- Project Structure ----------------------------------
     path_base: path.resolve( __dirname, '..' ),
     dir_client: 'src',
     dir_dist: 'dist',
@@ -22,22 +18,19 @@ const config = {
     dir_test: 'tests',
     dir_mock: 'api',
 
-    // ----------------------------------
-    // Server Configuration
-    // ----------------------------------
+    // ---------------------------------- Server Configuration ----------------------------------
     server_host: ip.address( ), // use string 'localhost' to prevent exposure on local network
     server_port: process.env.PORT || 3100,
 
     api_server: 'http://f002.quicloud.cn',
-    api_login_str: '/system/login_back.htm?userNick=tp_%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80&admin_nick=%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80:%E6%9D%A8%E6%81%BA&from=opr&platform=staticResources',
+    api_login_str: '/system/login_back.htm?userNick=tp_%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80&admin_nick=%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80:%E6%9D%A8%E6%81%BA&f' +
+            'rom=opr&platform=staticResources',
     api_server_header: {
         "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'
     },
-    // ----------------------------------
-    // Compiler Configuration
-    // ----------------------------------
+    // ---------------------------------- Compiler Configuration ----------------------------------
     compiler_babel: {
         cacheDirectory: true,
         plugins: [
@@ -52,8 +45,8 @@ const config = {
             ]
         ],
         presets: [
-            'es2015',
             'react',
+            'es2015',
             'stage-0',
             [
                 'env', {
@@ -79,9 +72,7 @@ const config = {
         'react', 'react-redux', 'react-router', 'redux'
     ],
 
-    // ----------------------------------
-    // Test Configuration
-    // ----------------------------------
+    // ---------------------------------- Test Configuration ----------------------------------
     coverage_reporters: [
         {
             type: 'text-summary'
@@ -101,10 +92,8 @@ Edit at Your Own Risk
 -------------------------------------------------
 ************************************************/
 
-// ------------------------------------
-// Environment
-// ------------------------------------
-// N.B.: globals added here must _also_ be added to .eslintrc
+// ------------------------------------ Environment ------------------------------------ N.B.: globals added here must _also_ be added to
+// .eslintrc
 config.globals = {
     'process.env': {
         'NODE_ENV': JSON.stringify( config.env )
@@ -117,9 +106,7 @@ config.globals = {
     '__BASENAME__': JSON.stringify( process.env.BASENAME || '' )
 }
 
-// ------------------------------------
-// Validate Vendor Dependencies
-// ------------------------------------
+// ------------------------------------ Validate Vendor Dependencies ------------------------------------
 const pkg = require( '../package.json' )
 
 config.compiler_vendors = config.compiler_vendors.filter(( dep ) => {
@@ -130,9 +117,7 @@ config.compiler_vendors = config.compiler_vendors.filter(( dep ) => {
        Consider removing it from compiler_vendors in ~/config/index.js` )
 })
 
-// ------------------------------------
-// Utilities
-// ------------------------------------
+// ------------------------------------ Utilities ------------------------------------
 function base( ) {
     const args = [ config.path_base ].concat([ ].slice.call( arguments ))
     return path.resolve.apply( path, args )
@@ -146,8 +131,7 @@ config.utils_paths = {
     mock: base.bind( null, config.dir_mock )
 }
 
-// ========================================================
-// Environment Configuration
+// ======================================================== Environment Configuration
 // ========================================================
 debug( `Looking for environment overrides for NODE_ENV "${ config.env }".` )
 const environments = require( './environments' )

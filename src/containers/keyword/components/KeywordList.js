@@ -14,7 +14,7 @@ import KeywordFilter from './KeywordFilter'
 import Icon from '../../shared/Icon'
 import { fetchKeywordList, keywordTableChange } from './KeywordListRedux'
 import { formatNum } from '@/utils/tools'
-import { grabRankStatusMap } from '@/utils/constants'
+import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/utils/constants'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -74,6 +74,7 @@ export default class KeywordList extends React.Component {
     }
     getTableCols( ) {
         const { sorter } = this.props.keyword
+        const { reportSort } = this.props.view;
         const { mobileDiscount } = this.props.keyword.adgroup
         let cols = [
             {
@@ -135,7 +136,9 @@ export default class KeywordList extends React.Component {
                 }
             }, {
                 title: '抢排名',
-                dataIndex: '',
+                dataIndex: 'grabPc',
+                colSpan: 2,
+                width: 60,
                 render: ( text, record ) => {
                     let { pc, pcAuto } = record.grab
                     if ( pcAuto == -1 ) {
@@ -144,7 +147,7 @@ export default class KeywordList extends React.Component {
                     if ( pcAuto == 0 && pc != 9 ) {
                         pc = 11
                     }
-                    const status = grabRankStatusMap[pc];
+                    const pcStatus = grabRankStatusPcMap[pc];
                     return (
                         <span>
                             {pcAuto != -1 && (
@@ -152,37 +155,105 @@ export default class KeywordList extends React.Component {
                                     <Icon type="qiangpaiming"/>
                                 </Tooltip>
                             )}
-                            {status.type == 'btn' && (
-                                <Button size="small">{status.title}</Button>
+                            <a href="#">{pcStatus.title}</a>
+                        </span>
+                    )
+                }
+            }, {
+                title: '抢排名',
+                dataIndex: 'grabMobile',
+                colSpan: 0,
+                width: 60,
+                render: ( text, record ) => {
+                    let { mobile, mobileAuto } = record.grab
+                    if ( mobileAuto == -1 ) {
+                        mobile = -1
+                    }
+                    if ( mobileAuto == 0 && mobile != 9 ) {
+                        mobile = 11
+                    }
+                    const mobileStatus = grabRankStatusMobileMap[mobile];
+                    return (
+                        <span>
+                            {mobileAuto != -1 && (
+                                <Tooltip title="抢排名词管理" arrowPointAtCenter>
+                                    <Icon type="qiangpaiming"/>
+                                </Tooltip>
                             )}
-                            {status.type == 'link' && (
-                                <a href="#">{status.title}</a>
-                            )}
+                            <a href="#">{mobileStatus.title}</a>
                         </span>
                     )
                 }
             }, {
                 title: '实时排名',
-                dataIndex: '',
-                sorter: ( a, b ) => a.age - b.age,
-                sortOrder: sorter.columnKey === 'age' && sorter.order
+                dataIndex: 'rank',
+                width: 90,
+                render: ( text ) => {
+                    if ( text ) {
+                        return (
+                            <span>{text}</span>
+                        )
+                    } else {
+                        return (
+                            <a href="#">查排名</a>
+                        )
+                    }
+                }
             }, {
                 title: 'PC质量分',
-                dataIndex: '',
-                sorter: ( a, b ) => a.age - b.age,
-                sortOrder: sorter.columnKey === 'age' && sorter.order
+                dataIndex: 'wordscorelist.qscore',
+                width: 90,
+                sorter: ( a, b ) => ( a.wordscorelist.qscore - b.wordscorelist.qscore ),
+                sortOrder: sorter.columnKey == 'wordscorelist.qscore' && sorter.order,
+                render: ( text ) => {
+                    return this.formatQscore( text )
+                }
             }, {
                 title: '移动质量分',
-                dataIndex: '',
-                sorter: ( a, b ) => a.age - b.age,
-                sortOrder: sorter.columnKey === 'age' && sorter.order
+                dataIndex: 'wordscorelist.wirelessQscore',
+                width: 90,
+                sorter: ( a, b ) => ( a.wordscorelist.wirelessQscore - b.wordscorelist.wirelessQscore ),
+                sortOrder: sorter.columnKey === 'wordscorelist.wirelessQscore' && sorter.order
             }
         ];
+        reportSort.forEach(key => {
+            cols.push({
+                title: keywordReports[key].name,
+                dataIndex: 'report.' + key,
+                width: 80
+            })
+        })
+
         cols.push({
             title: '优化方式',
+            width: 110,
             render: val => {}
         });
         return cols;
+    }
+    formatQscore( score ) {
+        if ( score > 0 ) {
+            return (
+                <span>{score}</span>
+            )
+        } else if ( score < 0 && score > -4 ) {
+            return (
+                <span>未投放</span>
+            )
+        } else if ( score == 0 ) {
+            return (
+                <span>-</span>
+            )
+        } else {
+            return (
+                <span>
+                    <span>?</span>
+                    <Tooltip title="淘宝接口异常，请稍候重试" arrowPointAtCenter>
+                        <Icon type="warning"/>
+                    </Tooltip>
+                </span>
+            )
+        }
     }
     getTableData( ) {
         const { keywords, keywordMap } = this.props.keyword;
