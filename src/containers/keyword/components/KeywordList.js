@@ -17,6 +17,7 @@ import Icon from '../../shared/Icon'
 import { fetchKeywordList, keywordTableChange } from './KeywordListRedux'
 import { formatNum } from '@/utils/tools'
 import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/utils/constants'
+import EditPcWordPrice from './EditPcWordPrice'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -111,9 +112,7 @@ export default class KeywordList extends React.Component {
                         <span>
                             {obj.text}
                             <span>元</span>
-                            <Trigger popup={(
-                                <span>321</span>
-                            )}>
+                            <Trigger popup={( <EditPcWordPrice/> )}>
                                 <span className="table-edit-icon">
                                     <Icon type="xiugaibi" className="show-on-row-hover"/>
                                 </span>

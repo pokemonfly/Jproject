@@ -246,3 +246,14 @@ export const keywordReports = {
 export function getKeywordDefaultReportCols( ) {
     return compact(map(keywordReports, ( a, b ) => ( a.sortNum > -1 && b )))
 }
+
+export const validator = {
+    editPrice: ( rule, value, callback ) => {
+        const price = parseFloat( value );
+        if ( price >= 0.05 && price <= 99.99 || value.length == 0 ) {
+            callback( );
+        } else {
+            callback( '建议限价最低0.05，最高99.99' )
+        }
+    }
+}

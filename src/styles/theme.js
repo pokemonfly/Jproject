@@ -24,6 +24,10 @@ module.exports = ( ) => {
         "border-color-base": "#d9d9d9",
         // avatar
         'avatar-size-lg': '60px',
-        'avatar-size-base': '30px'
+        'avatar-size-base': '30px',
+        //Form
+        'form-item-margin-bottom': '12px',
+        //自定义
+        'footer-bg-color': '#f9f9f9'
     };
 };
