@@ -4,7 +4,7 @@
             "node": 4
         }
     }]],
-    "plugins": ["transform-decorators-legacy", "transform-runtime", "lodash", ["import", {
+    "plugins": ["transform-class-properties", "transform-decorators-legacy", "transform-runtime", "lodash", ["import", {
         "libraryName": "antd",
         "style": true
     }]]
