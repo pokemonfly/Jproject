@@ -35,6 +35,7 @@ const config = {
         cacheDirectory: true,
         plugins: [
             'transform-runtime',
+            "transform-class-properties",
             'transform-decorators-legacy',
             'lodash',
             [

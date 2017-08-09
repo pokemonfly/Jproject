@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react';
+import Trigger from '@/containers/shared/Trigger';
 import { bindActionCreators } from 'redux';
 import {
     Radio,
@@ -7,7 +8,8 @@ import {
     Table,
     Tooltip,
     Dropdown,
-    Layout
+    Layout,
+    Affix
 } from 'antd';
 import { connect } from 'react-redux'
 import KeywordFilter from './KeywordFilter'
@@ -109,9 +111,13 @@ export default class KeywordList extends React.Component {
                         <span>
                             {obj.text}
                             <span>元</span>
-                            <span className="table-edit-icon">
-                                <Icon type="xiugaibi" className="show-on-row-hover"/>
-                            </span>
+                            <Trigger popup={(
+                                <span>321</span>
+                            )}>
+                                <span className="table-edit-icon">
+                                    <Icon type="xiugaibi" className="show-on-row-hover"/>
+                                </span>
+                            </Trigger>
                         </span>
                     )
                 }
@@ -289,14 +295,16 @@ export default class KeywordList extends React.Component {
                     <Button>细分数据</Button>
                     <KeywordFilter onSetFilter/>
                 </div>
-                <Table
-                    size="middle"
-                    className="table-row-hover"
-                    dataSource={this.getTableData( )}
-                    rowSelection={rowSelection}
-                    columns={this.getTableCols( )}
-                    pagination={false}
-                    onChange={this.props.keywordTableChange}></Table>
+                <Affix offsetTop={120} onChange={affixed => console.log( affixed )}>
+                    <Table
+                        size="middle"
+                        className="table-row-hover"
+                        dataSource={this.getTableData( )}
+                        rowSelection={rowSelection}
+                        columns={this.getTableCols( )}
+                        pagination={false}
+                        onChange={this.props.keywordTableChange}></Table>
+                </Affix>
             </div>
         )
     }

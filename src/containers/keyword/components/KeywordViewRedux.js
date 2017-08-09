@@ -26,12 +26,20 @@ export const filterKeywordWord = ( searchText ) => {
     }
 }
 
-export function changeReportCols( data ) {
-    return { type: UPDATE_KEYWORD_REPORT_COLS, data: data }
+export function changeReportCols( arr ) {
+    window.localStorage.setItem('KEYWORD_REPORT_COLS', JSON.stringify( arr ))
+    return { type: UPDATE_KEYWORD_REPORT_COLS, data: arr }
 }
 
 function _getDefaultReportSort( ) {
-    return getKeywordDefaultReportCols( )
+    const str = window.localStorage.getItem( 'KEYWORD_REPORT_COLS' )
+    if ( str ) {
+        return JSON.parse( str );
+    } else {
+        const arr = getKeywordDefaultReportCols( )
+        window.localStorage.setItem('KEYWORD_REPORT_COLS', JSON.stringify( arr ))
+        return arr;
+    }
 }
 const defaultState = {
     filters: {},
