@@ -1,4 +1,5 @@
 ## React 生命周期
+constructor
 componentWillMount  render之前执行1次
 componentDidMount
 

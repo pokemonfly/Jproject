@@ -9,7 +9,9 @@ import {
     Tooltip,
     Dropdown,
     Layout,
-    Affix
+    Icon as IconAntd,
+    Affix,
+    notification
 } from 'antd';
 import { connect } from 'react-redux'
 import KeywordFilter from './KeywordFilter'
@@ -17,27 +19,41 @@ import Icon from '../../shared/Icon'
 import { fetchKeywordList, keywordTableChange } from './KeywordListRedux'
 import { formatNum } from '@/utils/tools'
 import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/utils/constants'
-import EditPcWordPrice from './EditPcWordPrice'
+import EditWordPrice from './EditWordPrice'
+import ClipboardButton from 'react-clipboard.js';
+import DelKeyword from './DelKeyword'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
-const rowSelection = {
-    onChange: ( selectedRowKeys, selectedRows ) => {
-        console.log( `selectedRowKeys: ${ selectedRowKeys }`, 'selectedRows: ', selectedRows );
-    },
-    getCheckboxProps: record => ({
-        disabled: record.name === 'Disabled User'
-    })
-};
 
 @connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
     keywordTableChange,
     fetchKeywordList
 }, dispatch )))
 export default class KeywordList extends React.Component {
+    state = {
+        selectedRowKeys: [ ]
+    }
     componentWillMount( ) {
         this.props.fetchKeywordList( );
     }
+    onCheckboxChange = ( selectedRowKeys, rows ) => {
+        this.setState({ selectedRowKeys })
+    }
+    getWordForCopy = ( ) => {
+        const { selectedRowKeys } = this.state;
+        const { keywordMap } = this.props.keyword;
+        if ( selectedRowKeys.length ) {
+            return selectedRowKeys.map( id => keywordMap[id].word ).join( '\n' )
+        } else {
+            notification['error']({ message: '请选择要复制的关键词' });
+            return null;
+        }
+    }
+    onCopySuccess = ( ) => {
+        notification['success']({ message: '复制成功' });
+    }
+
     // 关键词后面的下拉按钮组
     getExtraBtnGroup({ optimizeStatus, isFocusKeyword }) {
         return (
@@ -112,7 +128,7 @@ export default class KeywordList extends React.Component {
                         <span>
                             {obj.text}
                             <span>元</span>
-                            <Trigger popup={( <EditPcWordPrice/> )}>
+                            <Trigger popup={( <EditWordPrice mode='pc'/> )}>
                                 <span className="table-edit-icon">
                                     <Icon type="xiugaibi" className="show-on-row-hover"/>
                                 </span>
@@ -133,9 +149,11 @@ export default class KeywordList extends React.Component {
                         <span>
                             {obj.text}
                             元
-                            <span className="table-edit-icon">
-                                <Icon type="xiugaibi" className="show-on-row-hover"/>
-                            </span>
+                            <Trigger popup={( <EditWordPrice mode='mobile'/> )}>
+                                <span className="table-edit-icon">
+                                    <Icon type="xiugaibi" className="show-on-row-hover"/>
+                                </span>
+                            </Trigger>
                         </span>
                     )
                 }
@@ -276,34 +294,69 @@ export default class KeywordList extends React.Component {
         return arr
     }
     render( ) {
+        const { selectedRowKeys } = this.state
+        const modeSw = (
+            <Radio.Group className="keyword-list-type">
+                <Radio.Button value="a" className="btn">
+                    <Icon type="biaogefenlie"/>
+                </Radio.Button>
+                <Radio.Button value="c" className="btn">
+                    <Icon type="biaogeshouqi"/>
+                </Radio.Button>
+            </Radio.Group>
+        )
+        const rowSelection = {
+            onChange: this.onCheckboxChange
+        };
         return (
             <div className="keyword-list">
-                <div>
-                    <Radio.Group className="keyword-list-type">
-                        <Radio.Button value="a">
-                            <Icon type="biaogefenlie"/>
-                        </Radio.Button>
-                        <Radio.Button value="c">
-                            <Icon type="biaogeshouqi"/>
-                        </Radio.Button>
-                    </Radio.Group>
-                    <Button>智能淘词</Button>
-                    <Button >
-                        指定加词
-                    </Button>
-                    <Button>细分数据</Button>
-                    <KeywordFilter onSetFilter/>
-                </div>
-                <Affix offsetTop={120} onChange={affixed => console.log( affixed )}>
-                    <Table
-                        size="middle"
-                        className="table-row-hover"
-                        dataSource={this.getTableData( )}
-                        rowSelection={rowSelection}
-                        columns={this.getTableCols( )}
-                        pagination={false}
-                        onChange={this.props.keywordTableChange}></Table>
-                </Affix>
+                {selectedRowKeys.length == 0
+                    ? (
+                        <div className="control-row">
+                            {modeSw}
+                            <Button type="primary">智能淘词</Button>
+                            <Button type="primary">指定加词</Button>
+                            <Button>细分数据</Button>
+                            <KeywordFilter onSetFilter/>
+                        </div>
+                    )
+                    : (
+                        <div className="control-row">
+                            {modeSw}
+                            <Dropdown overlay={(
+                                <div></div>
+                            )}>
+                                <Button type="primary">
+                                    改价
+                                    <IconAntd type="down"/>
+                                </Button>
+                            </Dropdown>
+                            <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}>
+                                <Button type="primary">删除关键词</Button>
+                            </DelKeyword>
+                            <Button type="primary">修改匹配方式</Button>
+                            <Button type="primary">抢排名</Button>
+                            <Button type="primary">查排名</Button>
+                            <ClipboardButton option-text={this.getWordForCopy} className="ant-btn" onSuccess={this.onCopySuccess}>复制关键词</ClipboardButton>
+                            <Button>重点关注词</Button>
+                            <Button>修改优化方式</Button>
+                            <Button>切换细分数据</Button>
+                            <div className="filter-sw">
+                                <Button type="primary">
+                                    关键词筛选
+                                    <IconAntd type="down"/>
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                <Table
+                    size="middle"
+                    className="table-row-hover"
+                    dataSource={this.getTableData( )}
+                    rowSelection={rowSelection}
+                    columns={this.getTableCols( )}
+                    pagination={false}
+                    onChange={this.props.keywordTableChange}></Table>
             </div>
         )
     }

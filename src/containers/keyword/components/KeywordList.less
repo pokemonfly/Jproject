@@ -1,13 +1,36 @@
 .keyword-extra-btn-group {
     color: @primary-color;
-
     i.iconfont {
         cursor : pointer;
         margin : 4px 8px 0;
         display: inline-block;
     }
 }
-
 .keyword-extra-btn-dropdown {
     float: right;
+}
+.keyword-list {
+    .keyword-list-type {
+        margin-right: 8px;
+        .btn {
+            padding: 0 6px;
+            &.ant-radio-button-wrapper-checked {
+                color     : #fff;
+                background: @primary-color;
+            }
+        }
+        .iconfont {
+            font-size: 12px;
+        }
+    }
+    .filter-sw {
+        float: right;
+    }
+    .control-row {
+        padding: 12px;
+        .ant-btn {
+            margin-right: 8px;
+            transition: none;
+        }
+    }
 }

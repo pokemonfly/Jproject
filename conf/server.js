@@ -53,7 +53,8 @@ if ( config.env === 'development' ) {
     app.use(bodyParser.json( ));
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use( '/sources', function ( req, res ) {
-        let url = req.url;
+        let url = req.url,
+            method = req.method;
         if ( url.indexOf( '.mock' ) > -1 ) {
             // mock 数据
             url = url.replace( /\//g, function ( a, b ) {
@@ -61,7 +62,9 @@ if ( config.env === 'development' ) {
                     ? '.'
                     : '\/'
             });
-            url = url.replace( '.mock', '.json' );
+            url = url.replace( '.mock', ( method.toLowerCase( ) != 'get'
+                ? '.' + method.toLowerCase( )
+                : '' ) + '.json' );
             debug( 'Get Local Mock Data : ' + url );
             const filename = paths.mock( ) + url;
             debug( filename );
