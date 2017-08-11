@@ -5,9 +5,9 @@
 - less
 - ANTD
 - lodash
-- normalizr
+- normalizr  
+- prop-types
 - react-sortable-hoc  列表拖动
-- redux-form 表单自动绑定
 - .....
 
 
@@ -21,7 +21,7 @@
 │  ├─assets                 项目中用到的资料文档
 │  ├─containers         容器组件
 │  │  └─shared              共通组件
-│  │      └─Icon              iconfont 组件
+│  │      └─...              组件 具体看下面
 │  │  └─xxx                xxx业务模块
 │  │      ├─components       业务表现组件
 │  │      │  └─xxxa.js                
@@ -44,6 +44,15 @@
 │  └─index.js              入口页面
 └─tests                     测试相关（预留）
 ```
+
+# shared 组件
+- DropdownButton 分裂式下拉按钮 
+- Icon 对应的iconfont （antd的Icon 也可以同时使用）
+- More 更多数据下拉
+- Search 检索框 （替换antd的Search）
+- Table （留坑）
+- Trigger 触发绝对定位弹窗组件 （替换rc-trigger）
+
 #中间件使用
 
 - thunkMiddleware： dispatch 就是通过他提供的。
@@ -51,11 +60,6 @@
 - promiseMiddleware：Promise转换中间件，把三种状态分成3中Action，非常好用。
 - afterApiMiddleware：自定义中间件，作为过滤器，处理一些通用逻辑。
 
-
-
-#todos
-*按需加载
-*mock
 
 # 参考
 - https://github.com/wangtao0101/react-virtualized-transfer

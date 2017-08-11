@@ -22,6 +22,7 @@ import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/
 import EditWordPrice from './EditWordPrice'
 import ClipboardButton from 'react-clipboard.js';
 import DelKeyword from './DelKeyword'
+import EditMultiWordPrice from './EditMultiWordPrice'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -323,14 +324,7 @@ export default class KeywordList extends React.Component {
                     : (
                         <div className="control-row">
                             {modeSw}
-                            <Dropdown overlay={(
-                                <div></div>
-                            )}>
-                                <Button type="primary">
-                                    改价
-                                    <IconAntd type="down"/>
-                                </Button>
-                            </Dropdown>
+                            <EditMultiWordPrice selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}></EditMultiWordPrice>
                             <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}>
                                 <Button type="primary">删除关键词</Button>
                             </DelKeyword>

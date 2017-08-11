@@ -8,7 +8,6 @@ export default({
     method,
     body
 }) => {
-    console.dir( body )
     return fetch(api, {
         method: method || 'GET',
         body: JSON.stringify( body ),

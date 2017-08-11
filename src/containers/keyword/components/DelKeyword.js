@@ -55,7 +55,9 @@ export default class DelKeyword extends React.Component {
                 <Form>
                     <span>删除关键词：{word}</span>
                     {never && ( optimizeStatus == 1 || optimizeStatus == 2 ) && (
-                        <FormItem>
+                        <FormItem style={{
+                            margin: 0
+                        }}>
                             {getFieldDecorator( 'isInBlackList' )(
                                 <Checkbox >不再投放此关键词</Checkbox>
                             )}

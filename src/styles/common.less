@@ -1,6 +1,6 @@
 @import 'constants';
 hr {
-    height: 0;
+    height    : 0;
     border-top: 1px dashed @border-color-base;
 }
 .hide {
@@ -30,6 +30,22 @@ hr {
     border-radius   : 4px;
     box-shadow      : 0 1px 6px rgba(0,0,0,.2);
     background-clip : padding-box;
+    padding         : 16px;
+
+    .header {
+        font-weight  : bold;
+        font-size    : 14px;
+        margin-bottom: 4px;
+    }
+    .footer {
+        padding   : 12px;
+        background: @footer-bg-color;
+        margin    : -8px -16px -16px;
+        border-top: 1px solid @border-color-base;
+        .cancel-btn {
+            margin-left: 12px;
+        }
+    }
 }
 // 覆盖默认浏览器的样式
 ::-webkit-scrollbar,

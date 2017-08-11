@@ -19,7 +19,8 @@ class TriggerHack extends Trigger {
             const target = event.target;
             const root = findDOMNode( this );
             const popupNode = this.getPopupDomNode( );
-            if (hasClass( target.offsetParent, "ant-select-dropdown" )) {
+            // TODO
+            if (target.offsetParent && hasClass( target.offsetParent, "ant-select-dropdown" )) {
                 return;
             }
             if (!contains( root, target ) && !contains( popupNode, target )) {
@@ -41,26 +42,34 @@ export default class TriggerEX extends React.Component {
             ],
             offset: [ 0, 4 ]
         },
+        width: null,
         destroyPopupOnHide: true
     }
-    state = {
-        show: false
+    constructor( props ) {
+        super( props )
+        if ( this.props.width ) {
+            this.state = {
+                popupStyle: {
+                    width: this.props.width
+                }
+            }
+        }
     }
-    onPopupVisibleChange = ( flag ) => {
-        this.setState({ show: flag })
+    setPopupVisible( flag ) {
+        this.refs.trigger.setPopupVisible( flag )
     }
     onClose = ( ) => {
-        this.onPopupVisibleChange( false )
+        this.setPopupVisible( false )
     }
     render( ) {
         const popup = React.cloneElement(this.props.popup, { onClose: this.onClose })
         return (
             <TriggerHack
-                {...omit(this.props, ['context', 'popup'])}
+                {...omit(this.props, ['context', 'popup', 'width'])}
+                {...this.state}
                 popup={popup}
-                popupVisible={this.state.show}
                 ignoreClz={[ 'ant-select-dropdown' ]}
-                onPopupVisibleChange={this.onPopupVisibleChange}>
+                ref='trigger'>
                 {this.props.children}
             </TriggerHack>
         )
