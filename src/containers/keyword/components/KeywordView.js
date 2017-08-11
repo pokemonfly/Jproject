@@ -18,7 +18,7 @@ import { keywordReports } from '@/utils/constants'
 import './KeywordView.less'
 import Trigger from '@/containers/shared/Trigger';
 import EditWordPrice from './EditWordPrice'
-import ClipboardButton from 'react-clipboard.js';
+
 const { TabPane } = Tabs
 const Option = Select.Option;
 @connect(state => ({ user: state.user, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
@@ -91,24 +91,6 @@ export default class KeywordView extends React.Component {
                     </TabPane>
                     <TabPane tab="宝贝日志" key="log">
                         <span>开发中</span>
-                        <ClipboardButton data-clipboard-text="I'll be copied">
-                            copy to clipboard
-                        </ClipboardButton>
-                        <Button type="primary" onClick={this.showModal}>Open</Button>
-                        <Modal title="Basic Modal" visible={this.state.visible} onOk={this.handleOk} onCancel={this.handleCancel}>
-                            <p>Some contents...</p>
-                            <Select defaultValue="lucy">
-                                <Option value="jack">Jack</Option>
-                                <Option value="lucy">Lucy</Option>
-                                <Option value="Yiminghe">yiminghe</Option>
-                            </Select>
-                            <Trigger popup={( <EditWordPrice/> )}>
-                                <span className="table-edit-icon">
-                                    sdfasdfasdfsad
-                                </span>
-                            </Trigger>
-                            <p>Some contents...</p>
-                        </Modal>
                     </TabPane>
                 </Tabs>
             </div>

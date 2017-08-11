@@ -108,9 +108,10 @@ export default class EditMultiWordPrice extends React.Component {
                 key: 4,
                 name: '自定义出价'
             }
-        ]
+        ],
+        width: "260px"
     }
-    state = {}
+
     onSubmit = ( ) => {}
 
     handleButtonClick = ( type ) => {
@@ -124,6 +125,12 @@ export default class EditMultiWordPrice extends React.Component {
     }
     render( ) {
         const { getFieldDecorator } = this.props.form;
+        const { activeKey } = this.props
+        const { str } = this.state;
+        const str = {
+            1: '加价',
+            2: '降价'
+        }[ activeKey ]
         return (
             <div>
                 <Form className="float-panel edit-multi-word-price" onSubmit={this.onSubmit}>
@@ -137,27 +144,51 @@ export default class EditMultiWordPrice extends React.Component {
                             </Radio.Group>
                         )}
                     </Form.Item>
-                    <Form.Item>
-                        {getFieldDecorator('plus', { initialValue: 1 })(
-                            <Radio.Group >
-                                <Radio value={0}>
-                                    <span>加价：</span>
-                                    {getFieldDecorator( 'value' )( <Input addonAfter="元" className="input-price"/> )}
-                                </Radio>
-                                <Radio value={1}>
-                                    <span>加价：</span>
-                                    {getFieldDecorator('select', { initialValue: "1" })(
-                                        <Select onChange={this.onSelectChange} className="select-percent">
-                                            {this.renderOption( )}
-                                        </Select>
-                                    )}
-                                </Radio>
-                            </Radio.Group>
-                        )}
-                    </Form.Item>
-                    <Form.Item>
-                        加价后不得高于：{getFieldDecorator('limit', { initialValue: 1 })( <Input addonAfter="元" className="input-price"/> )}
-                    </Form.Item>
+                    {( activeKey == 1 || activeKey == 2 ) && (
+                        <Form.Item>
+                            {getFieldDecorator('radio', { initialValue: 1 })(
+                                <Radio.Group >
+                                    <Radio value={0}>
+                                        <span>{str}：</span>
+                                        {getFieldDecorator( 'value' )( <Input addonAfter="元" className="input-price"/> )}
+                                    </Radio>
+                                    <Radio value={1}>
+                                        <span>{str}：</span>
+                                        {getFieldDecorator('select', { initialValue: "0.1" })(
+                                            <Select onChange={this.onSelectChange} className="select-percent">
+                                                {this.renderOption( )}
+                                            </Select>
+                                        )}
+                                    </Radio>
+                                </Radio.Group>
+                            )}
+                        </Form.Item>
+                    )}
+                    {activeKey == 3 && (
+                        <Form.Item>
+                            {getFieldDecorator('radio', { initialValue: 1 })(
+                                <Radio.Group >
+                                    <Radio value={0}>
+                                        <span>{str}：</span>
+                                        {getFieldDecorator( 'value' )( <Input addonAfter="元" className="input-price"/> )}
+                                    </Radio>
+                                    <Radio value={1}>
+                                        <span>{str}：</span>
+                                        {getFieldDecorator('select', { initialValue: "1.2" })(
+                                            <Select onChange={this.onSelectChange} className="select-percent">
+                                                {this.renderOption( )}
+                                            </Select>
+                                        )}
+                                    </Radio>
+                                </Radio.Group>
+                            )}
+                        </Form.Item>
+                    )}
+                    {( activeKey == 1 || activeKey == 3 ) && (
+                        <Form.Item>
+                            不得高于：{getFieldDecorator('limit', { initialValue: 1 })( <Input addonAfter="元" className="input-price"/> )}
+                        </Form.Item>
+                    )}
                     <div className="footer">
                         <Button type="primary" htmlType="submit">确定</Button>
                         <a onClick={this.props.onClose} className="cancel-btn">取消</a>
