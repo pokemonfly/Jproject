@@ -5,11 +5,14 @@ import { Layout, Breadcrumb } from 'antd';
 import KeywordHead from './components/KeywordHead';
 import KeywordOverview from './components/KeywordOverview';
 import KeywordView from './components/KeywordView';
-
-import st from './KeywordStyle.less';
+import PubSub from 'pubsub-js';
+import './KeywordStyle.less';
 
 @connect(state => ({ keyword: state.keyword }))
 export default class Keyword extends Component {
+    componentDidUpdate( ) {
+        PubSub.publish( 'table.resize' )
+    }
     render( ) {
         return (
             <Layout>

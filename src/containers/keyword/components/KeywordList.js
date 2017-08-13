@@ -1,11 +1,11 @@
 import React, { PropTypes } from 'react';
 import Trigger from '@/containers/shared/Trigger';
+import Table from '@/containers/shared/Table'
 import { bindActionCreators } from 'redux';
 import {
     Radio,
     Tabs,
     Button,
-    Table,
     Tooltip,
     Dropdown,
     Layout,
@@ -23,6 +23,7 @@ import EditWordPrice from './EditWordPrice'
 import ClipboardButton from 'react-clipboard.js';
 import DelKeyword from './DelKeyword'
 import EditMultiWordPrice from './EditMultiWordPrice'
+import { fill } from 'lodash'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -33,7 +34,74 @@ const { Column, ColumnGroup } = Table;
 }, dispatch )))
 export default class KeywordList extends React.Component {
     state = {
+        detailVisiable: {
+            type: 1,
+            'c1': 1
+        },
+        groupVisiable: fill( Array( 4 ), true ),
+        isGroup: true,
         selectedRowKeys: [ ]
+    }
+    tableConfig = {
+        hasCheckbox: true,
+        selectionEvent: {
+            onChange: this.onCheckboxChange,
+            onSelect: ( ) => {},
+            onSelectAll: ( ) => {}
+        },
+        groupTitleRender: ({ rowData, key, className, style, position }) => {
+            return (
+                <div role="row" key={key} className={className} style={style} onClick={this.handleGroupTitle.bind( this, rowData.index )}>
+                    {position == 'left' && (
+                        <div className="ReactVirtualized__Table__rowColumn table-group-title">
+                            {rowData.title}
+                            ({rowData.count})
+                        </div>
+                    )}
+                    {position != 'left' && (
+                        <div className="ReactVirtualized__Table__rowColumn table-group-title">
+                            <span>&nbsp;</span>
+                        </div>
+                    )}
+                </div>
+            )
+        },
+        groupSetting: [
+            {
+                title: '有成交',
+                filter: function ( e ) {
+                    return e.report.payCount > 0;
+                }
+            }, {
+                title: '有收藏或有购物车数据，无成交',
+                filter: function ( e ) {
+                    return e.report.payCount == 0 && ( e.report.favCount > 0 || e.report.cartTotal > 0 )
+                }
+            }, {
+                title: '有点击，无收藏且无购物车数据',
+                filter: function ( e ) {
+                    return e.report.click > 0 && e.report.favCount == 0 && e.report.cartTotal == 0 && e.report.payCount == 0
+                }
+            }, {
+                title: '无点击',
+                filter: function ( e ) {
+                    return e.report.click == 0 && e.report.favCount == 0 && e.report.cartTotal == 0 && e.report.payCount == 0
+                }
+            }
+        ],
+        extraHeadHeight: 50,
+        extraHead: (
+            <div style={{
+                height: 50,
+                marginTop: -50,
+                background: 'gray'
+            }}>~~~~</div>
+        )
+    }
+    handleGroupTitle( index ) {
+        let { groupVisiable } = this.state
+        groupVisiable[index] = !groupVisiable[index];
+        this.setState({ groupVisiable })
     }
     componentWillMount( ) {
         this.props.fetchKeywordList( );
@@ -57,6 +125,9 @@ export default class KeywordList extends React.Component {
 
     // 关键词后面的下拉按钮组
     getExtraBtnGroup({ optimizeStatus, isFocusKeyword }) {
+        return (
+            <span></span>
+        )
         return (
             <span className="keyword-extra-btn-dropdown show-on-row-hover">
                 <Dropdown.Button
@@ -101,6 +172,7 @@ export default class KeywordList extends React.Component {
                 title: '关键词',
                 dataIndex: 'word',
                 width: 300,
+                fixed: 'left',
                 render: ( text, record ) => {
                     if ( record.matchScope == 1 ) {
                         text = '[ ' + text + ' ]'
@@ -123,6 +195,7 @@ export default class KeywordList extends React.Component {
                 title: 'PC出价',
                 dataIndex: 'maxPrice',
                 width: 110,
+                fixed: 'left',
                 render: price => {
                     const obj = formatNum(price, { mode: 'price' })
                     return (
@@ -141,6 +214,7 @@ export default class KeywordList extends React.Component {
                 title: '移动出价',
                 dataIndex: 'maxMobilePrice',
                 width: 110,
+                fixed: 'left',
                 render: ( price, record ) => {
                     if ( record.mobileIsDefaultPrice ) {
                         price = record.maxPrice * mobileDiscount / 100
@@ -157,6 +231,22 @@ export default class KeywordList extends React.Component {
                             </Trigger>
                         </span>
                     )
+                }
+            }, {
+                title: '实时排名',
+                dataIndex: 'rank',
+                width: 90,
+                fixed: 'left',
+                render: ( text ) => {
+                    if ( text ) {
+                        return (
+                            <span>{text}</span>
+                        )
+                    } else {
+                        return (
+                            <a href="#">查排名</a>
+                        )
+                    }
                 }
             }, {
                 title: '抢排名',
@@ -208,21 +298,7 @@ export default class KeywordList extends React.Component {
                         </span>
                     )
                 }
-            }, {
-                title: '实时排名',
-                dataIndex: 'rank',
-                width: 90,
-                render: ( text ) => {
-                    if ( text ) {
-                        return (
-                            <span>{text}</span>
-                        )
-                    } else {
-                        return (
-                            <a href="#">查排名</a>
-                        )
-                    }
-                }
+
             }, {
                 title: 'PC质量分',
                 dataIndex: 'wordscorelist.qscore',
@@ -250,8 +326,14 @@ export default class KeywordList extends React.Component {
 
         cols.push({
             title: '优化方式',
+            key: 'opType',
             width: 110,
-            render: val => {}
+            fixed: 'right',
+            render: val => {
+                return (
+                    <span>1</span>
+                )
+            }
         });
         return cols;
     }
@@ -285,12 +367,8 @@ export default class KeywordList extends React.Component {
         let arr = [ ]
         if ( keywords ) {
             arr = keywords.map(id => keywordMap[id])
-            if ( filters ) {
-                for ( let f in filters ) {
-                    let o = filters[f];
-                    arr = arr.filter(o.fn.bind( null, o.type, o.key ))
-                }
-            }
+            // if ( filters ) {     for ( let f in filters ) {         let o = filters[f];         arr = arr.filter(o.fn.bind( null, o.type, o.key ))  }
+            // }
         }
         return arr
     }
@@ -306,9 +384,6 @@ export default class KeywordList extends React.Component {
                 </Radio.Button>
             </Radio.Group>
         )
-        const rowSelection = {
-            onChange: this.onCheckboxChange
-        };
         return (
             <div className="keyword-list">
                 {selectedRowKeys.length == 0
@@ -343,15 +418,21 @@ export default class KeywordList extends React.Component {
                             </div>
                         </div>
                     )}
-                <Table
-                    size="middle"
-                    className="table-row-hover"
-                    dataSource={this.getTableData( )}
-                    rowSelection={rowSelection}
-                    columns={this.getTableCols( )}
-                    pagination={false}
-                    onChange={this.props.keywordTableChange}></Table>
+                <Table dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
             </div>
         )
     }
 }
+
+/*
+
+<Table
+    size="middle"
+    className="table-row-hover"
+    dataSource={this.getTableData( )}
+    rowSelection={rowSelection}
+    columns={this.getTableCols( )}
+    pagination={false}
+    onChange={this.props.keywordTableChange}></Table>
+
+*/

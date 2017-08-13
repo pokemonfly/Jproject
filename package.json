@@ -23,7 +23,7 @@
       }
     },
     "dev": {
-      "command": "nodemon conf/server --ignore dist --ignore coverage --ignore tests --ignore src",
+      "command": "nodemon conf/server --ignore dist --ignore coverage --ignore tests --ignore src --ignore api",
       "env": {
         "NODE_ENV": "development",
         "DEBUG": "app:*"
@@ -94,6 +94,7 @@
     "normalizr": "^3.2.3",
     "postcss-loader": "^1.1.0",
     "prop-types": "^15.5.10",
+    "pubsub-js": "^1.5.7",
     "rc-trigger": "^1.11.3",
     "rc-util": "^4.0.4",
     "react": "^15.0.0",

@@ -7,6 +7,7 @@
 - lodash
 - normalizr  
 - prop-types
+- pubsub-js
 - react-sortable-hoc  列表拖动
 - .....
 
@@ -46,7 +47,7 @@
 ```
 
 # shared 组件
-- DropdownButton 分裂式下拉按钮 
+- DropdownButton 分裂式下拉按钮
 - Icon 对应的iconfont （antd的Icon 也可以同时使用）
 - More 更多数据下拉
 - Search 检索框 （替换antd的Search）

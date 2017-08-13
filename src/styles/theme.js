@@ -27,6 +27,7 @@ module.exports = ( ) => {
         'avatar-size-base': '30px',
         //Form
         'form-item-margin-bottom': '12px',
+
         //自定义
         'footer-bg-color': '#f9f9f9'
     };
