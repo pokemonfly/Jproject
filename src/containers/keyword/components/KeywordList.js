@@ -1,11 +1,11 @@
 import React, { PropTypes } from 'react';
 import Trigger from '@/containers/shared/Trigger';
+import Table from '@/containers/shared/Table'
 import { bindActionCreators } from 'redux';
 import {
     Radio,
     Tabs,
     Button,
-    Table,
     Tooltip,
     Dropdown,
     Layout,
@@ -58,6 +58,9 @@ export default class KeywordList extends React.Component {
     // 关键词后面的下拉按钮组
     getExtraBtnGroup({ optimizeStatus, isFocusKeyword }) {
         return (
+            <span></span>
+        )
+        return (
             <span className="keyword-extra-btn-dropdown show-on-row-hover">
                 <Dropdown.Button
                     size="small"
@@ -101,6 +104,7 @@ export default class KeywordList extends React.Component {
                 title: '关键词',
                 dataIndex: 'word',
                 width: 300,
+                fixed: 'left',
                 render: ( text, record ) => {
                     if ( record.matchScope == 1 ) {
                         text = '[ ' + text + ' ]'
@@ -123,6 +127,7 @@ export default class KeywordList extends React.Component {
                 title: 'PC出价',
                 dataIndex: 'maxPrice',
                 width: 110,
+                fixed: 'left',
                 render: price => {
                     const obj = formatNum(price, { mode: 'price' })
                     return (
@@ -141,6 +146,7 @@ export default class KeywordList extends React.Component {
                 title: '移动出价',
                 dataIndex: 'maxMobilePrice',
                 width: 110,
+                fixed: 'left',
                 render: ( price, record ) => {
                     if ( record.mobileIsDefaultPrice ) {
                         price = record.maxPrice * mobileDiscount / 100
@@ -157,6 +163,22 @@ export default class KeywordList extends React.Component {
                             </Trigger>
                         </span>
                     )
+                }
+            }, {
+                title: '实时排名',
+                dataIndex: 'rank',
+                width: 90,
+                fixed: 'left',
+                render: ( text ) => {
+                    if ( text ) {
+                        return (
+                            <span>{text}</span>
+                        )
+                    } else {
+                        return (
+                            <a href="#">查排名</a>
+                        )
+                    }
                 }
             }, {
                 title: '抢排名',
@@ -208,21 +230,7 @@ export default class KeywordList extends React.Component {
                         </span>
                     )
                 }
-            }, {
-                title: '实时排名',
-                dataIndex: 'rank',
-                width: 90,
-                render: ( text ) => {
-                    if ( text ) {
-                        return (
-                            <span>{text}</span>
-                        )
-                    } else {
-                        return (
-                            <a href="#">查排名</a>
-                        )
-                    }
-                }
+
             }, {
                 title: 'PC质量分',
                 dataIndex: 'wordscorelist.qscore',
@@ -250,7 +258,9 @@ export default class KeywordList extends React.Component {
 
         cols.push({
             title: '优化方式',
+            key: 'opType',
             width: 110,
+            fixed: 'right',
             render: val => {}
         });
         return cols;
@@ -344,14 +354,31 @@ export default class KeywordList extends React.Component {
                         </div>
                     )}
                 <Table
-                    size="middle"
-                    className="table-row-hover"
                     dataSource={this.getTableData( )}
-                    rowSelection={rowSelection}
                     columns={this.getTableCols( )}
-                    pagination={false}
-                    onChange={this.props.keywordTableChange}></Table>
+                    extraHeadHeight={50}
+                    extraHead={(
+                    <div
+                        style={{
+                        height: 50,
+                        marginTop: -50,
+                        background: 'gray'
+                    }}>~~~~</div>
+                )}/>
             </div>
         )
     }
 }
+
+/*
+
+<Table
+    size="middle"
+    className="table-row-hover"
+    dataSource={this.getTableData( )}
+    rowSelection={rowSelection}
+    columns={this.getTableCols( )}
+    pagination={false}
+    onChange={this.props.keywordTableChange}></Table>
+
+*/
