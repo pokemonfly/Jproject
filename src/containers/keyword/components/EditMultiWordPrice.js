@@ -90,7 +90,7 @@ const selectItem = [
     }
 ];
 
-@Form.create( )
+@Form.create()
 @DropdownButton
 export default class EditMultiWordPrice extends React.Component {
     static defaultProps = {
@@ -112,25 +112,25 @@ export default class EditMultiWordPrice extends React.Component {
         width: "260px"
     }
 
-    onSubmit = ( ) => {}
+    onSubmit = () => {}
 
     handleButtonClick = ( type ) => {
-        this.setState({ type })
+        this.setState( { type } )
         this.refs.trigger.setPopupVisible( true )
     }
-    renderOption( ) {
-        return selectItem.map(i => (
+    renderOption() {
+        return selectItem.map( i => (
             <Option value={i.value.toString( )} key={i.value}>{i.text}</Option>
-        ))
+        ) )
     }
-    render( ) {
+    render() {
         const { getFieldDecorator } = this.props.form;
         const { activeKey } = this.props
         const { str } = this.state;
-        const str = {
-            1: '加价',
-            2: '降价'
-        }[ activeKey ]
+        // const str = {
+        //     1: '加价',
+        //     2: '降价'
+        // }[ activeKey ]
         return (
             <div>
                 <Form className="float-panel edit-multi-word-price" onSubmit={this.onSubmit}>
