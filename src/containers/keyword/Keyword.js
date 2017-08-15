@@ -27,8 +27,8 @@ export default class Keyword extends Component {
                     <Breadcrumb.Item>管理关键词</Breadcrumb.Item>
                 </Breadcrumb>
                 <KeywordHead></KeywordHead>
-                <KeywordOverview></KeywordOverview>
                 <KeywordView></KeywordView>
+                <KeywordOverview></KeywordOverview>
             </Layout>
         );
     }
