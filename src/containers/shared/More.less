@@ -1,3 +1,4 @@
+@border-radius-base: 4px;
 .limit-height {
     max-height: 280px;
     overflow-x: hidden;
@@ -5,7 +6,7 @@
 }
 .more-panel {
     width  : 500px;
-    height : 376px;
+    height : 388px;
     padding: 12px;
     .title {
         padding    : 8px 0;
@@ -20,13 +21,20 @@
             line-height: 20px;
         }
     }
+    .row {
+        margin-bottom: 12px;
+    }
     .footer {
-        padding-top: 8px;
+        padding-top               : 8px;
+        margin-top                : 0;
+        border-bottom-left-radius : @border-radius-base;
+        border-bottom-right-radius: @border-radius-base;
         .cancel-btn {
             margin-left: 8px;
         }
         .reset-btn {
-            float:right;
+            float      : right;
+            line-height: 28px;
         }
     }
 }

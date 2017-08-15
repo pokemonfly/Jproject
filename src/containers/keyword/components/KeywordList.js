@@ -23,7 +23,6 @@ import EditWordPrice from './EditWordPrice'
 import ClipboardButton from 'react-clipboard.js';
 import DelKeyword from './DelKeyword'
 import EditMultiWordPrice from './EditMultiWordPrice'
-import { fill } from 'lodash'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -34,37 +33,20 @@ const { Column, ColumnGroup } = Table;
 }, dispatch )))
 export default class KeywordList extends React.Component {
     state = {
+        isLoading: false,
         detailVisiable: {
             type: 1,
             'c1': 1
         },
-        groupVisiable: fill( Array( 4 ), true ),
         isGroup: true,
         selectedRowKeys: [ ]
     }
     tableConfig = {
         hasCheckbox: true,
         selectionEvent: {
-            onChange: this.onCheckboxChange,
+            onChange: ( ) => {},
             onSelect: ( ) => {},
             onSelectAll: ( ) => {}
-        },
-        groupTitleRender: ({ rowData, key, className, style, position }) => {
-            return (
-                <div role="row" key={key} className={className} style={style} onClick={this.handleGroupTitle.bind( this, rowData.index )}>
-                    {position == 'left' && (
-                        <div className="ReactVirtualized__Table__rowColumn table-group-title">
-                            {rowData.title}
-                            ({rowData.count})
-                        </div>
-                    )}
-                    {position != 'left' && (
-                        <div className="ReactVirtualized__Table__rowColumn table-group-title">
-                            <span>&nbsp;</span>
-                        </div>
-                    )}
-                </div>
-            )
         },
         groupSetting: [
             {
@@ -98,16 +80,9 @@ export default class KeywordList extends React.Component {
             }}>~~~~</div>
         )
     }
-    handleGroupTitle( index ) {
-        let { groupVisiable } = this.state
-        groupVisiable[index] = !groupVisiable[index];
-        this.setState({ groupVisiable })
-    }
+
     componentWillMount( ) {
         this.props.fetchKeywordList( );
-    }
-    onCheckboxChange = ( selectedRowKeys, rows ) => {
-        this.setState({ selectedRowKeys })
     }
     getWordForCopy = ( ) => {
         const { selectedRowKeys } = this.state;
@@ -125,9 +100,6 @@ export default class KeywordList extends React.Component {
 
     // 关键词后面的下拉按钮组
     getExtraBtnGroup({ optimizeStatus, isFocusKeyword }) {
-        return (
-            <span></span>
-        )
         return (
             <span className="keyword-extra-btn-dropdown show-on-row-hover">
                 <Dropdown.Button
@@ -320,7 +292,8 @@ export default class KeywordList extends React.Component {
             cols.push({
                 title: keywordReports[key].name,
                 dataIndex: 'report.' + key,
-                width: 80
+                width: 80,
+                grow: true
             })
         })
 

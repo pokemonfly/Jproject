@@ -89,7 +89,7 @@ export default class More extends React.Component {
         return (
             <Layout className="more-panel  float-panel">
                 {hint && ( <Alert message={hint} type="warning"/> )}
-                <Row type="flex" gutter={16}>
+                <Row type="flex" gutter={16} className="row">
                     <Col span={15}>
                         <span className="title">选择度量</span>
                         <Row className="item-list">
