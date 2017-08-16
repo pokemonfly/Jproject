@@ -1,12 +1,17 @@
 // import ajax from '../../../utils/ajax'
 import ajax from '@/utils/ajax'
 import { normalize, schema } from 'normalizr'
-import { omit } from 'lodash'
+import { omit, capitalize, pick, difference } from 'lodash'
 const { Entity } = schema;
-
+// 关键词列表
 export const REQ_KEYWORD_LIST = 'REQ_KEYWORD_LIST'
 export const RES_KEYWORD_LIST = 'RES_KEYWORD_LIST'
+// 细分数据
+export const REQ_KEYWORD_SEPARATE = 'REQ_KEYWORD_SEPARATE'
+export const RES_KEYWORD_SEPARATE = 'RES_KEYWORD_SEPARATE'
+// Todo del this?
 export const KEYWORD_TABLE_CHANGE = 'KEYWORD_TABLE_CHANGE'
+//删词
 export const REQ_DEL_KEYWORD = 'REQ_DEL_KEYWORD'
 export const RES_DEL_KEYWORD = 'RES_DEL_KEYWORD'
 export const reqKeywordList = ( ) => {
@@ -52,6 +57,7 @@ const keyword = new Entity('keyword', {}, {
             ...obj.keyword,
             key: obj.keywordId,
             wordURI: encodeURI( obj.keyword.word ),
+            ...obj.report,
             report: {
                 ...obj.report,
                 ...obj.wordBase
@@ -138,6 +144,7 @@ function _mixinStatus( adgroup, keyword ) {
             return 999
     }
 }
+
 export function fetchKeywordList( params ) {
     return dispatch => {
         dispatch(reqKeywordList( ))
@@ -157,6 +164,138 @@ export function fetchKeywordList( params ) {
         })
     }
 }
+export const reqKeywordSeparate = ( ) => {
+    return {
+        type: REQ_KEYWORD_SEPARATE,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resKeywordSeparate = ( data ) => {
+    return {
+        type: RES_KEYWORD_SEPARATE,
+        data: {
+            keywordDetailMap: data.entities.keywordDetail,
+            isFetching: false
+        }
+    }
+}
+function _mergeReport(wordsVo = {}, reportVo = {}) {
+    let obj = {}
+    reportVo.cpc = reportVo.price
+    reportVo.coverage = reportVo.cvr
+    for (let key in pick(reportVo, [
+        'cpc',
+        'ctr',
+        'pv',
+        'click',
+        'competition',
+        'coverage',
+        'payCount'
+    ])) {
+        obj['day' + capitalize( key )] = reportVo[key]
+    }
+
+    return {
+        ...wordsVo,
+        ...obj
+    }
+}
+function multi( a = 0, b = 0 ) {
+    return a * b
+}
+function dev( a = 0, b = 0 ) {
+    if ( b === 0 ) {
+        return 0
+    } else {
+        return a / b
+    }
+}
+function _sumReport( a, b ) {
+    let result = {
+            ...a
+        },
+        avgPosSum = 0;
+    for ( let key in b ) {
+        if (result.hasOwnProperty( key )) {
+            result[key] += b[key]
+        } else {
+            result[key] = b[key]
+        }
+    }
+    result.ctr = dev( result.click, result.impressions ) * 100
+    result.cvr = dev( result.payCount, result.click ) * 100
+    result.cpc = dev( result.cost, result.click )
+    result.realRoi = dev( result.pay, result.cost )
+    // 平均展现排名
+    avgPosSum = multi( a.avgPos, a.impressions ) + multi( b.avgPos, b.impressions )
+    result.avgPos = Math.ceil(dev( avgPosSum, result.impressions ));
+    result.dayCtr = dev( result.dayClick, result.dayPv ) * 100
+    // 全网转化率 = 全网成交数/全网点击指数
+    result.dayCvr = dev( result.dayPayCount, result.dayClick ) * 100
+
+    return result
+}
+function _formatReport( report ) {
+    for ( let key in report ) {
+        if (report.hasOwnProperty( key )) {
+            if ( report.click ) {
+                report.directPpr = report.directCartTotal / report.click * 100
+                report.indirectPpr = report.indirectCartTotal / report.click * 100
+                report.favItemRate = report.favItemCount / report.click * 100
+                report.favShopRate = report.favShopCount / report.click * 100
+                report.favRate = report.favCount / report.click * 100
+                if ( report.cartTotal ) {
+                    report.pprTotal = report.cartTotal / report.click * 100
+                    report.directPprFavRate = ( report.favItemCount + report.directCartTotal ) / report.click * 100
+                }
+            }
+        }
+    }
+}
+const keywordDetail = new Entity('keywordDetail', {}, {
+    processStrategy: ( obj, parent ) => {
+        const wordsVo = obj.detailWordsDataVO,
+            reportVo = obj.detailReportVO,
+            pcInside = _mergeReport( reportVo.pcInside, wordsVo.pcInside ),
+            pcOutside = _mergeReport( reportVo.pcOutside, wordsVo.pcOutside ),
+            mobileInside = _mergeReport( reportVo.mobileInside, wordsVo.mobileInside ),
+            mobileOutside = _mergeReport( reportVo.mobileOutside, wordsVo.mobileOutside );
+        let result = {
+            pcInside,
+            pcOutside,
+            mobileInside,
+            mobileOutside,
+            pc: _sumReport( pcInside, pcOutside ),
+            mobile: _sumReport( mobileInside, mobileOutside ),
+            inside: _sumReport( pcInside, mobileInside ),
+            outside: _sumReport( pcOutside, pcOutside )
+        }
+        for ( let i in result ) {
+            _formatReport(result[i])
+        }
+        return result
+    }
+})
+export function fetchKeywordSeparate( params ) {
+    return dispatch => {
+        dispatch(reqKeywordSeparate( ))
+        return ajax({
+            api: '/sources/keywords/detailData.mock',
+            body: params,
+            format: json => {
+                let obj;
+                // 宝贝的优化状态
+                const { adgroup } = json.data
+                obj = normalize(json.data, {keywordDetailInfos: [ keywordDetail ]});
+                return obj;
+            },
+            success: data => dispatch(resKeywordSeparate( data )),
+            error: err => console.error( err )
+        })
+    }
+}
 
 export const reqDelKeyword = ( ) => {
     return {
@@ -171,20 +310,18 @@ export const resDelKeyword = ( data ) => {
         type: RES_DEL_KEYWORD,
         data: {
             isFetching: false
-        }
+        },
+        deletedItems: data
     }
 }
-export function deleteKeyword( params ) {
+export function deleteKeyword( params, keys ) {
     return dispatch => {
         dispatch(reqDelKeyword( ))
         return ajax({
             api: '/sources/keywords.mock',
             method: 'delete',
             body: params,
-            format: json => {
-                return json
-            },
-            success: data => dispatch(resDelKeyword( data )),
+            success: ( ) => dispatch(resDelKeyword( keys )),
             error: err => console.error( err )
         })
     }
@@ -195,19 +332,24 @@ const defaultState = {
     sorter: {},
     adgroup: {}
 }
+
 export default function keywordReducer( state = defaultState, action ) {
     switch ( action.type ) {
         case REQ_KEYWORD_LIST:
         case RES_KEYWORD_LIST:
+        case RES_KEYWORD_SEPARATE:
         case KEYWORD_TABLE_CHANGE:
             return {
                 ...state,
                 ...action.data
             }
-
-            // return {     ...state,
-            //
-            // }
+        case RES_DEL_KEYWORD:
+            const keywords = difference( state.keywords, action.deletedItems );
+            return {
+                ...state,
+                ...action.data,
+                keywords
+            }
         default:
             return state
     }

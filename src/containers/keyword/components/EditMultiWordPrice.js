@@ -6,8 +6,11 @@ import {
     Radio,
     Input,
     Select,
+    Checkbox,
+    Tooltip,
     Button
 } from 'antd'
+import Icon from '../../shared/Icon'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
 import DropdownButton from '@/containers/shared/DropdownButton'
@@ -90,7 +93,7 @@ const selectItem = [
     }
 ];
 
-@Form.create()
+@Form.create( )
 @DropdownButton
 export default class EditMultiWordPrice extends React.Component {
     static defaultProps = {
@@ -111,33 +114,59 @@ export default class EditMultiWordPrice extends React.Component {
         ],
         width: "260px"
     }
-
-    onSubmit = () => {}
+    constructor( props ) {
+        super( props );
+        this.state = {
+            type: 1
+        }
+    }
+    onTypeChange = ( e ) => {
+        this.setState({ type: e.target.value })
+    }
+    onSubmit = ( ) => {}
 
     handleButtonClick = ( type ) => {
-        this.setState( { type } )
+        this.setState({ type })
         this.refs.trigger.setPopupVisible( true )
     }
-    renderOption() {
-        return selectItem.map( i => (
+    renderOption( ) {
+        return selectItem.map(i => (
             <Option value={i.value.toString( )} key={i.value}>{i.text}</Option>
-        ) )
+        ))
     }
-    render() {
+    render( ) {
         const { getFieldDecorator } = this.props.form;
-        const { activeKey } = this.props
-        const { str } = this.state;
-        // const str = {
-        //     1: '加价',
-        //     2: '降价'
-        // }[ activeKey ]
+        const { activeKey, isShowNotOptimizeStatus } = this.props
+        const { type } = this.state;
+        let str;
+        switch ( activeKey ) {
+            case 1:
+                str = '加价';
+                break;
+            case 2:
+                str = '降价';
+                break;
+            case 3:
+                switch ( type ) {
+                    case 1:
+                        str = 'PC';
+                        break;
+                    case 2:
+                        str = '无线';
+                        break;
+                    case 0:
+                        str = '全网';
+                        break;
+                }
+                break;
+        }
         return (
             <div>
                 <Form className="float-panel edit-multi-word-price" onSubmit={this.onSubmit}>
                     <p className="header">修改出价：</p>
                     <Form.Item className="sep-line">
-                        {getFieldDecorator('type', { initialValue: 1 })(
-                            <Radio.Group >
+                        {getFieldDecorator('type', { initialValue: type })(
+                            <Radio.Group onChange={this.onTypeChange}>
                                 <Radio value={1}>PC</Radio>
                                 <Radio value={2}>无线</Radio>
                                 <Radio value={0}>PC + 无线</Radio>
@@ -184,9 +213,43 @@ export default class EditMultiWordPrice extends React.Component {
                             )}
                         </Form.Item>
                     )}
+                    {activeKey == 4 && type == 2 && (
+                        <Form.Item>
+                            {getFieldDecorator('radio', { initialValue: 1 })(
+                                <Radio.Group >
+                                    <Radio value={1}>
+                                        <span>使用移动折扣出价</span>
+                                    </Radio>
+                                    <Radio value={3}>
+                                        <span>使用自定义出价（价格不变）</span>
+                                    </Radio>
+                                    <Radio value={2}>
+                                        <span>自定义出价：</span>
+                                        {getFieldDecorator( 'value' )( <Input addonAfter="元" className="input-price"/> )}
+                                    </Radio>
+                                </Radio.Group>
+                            )}
+                        </Form.Item>
+                    )}
+                    {activeKey == 4 && type != 2 && (
+                        <Form.Item>
+                            <span>自定义出价：</span>
+                            {getFieldDecorator( 'value' )( <Input addonAfter="元" className="input-price"/> )}
+                        </Form.Item>
+                    )}
                     {( activeKey == 1 || activeKey == 3 ) && (
                         <Form.Item>
                             不得高于：{getFieldDecorator('limit', { initialValue: 1 })( <Input addonAfter="元" className="input-price"/> )}
+                        </Form.Item>
+                    )}
+                    {isShowNotOptimizeStatus && (
+                        <Form.Item >
+                            <hr/> {getFieldDecorator( 'isNotSetOptimize' )(
+                                <Checkbox >关键词设为不自动优化?</Checkbox>
+                            )}
+                            <Tooltip title="当关键词为不自动优化时,系统不会再优化价格;当关键词优化时,系统会根据限价调整关键词价格" arrowPointAtCenter>
+                                <Icon type="wenhao"/>
+                            </Tooltip>
                         </Form.Item>
                     )}
                     <div className="footer">

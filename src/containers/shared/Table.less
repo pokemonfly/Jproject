@@ -81,9 +81,9 @@
     }
 }
 .table-loading {
-    width: 100%;
-    height: 50px;
-    top: center;
+    width     : 100%;
+    height    : 50px;
+    top       : center;
     list-style: 50px;
 }
 .table-grow-cell {
@@ -92,7 +92,7 @@
 .table-grid {
     display: flex;
     .table-group-title {
-        flex:1;
+        flex: 1;
     }
     .table-checkbox {
         margin-left  : -8px;
@@ -125,5 +125,22 @@
     .scroll-bar-content {
         visibility: hidden;
         height    : 1px;
+    }
+}
+.table-special-panel {
+    position   : absolute;
+    background : #fff;
+    z-index    : 2;
+    top        : 0;
+    left       : 0;
+    overflow   : hidden;
+    line-height: 2;
+    padding    : 0 16px;
+    .radio-group {
+        padding-top: 12px;
+    }
+    .fake-title {
+        float      : right;
+        line-height: 56px;
     }
 }

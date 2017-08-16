@@ -27,7 +27,7 @@ export function formatNum(val, {
     }
     //包含undefined
     if (isNaN( num )) {
-        console.error( 'formatPrice error' + val );
+        console.warn( 'formatPrice error' + val );
         return { text: zeroTransfer, value: '#', num, hasError: true }
     }
     if ( !num ) {

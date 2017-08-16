@@ -4,6 +4,7 @@ import Table from '@/containers/shared/Table'
 import { bindActionCreators } from 'redux';
 import {
     Radio,
+    Menu,
     Tabs,
     Button,
     Tooltip,
@@ -16,7 +17,7 @@ import {
 import { connect } from 'react-redux'
 import KeywordFilter from './KeywordFilter'
 import Icon from '../../shared/Icon'
-import { fetchKeywordList, keywordTableChange } from './KeywordListRedux'
+import { fetchKeywordList, keywordTableChange, fetchKeywordSeparate } from './KeywordListRedux'
 import { formatNum } from '@/utils/tools'
 import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/utils/constants'
 import EditWordPrice from './EditWordPrice'
@@ -28,8 +29,9 @@ import './KeywordList.less'
 const { Column, ColumnGroup } = Table;
 
 @connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
+    fetchKeywordList,
     keywordTableChange,
-    fetchKeywordList
+    fetchKeywordSeparate
 }, dispatch )))
 export default class KeywordList extends React.Component {
     state = {
@@ -39,12 +41,15 @@ export default class KeywordList extends React.Component {
             'c1': 1
         },
         isGroup: true,
-        selectedRowKeys: [ ]
+        selectedRowKeys: [],
+        keywordStatus: {}
     }
     tableConfig = {
         hasCheckbox: true,
         selectionEvent: {
-            onChange: ( ) => {},
+            onChange: ({ selectedRowKeys }) => {
+                this.setState({ selectedRowKeys })
+            },
             onSelect: ( ) => {},
             onSelectAll: ( ) => {}
         },
@@ -71,6 +76,71 @@ export default class KeywordList extends React.Component {
                 }
             }
         ],
+        checkDetailVisiable: ( obj, detailStatus ) => {
+            const {
+                pc,
+                mobile,
+                inside,
+                outside,
+                pcInside,
+                pcOutside,
+                mobileInside,
+                mobileOutside
+            } = obj
+            switch ( detailStatus ) {
+                case '1':
+                    return [ pc, mobile ]
+                case '2':
+                    return [ inside, outside ]
+                case '3':
+                    return [ pcInside, mobileInside, pcOutside, mobileOutside ]
+                default:
+                    return [ ]
+            }
+        },
+        detailRowRender: ({ columnIndex, dataKey, rowData, rowHeight, width }) => {
+            const rowspan = rowData._status == '3'
+                ? 4
+                : 2;
+            if ( columnIndex == 0 && rowData._row == 0 ) {
+                return (
+                    <span
+                        className='table-special-panel'
+                        style={{
+                        height: rowHeight * rowspan - 1,
+                        width
+                    }}>
+                        <Radio.Group onChange={this.onDetailRadioChange.bind( null, rowData._key )} value={rowData._status} className="radio-group">
+                            <Radio value="1">PC/无线数据</Radio><br/>
+                            <Radio value="2">站内/站外数据</Radio><br/>
+                            <Radio value="3">PC/无线/站内/站外数据</Radio>
+                        </Radio.Group>
+                        {rowData._status == '1' && (
+                            <div className="fake-title">
+                                ＰＣ数据
+                                <br/>无线数据
+                            </div>
+                        )}
+                        {rowData._status == '2' && (
+                            <div className="fake-title">
+                                站内数据<br/>
+                                站外数据
+                            </div>
+                        )}
+                        {rowData._status == '3' && (
+                            <div className="fake-title">
+                                ＰＣ站内<br/>
+                                无线站内<br/>
+                                ＰＣ站外<br/>
+                                无线站外
+                            </div>
+                        )}
+                    </span>
+                )
+            } else {
+                return null;
+            }
+        },
         extraHeadHeight: 50,
         extraHead: (
             <div style={{
@@ -83,6 +153,24 @@ export default class KeywordList extends React.Component {
 
     componentWillMount( ) {
         this.props.fetchKeywordList( );
+        this.props.fetchKeywordSeparate( );
+    }
+    componentWillReceiveProps( nextProps ) {
+        this.setState({ isLoading: nextProps.keyword.isFetching })
+    }
+    setTableRef = ( table ) => {
+        this.table = table;
+    }
+    clear = ( ) => {
+        this.table.clearCheckbox( )
+    }
+    onDetailRadioChange = ( key, e ) => {
+        const { keywordStatus } = this.state;
+        keywordStatus[key] = {
+            ...keywordStatus[key],
+            detailStatus: e.target.value
+        }
+        this.setState({ keywordStatus })
     }
     getWordForCopy = ( ) => {
         const { selectedRowKeys } = this.state;
@@ -94,10 +182,24 @@ export default class KeywordList extends React.Component {
             return null;
         }
     }
+    onSeparateClick = ( e ) => {
+        const { selectedRowKeys, keywordStatus } = this.state
+        selectedRowKeys.forEach(i => {
+            keywordStatus[i] = {
+                ...keywordStatus[i],
+                detailStatus: e.key
+            }
+        })
+        this.setState({ keywordStatus })
+    }
     onCopySuccess = ( ) => {
         notification['success']({ message: '复制成功' });
     }
-
+    onChangeGroupMode = ( e ) => {
+        this.setState({
+            isGroup: e.target.value == '1'
+        })
+    }
     // 关键词后面的下拉按钮组
     getExtraBtnGroup({ optimizeStatus, isFocusKeyword }) {
         return (
@@ -146,6 +248,11 @@ export default class KeywordList extends React.Component {
                 width: 300,
                 fixed: 'left',
                 render: ( text, record ) => {
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
                     if ( record.matchScope == 1 ) {
                         text = '[ ' + text + ' ]'
                     }
@@ -168,7 +275,12 @@ export default class KeywordList extends React.Component {
                 dataIndex: 'maxPrice',
                 width: 110,
                 fixed: 'left',
-                render: price => {
+                render: ( price, record ) => {
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
                     const obj = formatNum(price, { mode: 'price' })
                     return (
                         <span>
@@ -188,6 +300,11 @@ export default class KeywordList extends React.Component {
                 width: 110,
                 fixed: 'left',
                 render: ( price, record ) => {
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
                     if ( record.mobileIsDefaultPrice ) {
                         price = record.maxPrice * mobileDiscount / 100
                     }
@@ -209,7 +326,12 @@ export default class KeywordList extends React.Component {
                 dataIndex: 'rank',
                 width: 90,
                 fixed: 'left',
-                render: ( text ) => {
+                render: ( text, record ) => {
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
                     if ( text ) {
                         return (
                             <span>{text}</span>
@@ -226,7 +348,12 @@ export default class KeywordList extends React.Component {
                 colSpan: 2,
                 width: 60,
                 render: ( text, record ) => {
-                    let { pc, pcAuto } = record.grab
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
+                    let { pc, pcAuto } = record.grab || {}
                     if ( pcAuto == -1 ) {
                         pc = -1
                     }
@@ -251,7 +378,12 @@ export default class KeywordList extends React.Component {
                 colSpan: 0,
                 width: 60,
                 render: ( text, record ) => {
-                    let { mobile, mobileAuto } = record.grab
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
+                    let { mobile, mobileAuto } = record.grab || {}
                     if ( mobileAuto == -1 ) {
                         mobile = -1
                     }
@@ -277,7 +409,12 @@ export default class KeywordList extends React.Component {
                 width: 90,
                 sorter: ( a, b ) => ( a.wordscorelist.qscore - b.wordscorelist.qscore ),
                 sortOrder: sorter.columnKey == 'wordscorelist.qscore' && sorter.order,
-                render: ( text ) => {
+                render: ( text, record ) => {
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
                     return this.formatQscore( text )
                 }
             }, {
@@ -285,15 +422,25 @@ export default class KeywordList extends React.Component {
                 dataIndex: 'wordscorelist.wirelessQscore',
                 width: 90,
                 sorter: ( a, b ) => ( a.wordscorelist.wirelessQscore - b.wordscorelist.wirelessQscore ),
-                sortOrder: sorter.columnKey === 'wordscorelist.wirelessQscore' && sorter.order
+                sortOrder: sorter.columnKey === 'wordscorelist.wirelessQscore' && sorter.order,
+                render: ( text, record ) => {
+                    if ( record._isChildren ) {
+                        return (
+                            <span>-</span>
+                        )
+                    }
+                    return this.formatQscore( text )
+                }
             }
         ];
         reportSort.forEach(key => {
             cols.push({
                 title: keywordReports[key].name,
-                dataIndex: 'report.' + key,
+                dataIndex: key,
                 width: 80,
-                grow: true
+                grow: true,
+                accuracy: 2,
+                unit: keywordReports[key].unit
             })
         })
 
@@ -302,7 +449,12 @@ export default class KeywordList extends React.Component {
             key: 'opType',
             width: 110,
             fixed: 'right',
-            render: val => {
+            render: ( val, record ) => {
+                if ( record._isChildren ) {
+                    return (
+                        <span>-</span>
+                    )
+                }
                 return (
                     <span>1</span>
                 )
@@ -335,24 +487,28 @@ export default class KeywordList extends React.Component {
         }
     }
     getTableData( ) {
-        const { keywords, keywordMap } = this.props.keyword;
+        let { keywords, keywordMap, keywordDetailMap } = this.props.keyword;
+        const { keywordStatus } = this.state
         const { filters } = this.props.view;
         let arr = [ ]
+        keywordDetailMap = keywordDetailMap || {}
         if ( keywords ) {
-            arr = keywords.map(id => keywordMap[id])
-            // if ( filters ) {     for ( let f in filters ) {         let o = filters[f];         arr = arr.filter(o.fn.bind( null, o.type, o.key ))  }
-            // }
+            arr = keywords.map(id => ({
+                ...keywordMap[id],
+                children: keywordDetailMap[id],
+                ...keywordStatus[id]
+            }))
         }
         return arr
     }
     render( ) {
         const { selectedRowKeys } = this.state
         const modeSw = (
-            <Radio.Group className="keyword-list-type">
-                <Radio.Button value="a" className="btn">
+            <Radio.Group className="keyword-list-type" defaultValue='1' onChange={this.onChangeGroupMode}>
+                <Radio.Button value="1" className="btn">
                     <Icon type="biaogefenlie"/>
                 </Radio.Button>
-                <Radio.Button value="c" className="btn">
+                <Radio.Button value="2" className="btn">
                     <Icon type="biaogeshouqi"/>
                 </Radio.Button>
             </Radio.Group>
@@ -365,7 +521,6 @@ export default class KeywordList extends React.Component {
                             {modeSw}
                             <Button type="primary">智能淘词</Button>
                             <Button type="primary">指定加词</Button>
-                            <Button>细分数据</Button>
                             <KeywordFilter onSetFilter/>
                         </div>
                     )
@@ -373,7 +528,7 @@ export default class KeywordList extends React.Component {
                         <div className="control-row">
                             {modeSw}
                             <EditMultiWordPrice selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}></EditMultiWordPrice>
-                            <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}>
+                            <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}>
                                 <Button type="primary">删除关键词</Button>
                             </DelKeyword>
                             <Button type="primary">修改匹配方式</Button>
@@ -382,7 +537,20 @@ export default class KeywordList extends React.Component {
                             <ClipboardButton option-text={this.getWordForCopy} className="ant-btn" onSuccess={this.onCopySuccess}>复制关键词</ClipboardButton>
                             <Button>重点关注词</Button>
                             <Button>修改优化方式</Button>
-                            <Button>切换细分数据</Button>
+                            <Dropdown
+                                overlay={(
+                                <Menu onClick={this.onSeparateClick}>
+                                    <Menu.Item key="0">汇总数据</Menu.Item>
+                                    <Menu.Item key="1">PC/无线数据</Menu.Item>
+                                    <Menu.Item key="2">站内/站外数据</Menu.Item>
+                                    <Menu.Item key="3">PC/无线/站内/站外数据</Menu.Item>
+                                </Menu>
+                            )}>
+                                <Button>
+                                    细分数据
+                                    <IconAntd type="down"/>
+                                </Button>
+                            </Dropdown>
                             <div className="filter-sw">
                                 <Button type="primary">
                                     关键词筛选
@@ -391,7 +559,7 @@ export default class KeywordList extends React.Component {
                             </div>
                         </div>
                     )}
-                <Table dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
+                <Table ref={this.setTableRef} dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
             </div>
         )
     }

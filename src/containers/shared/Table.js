@@ -7,10 +7,10 @@ import { get, omit, fill } from 'lodash'
 import './Table.less'
 
 /* TODOList
+分页
 局部滚动 固定
 额外固定的行 (定向数据)
 排序
-checkbox
 */
 const DEFAULT_CELL_WIDTH = 100
 export default class TableEX extends React.Component {
@@ -32,7 +32,7 @@ export default class TableEX extends React.Component {
         // 分组 设置
         groupSetting: PropTypes.array,
         // 控制细分数据显示
-        detailVisiable: PropTypes.object,
+        checkDetailVisiable: PropTypes.func,
         // 细分数据 children数据 用 额外的render
         detailRowRender: PropTypes.func,
         //checkbox用
@@ -44,6 +44,7 @@ export default class TableEX extends React.Component {
         dataSource: [],
         headHeight: 40,
         rowHeight: 56,
+        checkDetailVisiable: ( ) => [],
         noRowsRenderer: ( ) => (
             <span>暂无数据</span>
         )
@@ -67,36 +68,51 @@ export default class TableEX extends React.Component {
     }
     componentDidUpdate( ) {
         PubSub.subscribe('table.resize', ( ) => {
-            this.windowScroller.updatePosition( );
+            this.windowScroller && this.windowScroller.updatePosition( );
         })
     }
     componentWillUnmount( ) {
         PubSub.unsubscribe( 'table.resize' );
         this.scrollBar.removeEventListener( "scroll", this.onBarScroll )
     }
+    // 可以外部调用的
+    clearCheckbox( ) {
+        this._setCheckStatus( this.state.checkMap.list, false )
+    }
     // Event
-    onCheckboxAllChange = ( e ) => {
-        const { checked } = e.target
+    triggerCheckboxEvent = ( ) => {
+        const { selectionEvent } = this.props
+        const { checkMap } = this.state
+        if ( selectionEvent.onChange ) {
+            selectionEvent.onChange({
+                selectedRowKeys: checkMap.list.filter(key => checkMap[key])
+            })
+        }
+    }
+    _setCheckStatus( arr, checked ) {
         const { checkMap } = this.state
         let obj = {}
-        checkMap.list.forEach(key => {
+        arr.forEach(key => {
             obj[key] = checked
         })
-        this.setState({
+        this.setState( {
             checkMap: {
                 ...checkMap,
                 ...obj
             }
-        })
+        }, this.triggerCheckboxEvent )
+    }
+    onCheckboxAllChange = ( e ) => {
+        this._setCheckStatus( this.state.checkMap.list, e.target.checked )
     }
     onCheckboxChange = ( e ) => {
         const { checked, value } = e.target
-        this.setState({
+        this.setState( {
             checkMap: {
                 ...this.state.checkMap,
                 [ value ]: checked
             }
-        })
+        }, this.triggerCheckboxEvent )
     }
     onClickGroupTitle( index, e ) {
         if ( e.target.type == 'checkbox' ) {
@@ -114,12 +130,12 @@ export default class TableEX extends React.Component {
         checkMap.group[value].forEach(key => {
             obj[key] = checked
         })
-        this.setState({
+        this.setState( {
             checkMap: {
                 ...checkMap,
                 ...obj
             }
-        })
+        }, this.triggerCheckboxEvent )
     }
     // 固定表头
     onScrollHead = ( extraHeadVisible ) => {
@@ -148,7 +164,7 @@ export default class TableEX extends React.Component {
 
     // props => state
     formatDataSource( nextProps ) {
-        const { filters, isGroup, groupSetting, dataSource, detailVisiable } = nextProps || this.props;
+        const { filters, isGroup, groupSetting, dataSource, checkDetailVisiable } = nextProps || this.props;
         const { groupVisiable } = this.state;
         let data = [],
             arr = dataSource,
@@ -186,13 +202,15 @@ export default class TableEX extends React.Component {
                 disabledList.push( i.key )
             }
             if ( i.children ) {
-                i.children.forEach(j => {
-                    if (typeof j.visible === "function" && j.visible( detailVisiable, j )) {
-                        data.push({
-                            ...j,
-                            _isChildren: true
-                        })
-                    }
+                let _arr = checkDetailVisiable( i.children, i.detailStatus )
+                _arr.forEach(( j, ind ) => {
+                    data.push({
+                        ...j,
+                        _isChildren: true,
+                        _row: ind,
+                        _status: i.detailStatus,
+                        _key: i.key
+                    })
                 })
             }
         })
@@ -202,7 +220,7 @@ export default class TableEX extends React.Component {
                 ...this.state.checkMap,
                 disabledList,
                 group,
-                list: arr.map( i => i.key )
+                list: arr.filter( i => !i._isGroupTitle ).map( i => i.key )
             }
         })
     }
@@ -288,19 +306,21 @@ export default class TableEX extends React.Component {
         }
     }
     cellRenderer = ({ cellData, columnData, rowData, dataKey, columnIndex }) => {
-        const { detailRowRender } = this.props
         if ( rowData._isGroupTitle ) {
             return '';
-        }
-        if ( rowData._isChildren ) {
-            let r = detailRowRender({ columnIndex, dataKey, rowData })
-            if ( r ) {
-                return r;
-            }
         }
         if ( columnData && columnData.render ) {
             return columnData.render( cellData, rowData )
         } else {
+            if ( cellData == 0 || cellData === undefined ) {
+                return '-'
+            }
+            if ( columnData.accuracy ) {
+                cellData = +cellData.toFixed( columnData.accuracy )
+            }
+            if ( columnData.unit ) {
+                cellData += columnData.unit
+            }
             return String( cellData );
         }
     }
@@ -362,6 +382,7 @@ export default class TableEX extends React.Component {
     }
     renderCheckbox = (type, { cellData, rowData, dataKey, columnIndex }) => {
         const { checkMap } = this.state;
+        const { detailRowRender, rowHeight } = this.props;
         let indeterminate = false,
             disabled = false,
             checked = false,
@@ -378,6 +399,11 @@ export default class TableEX extends React.Component {
             checked = checkedCount > 0 && checkedCount == items.length
             indeterminate = checkedCount > 0
             disabled = disabledCount == items.length
+        }
+        if ( rowData && rowData._isChildren ) {
+            return detailRowRender({ columnIndex, dataKey, rowData, rowHeight, width: this.state.fixedLeftWidth }) || (
+                <span>&nbsp;</span>
+            )
         }
         return ( <Checkbox
             checked={checked}

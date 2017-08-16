@@ -16,7 +16,9 @@ export default class DelKeyword extends React.Component {
             let word,
                 optimizeStatus
             if ( selectedRowKeys.length ) {
-                word = selectedRowKeys.map( i => keywordMap[i].word ).join( ' ' )
+                word = selectedRowKeys.map(i => {
+                    return keywordMap[i].word
+                }).join( ' ' )
                 optimizeStatus = selectedRowKeys.map( i => keywordMap[i].optimizeStatus )[ 0 ]
             }
             this.state = {
@@ -42,8 +44,8 @@ export default class DelKeyword extends React.Component {
                 campaignId: keywordMap[i].campaignId,
                 adgroupId: keywordMap[i].adgroupId
             }))
-            console.dir( result );
-            this.props.deleteKeyword( result )
+            this.props.deleteKeyword( result, selectedRowKeys )
+            this.props.afterCb( );
         }
         render( ) {
             const { getFieldDecorator } = this.props.form;
