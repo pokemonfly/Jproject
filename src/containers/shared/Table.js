@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { AutoSizer, Column, Table, WindowScroller } from 'react-virtualized';
 import { Checkbox, Affix } from 'antd';
 import PubSub from 'pubsub-js';
-import { get, omit, fill } from 'lodash'
+import { get, omit, fill, without } from 'lodash'
 import './Table.less'
 
 /* TODOList
@@ -55,8 +55,10 @@ export default class TableEX extends React.Component {
             extraHeadVisible: false,
             data: [],
             groupVisiable: fill( Array( props.groupSetting.length ), true ),
-            checkMap: {}
+            checkMap: {},
+            activeRows: [ ]
         }
+        window.table = this
     }
     componentWillMount( ) {
         this.calcWidth( )
@@ -68,7 +70,7 @@ export default class TableEX extends React.Component {
     }
     componentDidUpdate( ) {
         PubSub.subscribe('table.resize', ( ) => {
-            this.windowScroller && this.windowScroller.updatePosition( );
+            this.refs.windowScroller && this.refs.windowScroller.updatePosition( );
         })
     }
     componentWillUnmount( ) {
@@ -143,16 +145,31 @@ export default class TableEX extends React.Component {
     }
     //同步滚动
     onBarScroll = ( e ) => {
-        this.table.scrollLeft = this.tableHead.scrollLeft = e.target.scrollLeft
+        this.tableDiv.scrollLeft = this.tableHead.scrollLeft = e.target.scrollLeft
     }
-
+    // Hover
+    onRowMouseOut = ({ event, index, rowData }) => {
+        const { activeRows } = this.state
+        if ( activeRows.indexOf( rowData.key ) > -1 ) {
+            this.setState({
+                activeRows: without( activeRows, rowData.key )
+            })
+        }
+    }
+    onRowMouseOver = ({ event, index, rowData }) => {
+        const { activeRows } = this.state
+        if ( activeRows.indexOf( rowData.key ) == -1 ) {
+            activeRows.push( rowData.key )
+            this.setState({ activeRows })
+        }
+    }
+    table = {}
     // 引用
-    setWindowScrollerRef = ( windowScroller ) => {
-        this.windowScroller = windowScroller;
-        window.table = this;
+    setTableRef = ( position, dom ) => {
+        this.table[position] = dom
     }
-    setTableRef = ( dom ) => {
-        this.table = dom;
+    setTableDivRef = ( dom ) => {
+        this.tableDiv = dom;
     }
     setTableHeadRef = ( dom ) => {
         this.tableHead = dom;
@@ -331,7 +348,7 @@ export default class TableEX extends React.Component {
             </div>
         );
     }
-    rowRenderer(position, {
+    rowRenderer = (position, {
         className,
         columns,
         index,
@@ -343,7 +360,7 @@ export default class TableEX extends React.Component {
         onRowRightClick,
         rowData,
         style
-    }) {
+    }) => {
         const a11yProps = {};
 
         if ( onRowClick || onRowDoubleClick || onRowMouseOut || onRowMouseOver || onRowRightClick ) {
@@ -374,6 +391,11 @@ export default class TableEX extends React.Component {
         if ( rowData._isGroupTitle ) {
             return this.groupTitleRender({ rowData, key, className, style, position })
         }
+        const { activeRows } = this.state
+        if ( activeRows.indexOf( rowData.key ) > -1 ) {
+            className += ' active'
+        }
+
         return (
             <div role="row" {...a11yProps} key={key} className={className} style={style}>
                 {columns}
@@ -417,9 +439,7 @@ export default class TableEX extends React.Component {
         const { hasCheckbox } = this.props
 
         let r = columns.map(( obj, index ) => {
-            const className = obj.grow
-                ? 'table-grow-cell'
-                : null;
+            const className = obj.grow ? 'table-grow-cell' : null;
             return <Column
                 label={obj.title}
                 key={obj.key || obj.dataIndex || index}
@@ -458,22 +478,12 @@ export default class TableEX extends React.Component {
             </Table>
         )
     }
-    tableRender({
-        height,
-        isScrolling,
-        onChildScroll,
-        scrollTop,
-        width,
-        columns,
-        position
-    }) {
+    tableRender({ height, scrollTop, width, columns, position }) {
         const { noRowsRenderer, rowHeight } = this.props
         const { data } = this.state
         return (
             <Table
                 autoHeight={true}
-                isScrolling={isScrolling}
-                onScroll={onChildScroll}
                 scrollTop={scrollTop}
                 height={height}
                 width={width}
@@ -483,7 +493,10 @@ export default class TableEX extends React.Component {
                 rowHeight={rowHeight}
                 rowRenderer={this.rowRenderer.bind( this, position )}
                 rowCount={data.length}
-                rowGetter={({ index }) => data[index]}>
+                rowGetter={({ index }) => data[index]}
+                ref={this.setTableRef.bind( null, position )}
+                onRowMouseOut={this.onRowMouseOut}
+                onRowMouseOver={this.onRowMouseOver}>
                 {this.renderExtraColumns( columns, position )}
             </Table>
         )
@@ -509,45 +522,43 @@ export default class TableEX extends React.Component {
                         width
                     }}>
                         {extraHeadVisible && extraHead}
-                        {( !fixedLeft && !fixedRight || width > minWidth )
-                            ? (
-                                <div className="table-grid">
-                                    {this.tableHeadRender({ width: width, columns: columns, position: 'left' })}
-                                </div>
-                            )
-                            : (
-                                <div className="table-grid">
-                                    {fixedLeft && (
-                                        <div
-                                            className="fixed-part-left"
-                                            style={{
-                                            width: fixedLeftWidth
-                                        }}>
-                                            {this.tableHeadRender({ width: fixedLeftWidth, columns: columnsLeft, position: 'left' })}
-                                        </div>
-                                    )}
-                                    <div className="scroll-part" ref={this.setTableHeadRef}>
-                                        <AutoSizer disableHeight={true}>
-                                            {({ width }) => (
-                                                <div style={{
-                                                    width
-                                                }}>
-                                                    {this.tableHeadRender({ width: contentWidth, columns: columnsCenter, position: 'center' })}
-                                                </div>
-                                            )}
-                                        </AutoSizer>
+                        {( !fixedLeft && !fixedRight || width > minWidth ) ? (
+                            <div className="table-grid">
+                                {this.tableHeadRender({ width: width, columns: columns, position: 'left' })}
+                            </div>
+                        ) : (
+                            <div className="table-grid">
+                                {fixedLeft && (
+                                    <div
+                                        className="fixed-part-left"
+                                        style={{
+                                        width: fixedLeftWidth
+                                    }}>
+                                        {this.tableHeadRender({ width: fixedLeftWidth, columns: columnsLeft, position: 'left' })}
                                     </div>
-                                    {fixedRight && (
-                                        <div
-                                            className="fixed-part-right"
-                                            style={{
-                                            width: fixedRightWidth
-                                        }}>
-                                            {this.tableHeadRender({ width: fixedRightWidth, columns: columnsRight, position: 'right' })}
-                                        </div>
-                                    )}
+                                )}
+                                <div className="scroll-part" ref={this.setTableHeadRef}>
+                                    <AutoSizer disableHeight={true}>
+                                        {({ width }) => (
+                                            <div style={{
+                                                width
+                                            }}>
+                                                {this.tableHeadRender({ width: contentWidth, columns: columnsCenter, position: 'center' })}
+                                            </div>
+                                        )}
+                                    </AutoSizer>
                                 </div>
-                            )}
+                                {fixedRight && (
+                                    <div
+                                        className="fixed-part-right"
+                                        style={{
+                                        width: fixedRightWidth
+                                    }}>
+                                        {this.tableHeadRender({ width: fixedRightWidth, columns: columnsRight, position: 'right' })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </Affix>
                 )}
             </AutoSizer>
@@ -599,7 +610,7 @@ export default class TableEX extends React.Component {
                             })}
                         </div>
                     )}
-                    <div className="scroll-part" ref={this.setTableRef}>
+                    <div className="scroll-part" ref={this.setTableDivRef}>
                         <AutoSizer disableHeight={true}>
                             {({ width }) => (
                                 <div style={{
@@ -653,9 +664,7 @@ export default class TableEX extends React.Component {
     renderTable( obj ) {
         const { headHeight } = this.props
         const { fixedLeft, fixedRight, extraHeadVisible, minWidth } = this.state;
-        const paddingTop = extraHeadVisible
-            ? headHeight
-            : 0;;
+        const paddingTop = extraHeadVisible ? headHeight : 0;;
         return (
             <AutoSizer disableHeight={true}>
                 {({ width }) => {
@@ -682,7 +691,7 @@ export default class TableEX extends React.Component {
             <div>
                 {this.renderTableHead( )}
                 {!isLoading && (
-                    <WindowScroller ref={this.setWindowScrollerRef}>
+                    <WindowScroller ref="windowScroller">
                         {( obj ) => this.renderTable( obj )}
                     </WindowScroller>
                 )}

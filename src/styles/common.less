@@ -9,18 +9,10 @@ hr {
 .hide {
     display: none;
 }
-.rc-trigger-popup   {
-        z-index: 10;
+.rc-trigger-popup {
+    z-index: 10;
 }
-// 表格hover显示
-.table-row-hover {
-    .show-on-row-hover {
-        display: none;
-    }
-    tr:hover .show-on-row-hover {
-        display: inline-block;
-    }
-}
+
 // 表格的修改笔站位
 .table-edit-icon {
     width  : 24px;
@@ -37,7 +29,6 @@ hr {
     box-shadow      : 0 1px 6px rgba(0,0,0,.2);
     background-clip : padding-box;
     padding         : 16px;
-
     .header {
         font-weight  : bold;
         font-size    : 14px;
@@ -52,6 +43,12 @@ hr {
             margin-left: 12px;
         }
     }
+}
+.msg-success {
+    color: @success-color
+}
+.msg-danger {
+    color: @error-color
 }
 // 覆盖默认浏览器的样式
 ::-webkit-scrollbar,

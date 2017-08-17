@@ -76,7 +76,7 @@
 .ReactVirtualized__Table__headerRow,
 .ReactVirtualized__Table__row {
     transition: all 0.3s;
-    &.row_hover .ReactVirtualized__Table__rowColumn {
+    &:hover .ReactVirtualized__Table__rowColumn {
         background: @table-row-hover-bg;
     }
 }
@@ -142,5 +142,14 @@
     .fake-title {
         float      : right;
         line-height: 56px;
+    }
+}
+// 表格hover显示
+.ReactVirtualized__Table__row {
+    .show-on-row-hover {
+        display: none;
+    }
+    &.active .show-on-row-hover {
+        display: inline-block;
     }
 }

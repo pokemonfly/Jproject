@@ -99,9 +99,7 @@ export default class KeywordList extends React.Component {
             }
         },
         detailRowRender: ({ columnIndex, dataKey, rowData, rowHeight, width }) => {
-            const rowspan = rowData._status == '3'
-                ? 4
-                : 2;
+            const rowspan = rowData._status == '3' ? 4 : 2;
             if ( columnIndex == 0 && rowData._row == 0 ) {
                 return (
                     <span
@@ -212,11 +210,7 @@ export default class KeywordList extends React.Component {
                         <Tooltip title="修改匹配方式" arrowPointAtCenter>
                             <Icon type="jingzhundingwei"/>
                         </Tooltip>
-                        <Tooltip
-                            title={optimizeStatus
-                            ? '黑名单'
-                            : '该词优化方式为只优化价格，黑名单功能不可用'}
-                            arrowPointAtCenter>
+                        <Tooltip title={optimizeStatus ? '黑名单' : '该词优化方式为只优化价格，黑名单功能不可用'} arrowPointAtCenter>
                             <Icon type="shanchuheimingdan"/>
                         </Tooltip>
                         <Tooltip title="删除关键词" arrowPointAtCenter>
@@ -226,9 +220,7 @@ export default class KeywordList extends React.Component {
                             <Icon type="qushi"/>
                         </Tooltip>
                         <Tooltip title="重点关注" arrowPointAtCenter>
-                            <Icon type={isFocusKeyword
-                                ? "nofocus"
-                                : 'guanzhu'}/>
+                            <Icon type={isFocusKeyword ? "nofocus" : 'guanzhu'}/>
                         </Tooltip>
                     </Layout>
                 )}>
@@ -447,20 +439,85 @@ export default class KeywordList extends React.Component {
         cols.push({
             title: '优化方式',
             key: 'opType',
-            width: 110,
+            width: 130,
             fixed: 'right',
             render: ( val, record ) => {
                 if ( record._isChildren ) {
                     return (
-                        <span>-</span>
+                        <span>&nbsp;</span>
                     )
                 }
-                return (
-                    <span>1</span>
-                )
+                const { blackStatus, isOptimizeChangePrice, isOptimizeChangeMobilePrice, isOptimizeChangeMatchScope, optimizeStatus } = record
+                if ( blackStatus != 'toDel' ) {
+                    return (
+                        <div className="op-type">
+                            {( ( isOptimizeChangeMatchScope == 0 || isOptimizeChangeMatchScope == 0 ) && optimizeStatus != -1 && optimizeStatus != 9 ) && (
+                                <Icon type="dian"></Icon>
+                            )}
+                            {this._getOptimizeStatus( optimizeStatus )}
+                            {( optimizeStatus == 1 || optimizeStatus == 0 ) && (
+                                <Tooltip
+                                    title={`PC: ${ isOptimizeChangePrice == 1 ? '优化' : '不优化' }, 无线: ${ isOptimizeChangeMobilePrice == 1 ? '优化' : '不优化' }`}
+                                    arrowPointAtCenter>
+                                    <div className="status-block">
+                                        <div className={`${ isOptimizeChangePrice == 1 ? 'active' : '' }`}></div>
+                                        <div className={`${ isOptimizeChangeMobilePrice == 1 ? 'active' : '' }`}></div>
+                                    </div>
+                                </Tooltip>
+                            )}
+                            <Trigger popup={( <EditWordPrice mode='mobile'/> )}>
+                                <span className="table-edit-icon">
+                                    <Icon type="xiugaibi" className="show-on-row-hover"/>
+                                </span>
+                            </Trigger>
+                        </div>
+                    )
+                } else {
+                    return (
+                        <Tooltip title="该关键词包含黑名单词，将在下一次优化时被删除，且不再被投放。">
+                            <div className="label label-primary">待删除</div>
+                        </Tooltip>
+                    )
+                }
             }
         });
         return cols;
+    }
+    _getOptimizeStatus( optimizeStatus ) {
+        switch ( optimizeStatus ) {
+            case 1:
+                return (
+                    <span className="msg-success">全自动优化</span>
+                )
+            case - 1:
+                return (
+                    <span className="msg-danger">不自动优化</span>
+                )
+            case 0:
+                return (
+                    <span className="msg-success">只优化价格</span>
+                )
+            case 2:
+                return (
+                    <span className="msg-success">只优化出词
+                        <Tooltip title="此特殊状态下，效果差该关键词依旧会被删词，如不想被删除，请手动设为【不自动优化】" arrowPointAtCenter>
+                            <Icon type="wenhao"/>
+                        </Tooltip>
+                    </span>
+                )
+            case 3:
+                return (
+                    <span className="msg-success">不优化[出词&出价]</span>
+                )
+            case 9:
+                return (
+                    <span className="msg-success">按配置优化</span>
+                )
+            default:
+                return (
+                    <span >未知状态</span>
+                )
+        }
     }
     formatQscore( score ) {
         if ( score > 0 ) {
@@ -499,6 +556,7 @@ export default class KeywordList extends React.Component {
                 ...keywordStatus[id]
             }))
         }
+        arr = arr.slice( 0, 15 )
         return arr
     }
     render( ) {
@@ -515,50 +573,48 @@ export default class KeywordList extends React.Component {
         )
         return (
             <div className="keyword-list">
-                {selectedRowKeys.length == 0
-                    ? (
-                        <div className="control-row">
-                            {modeSw}
-                            <Button type="primary">智能淘词</Button>
-                            <Button type="primary">指定加词</Button>
-                            <KeywordFilter onSetFilter/>
+                {selectedRowKeys.length == 0 ? (
+                    <div className="control-row">
+                        {modeSw}
+                        <Button type="primary">智能淘词</Button>
+                        <Button type="primary">指定加词</Button>
+                        <KeywordFilter onSetFilter/>
+                    </div>
+                ) : (
+                    <div className="control-row">
+                        {modeSw}
+                        <EditMultiWordPrice selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}></EditMultiWordPrice>
+                        <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}>
+                            <Button type="primary">删除关键词</Button>
+                        </DelKeyword>
+                        <Button type="primary">修改匹配方式</Button>
+                        <Button type="primary">抢排名</Button>
+                        <Button type="primary">查排名</Button>
+                        <ClipboardButton option-text={this.getWordForCopy} className="ant-btn" onSuccess={this.onCopySuccess}>复制关键词</ClipboardButton>
+                        <Button>重点关注词</Button>
+                        <Button>修改优化方式</Button>
+                        <Dropdown
+                            overlay={(
+                            <Menu onClick={this.onSeparateClick}>
+                                <Menu.Item key="0">汇总数据</Menu.Item>
+                                <Menu.Item key="1">PC/无线数据</Menu.Item>
+                                <Menu.Item key="2">站内/站外数据</Menu.Item>
+                                <Menu.Item key="3">PC/无线/站内/站外数据</Menu.Item>
+                            </Menu>
+                        )}>
+                            <Button>
+                                细分数据
+                                <IconAntd type="down"/>
+                            </Button>
+                        </Dropdown>
+                        <div className="filter-sw">
+                            <Button type="primary">
+                                关键词筛选
+                                <IconAntd type="down"/>
+                            </Button>
                         </div>
-                    )
-                    : (
-                        <div className="control-row">
-                            {modeSw}
-                            <EditMultiWordPrice selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}></EditMultiWordPrice>
-                            <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}>
-                                <Button type="primary">删除关键词</Button>
-                            </DelKeyword>
-                            <Button type="primary">修改匹配方式</Button>
-                            <Button type="primary">抢排名</Button>
-                            <Button type="primary">查排名</Button>
-                            <ClipboardButton option-text={this.getWordForCopy} className="ant-btn" onSuccess={this.onCopySuccess}>复制关键词</ClipboardButton>
-                            <Button>重点关注词</Button>
-                            <Button>修改优化方式</Button>
-                            <Dropdown
-                                overlay={(
-                                <Menu onClick={this.onSeparateClick}>
-                                    <Menu.Item key="0">汇总数据</Menu.Item>
-                                    <Menu.Item key="1">PC/无线数据</Menu.Item>
-                                    <Menu.Item key="2">站内/站外数据</Menu.Item>
-                                    <Menu.Item key="3">PC/无线/站内/站外数据</Menu.Item>
-                                </Menu>
-                            )}>
-                                <Button>
-                                    细分数据
-                                    <IconAntd type="down"/>
-                                </Button>
-                            </Dropdown>
-                            <div className="filter-sw">
-                                <Button type="primary">
-                                    关键词筛选
-                                    <IconAntd type="down"/>
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                    </div>
+                )}
                 <Table ref={this.setTableRef} dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
             </div>
         )
