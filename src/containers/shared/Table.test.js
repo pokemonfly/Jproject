@@ -1,100 +1,20 @@
 import React from 'react';
 import PropTypes from "prop-types";
-import { AutoSizer, Column, Table, Grid } from 'react-virtualized';
-import WindowScroller from './WindowScroller'
+import { AutoSizer, Column, Table, WindowScroller } from 'react-virtualized';
 import { Checkbox, Affix } from 'antd';
 import PubSub from 'pubsub-js';
-import { get, omit, fill, pull, without } from 'lodash'
-import { List } from 'immutable'
-import cn from "classnames";
-import { requestAnimationTimeout, cancelAnimationTimeout } from "@/utils/requestAnimationTimeout";
+import { get, omit, fill, pull } from 'lodash'
 import './Table.less'
-
-class TableHoc extends Table {
-    render( ) {
-        const {
-            children,
-            className,
-            disableHeader,
-            gridClassName,
-            gridStyle,
-            headerHeight,
-            headerRowRenderer,
-            height,
-            id,
-            noRowsRenderer,
-            rowClassName,
-            rowStyle,
-            scrollToIndex,
-            style,
-            width,
-            rowRangeRenderer
-        } = this.props;
-        const { scrollbarWidth } = this.state;
-
-        const availableRowsHeight = disableHeader ? height : height - headerHeight;
-
-        const rowClass = typeof rowClassName === "function" ? rowClassName({ index: -1 }) : rowClassName;
-        const rowStyleObject = typeof rowStyle === "function" ? rowStyle({ index: -1 }) : rowStyle;
-
-        this._cachedColumnStyles = [ ];
-        React.Children.toArray( children ).forEach(( column, index ) => {
-            const flexStyles = this._getFlexStyleForColumn( column, column.props.style );
-
-            this._cachedColumnStyles[index] = {
-                ...flexStyles,
-                overflow: "hidden"
-            };
-        });
-
-        return (
-            <div className={cn( "ReactVirtualized__Table", className )} id={id} role="grid" style={style}>
-                {!disableHeader && headerRowRenderer({
-                    className: cn( "ReactVirtualized__Table__headerRow", rowClass ),
-                    columns: this._getHeaderColumns( ),
-                    style: {
-                        ...rowStyleObject,
-                        height: headerHeight,
-                        overflow: "hidden",
-                        paddingRight: scrollbarWidth,
-                        width: width
-                    }
-                })}
-
-                <Grid
-                    {...this.props}
-                    autoContainerWidth
-                    className={cn( "ReactVirtualized__Table__Grid", gridClassName )}
-                    cellRenderer={this._createRow}
-                    cellRangeRenderer={rowRangeRenderer}
-                    columnWidth={width}
-                    columnCount={1}
-                    height={availableRowsHeight}
-                    id={undefined}
-                    noContentRenderer={noRowsRenderer}
-                    onScroll={this._onScroll}
-                    onSectionRendered={this._onSectionRendered}
-                    ref={this._setRef}
-                    role="rowgroup"
-                    scrollbarWidth={scrollbarWidth}
-                    scrollToRow={scrollToIndex}
-                    style={{
-                    ...gridStyle,
-                    overflowX: "hidden"
-                }}/>
-            </div>
-        );
-    }
-}
+import { List } from 'immutable'
+import { requestAnimationTimeout, cancelAnimationTimeout } from "@/utils/requestAnimationTimeout";
 /* TODOList
 分页
 局部滚动 固定
 额外固定的行 (定向数据)
 排序
 */
+let disablePointerEventsTimeoutId = null;
 const DEFAULT_CELL_WIDTH = 100
-// 防止hover触发太频繁
-let hoverEventsTimeoutId = null;
 export default class TableEX extends React.Component {
     static propTypes = {
         columns: PropTypes.array.isRequired,
@@ -135,11 +55,10 @@ export default class TableEX extends React.Component {
         super( props );
         this.state = {
             extraHeadVisible: false,
-            data: [],
+            data: List( ),
             groupVisiable: fill( Array( props.groupSetting.length ), true ),
             checkMap: {},
-            hoverRowIndex: null,
-            reRenderRows: new Set( )
+            activeRow: null
         }
         window.table = this
     }
@@ -232,19 +151,12 @@ export default class TableEX extends React.Component {
     }
     // Hover
     onRowMouseOut = ({ event, index, rowData }) => {
-        const { reRenderRows } = this.state
-        if ( event.target.className.indexOf( 'rowColumn' ) == -1 ) {
-            return false;
-        }
-        reRenderRows.add( index )
-        this.setState({ hoverRowIndex: null, reRenderRows })
+        // let { data } = this.state data = data.set(index, {     ...data.get( index ),     active: false }) if ( disablePointerEventsTimeoutId ) {
+        // cancelAnimationTimeout( disablePointerEventsTimeoutId ); } disablePointerEventsTimeoutId = requestAnimationTimeout( ( ) => {
+        // this.setState({ data }) }, 150 );
     }
     onRowMouseOver = ({ event, index, rowData }) => {
-        const { reRenderRows } = this.state
-        reRenderRows.add( index )
-        this.setState({ hoverRowIndex: index, reRenderRows })
-    }
-    hoverDelay( ) {
+        // let { data } = this.state data = data.set(index, {     ...data.get( index ),     active: true })
         if ( disablePointerEventsTimeoutId ) {
             cancelAnimationTimeout( disablePointerEventsTimeoutId );
         }
@@ -252,7 +164,11 @@ export default class TableEX extends React.Component {
             this.setState({ activeRow: index })
         }, 50 );
     }
+    table = {}
     // 引用
+    setTableRef = ( position, dom ) => {
+        this.table[position] = dom
+    }
     setTableDivRef = ( dom ) => {
         this.tableDiv = dom;
     }
@@ -268,7 +184,7 @@ export default class TableEX extends React.Component {
     formatDataSource( nextProps ) {
         const { filters, isGroup, groupSetting, dataSource, checkDetailVisiable } = nextProps || this.props;
         const { groupVisiable } = this.state;
-        let data = [],
+        let data = List( ),
             arr = dataSource,
             disabledList = [],
             group = {};
@@ -299,14 +215,14 @@ export default class TableEX extends React.Component {
         }
         // 细分数据
         arr.forEach(i => {
-            data.push( i );
+            data = data.push( i );
             if ( i.disabled ) {
                 disabledList.push( i.key )
             }
             if ( i.children ) {
                 let _arr = checkDetailVisiable( i.children, i.detailStatus )
                 _arr.forEach(( j, ind ) => {
-                    data.push({
+                    data = data.push({
                         ...j,
                         _isChildren: true,
                         _row: ind,
@@ -476,10 +392,8 @@ export default class TableEX extends React.Component {
         if ( rowData._isGroupTitle ) {
             return this.groupTitleRender({ rowData, key, className, style, position })
         }
-        const { hoverRowIndex } = this.state
-        if ( hoverRowIndex == index ) {
-            className += ' active'
-        }
+        // const { activeRows } = this.state if ( activeRows.indexOf( rowData.key ) > -1 ) { if ( this.state.activeRow == index ) {     className +=
+        // ' active' }
         console.log( "我re-render了" );
         return (
             <div role="row" {...a11yProps} key={key} className={className} style={style}>
@@ -547,92 +461,6 @@ export default class TableEX extends React.Component {
         }
         return r;
     }
-    // 覆盖自带方法，使用缓存 https://github.com/bvaughn/react-virtualized/blob/master/source/Grid/defaultCellRangeRenderer.js
-    rowRangeRenderer = ({
-        cellCache,
-        cellRenderer,
-        columnSizeAndPositionManager,
-        columnStartIndex,
-        columnStopIndex,
-        deferredMeasurementCache,
-        horizontalOffsetAdjustment,
-        isScrolling,
-        parent,
-        rowSizeAndPositionManager,
-        rowStartIndex,
-        rowStopIndex,
-        styleCache,
-        verticalOffsetAdjustment,
-        visibleColumnIndices,
-        visibleRowIndices
-    }) => {
-        const { reRenderRows } = this.state
-        const renderedCells = [ ];
-        const areOffsetsAdjusted = columnSizeAndPositionManager.areOffsetsAdjusted( ) || rowSizeAndPositionManager.areOffsetsAdjusted( );
-        const canCacheStyle = !isScrolling && !areOffsetsAdjusted;
-        for ( let rowIndex = rowStartIndex; rowIndex <= rowStopIndex; rowIndex++ ) {
-            let rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell( rowIndex );
-            for ( let columnIndex = columnStartIndex; columnIndex <= columnStopIndex; columnIndex++ ) {
-                let columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell( columnIndex );
-                let isVisible = columnIndex >= visibleColumnIndices.start && columnIndex <= visibleColumnIndices.stop && rowIndex >= visibleRowIndices.start && rowIndex <= visibleRowIndices.stop;
-                let key = `${ rowIndex }-${ columnIndex }`;
-                let style;
-                if (canCacheStyle && styleCache[key]) {
-                    style = styleCache[key];
-                } else {
-                    if (deferredMeasurementCache && !deferredMeasurementCache.has( rowIndex, columnIndex )) {
-                        style = {
-                            height: "auto",
-                            left: 0,
-                            position: "absolute",
-                            top: 0,
-                            width: "auto"
-                        };
-                    } else {
-                        style = {
-                            height: rowDatum.size,
-                            left: columnDatum.offset + horizontalOffsetAdjustment,
-                            position: "absolute",
-                            top: rowDatum.offset + verticalOffsetAdjustment,
-                            width: columnDatum.size
-                        };
-                        styleCache[key] = style;
-                    }
-                }
-                let cellRendererParams = {
-                    columnIndex,
-                    isScrolling,
-                    isVisible,
-                    key,
-                    parent,
-                    rowIndex,
-                    style
-                };
-                let renderedCell;
-                if ( isScrolling && !horizontalOffsetAdjustment && !verticalOffsetAdjustment ) {
-                    if (!cellCache[key]) {
-                        cellCache[key] = cellRenderer( cellRendererParams );
-                    }
-                    renderedCell = cellCache[key];
-                } else if ( reRenderRows.size ) {
-                    if (reRenderRows.has( rowIndex )) {
-                        cellCache[key] = cellRenderer( cellRendererParams );
-                    }
-                    if (!cellCache[key]) {
-                        cellCache[key] = cellRenderer( cellRendererParams );
-                    }
-                    renderedCell = cellCache[key];
-                } else {
-                    renderedCell = cellCache[key] || cellRenderer( cellRendererParams );
-                }
-                if ( renderedCell == null || renderedCell === false ) {
-                    continue;
-                }
-                renderedCells.push( renderedCell );
-            }
-        }
-        return renderedCells;
-    }
     tableHeadRender({ width, columns, position }) {
         const { headHeight } = this.props
         return (
@@ -653,7 +481,7 @@ export default class TableEX extends React.Component {
         const { noRowsRenderer, rowHeight } = this.props
         const { data } = this.state
         return (
-            <TableHoc
+            <Table
                 autoHeight={true}
                 scrollTop={scrollTop}
                 height={height}
@@ -663,13 +491,13 @@ export default class TableEX extends React.Component {
                 disableHeader={true}
                 rowHeight={rowHeight}
                 rowRenderer={this.rowRenderer.bind( this, position )}
-                rowRangeRenderer={this.rowRangeRenderer}
-                rowCount={data.length}
-                rowGetter={({ index }) => data[index]}
+                rowCount={data.size}
+                rowGetter={({ index }) => data.get( index )}
+                ref={this.setTableRef.bind( null, position )}
                 onRowMouseOut={this.onRowMouseOut}
                 onRowMouseOver={this.onRowMouseOver}>
                 {this.renderExtraColumns( columns, position )}
-            </TableHoc>
+            </Table>
         )
     }
     renderTableHead( ) {
@@ -862,7 +690,7 @@ export default class TableEX extends React.Component {
             <div>
                 {this.renderTableHead( )}
                 {!isLoading && (
-                    <WindowScroller ref="windowScroller" scrollingResetTimeInterval={50}>
+                    <WindowScroller ref="windowScroller" scrollingResetTimeInterval={1000}>
                         {( obj ) => this.renderTable( obj )}
                     </WindowScroller>
                 )}
@@ -871,8 +699,5 @@ export default class TableEX extends React.Component {
                 )}
             </div>
         )
-    }
-    componentDidUpdate( ) {
-        this.state.reRenderRows.clear( )
     }
 }

@@ -556,7 +556,7 @@ export default class KeywordList extends React.Component {
                 ...keywordStatus[id]
             }))
         }
-        arr = arr.slice( 0, 15 )
+        // arr = arr.slice( 0, 15 )
         return arr
     }
     render( ) {

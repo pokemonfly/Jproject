@@ -31,3 +31,5 @@ http://lodashjs.com/docs/
 
 ## prettydiff配置
 https://github.com/Glavin001/atom-beautify/blob/master/src/beautifiers/prettydiff.coffee
+
+## PureComponent 
