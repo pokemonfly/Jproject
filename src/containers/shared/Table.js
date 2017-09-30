@@ -5,7 +5,7 @@ import WindowScroller from './WindowScroller'
 import { Checkbox, Affix } from 'antd';
 import PubSub from 'pubsub-js';
 import { get, omit, fill, pull, without } from 'lodash'
-import { List } from 'immutable'
+import { List, is } from 'immutable'
 import cn from "classnames";
 import { requestAnimationTimeout, cancelAnimationTimeout } from "@/utils/requestAnimationTimeout";
 import './Table.less'
@@ -138,9 +138,9 @@ export default class TableEX extends React.Component {
             data: [],
             groupVisiable: fill( Array( props.groupSetting.length ), true ),
             checkMap: {},
-            hoverRowIndex: null,
-            reRenderRows: new Set( )
+            currentHoverKey: null
         }
+        this.cellCache = {};
         window.table = this
     }
     componentWillMount( ) {
@@ -160,7 +160,25 @@ export default class TableEX extends React.Component {
         PubSub.unsubscribe( 'table.resize' );
         this.scrollBar.removeEventListener( "scroll", this.onBarScroll )
     }
-    // 可以外部调用的
+    shouldComponentUpdate(nextProps = {}, nextState = {}) {
+        const thisProps = this.props || {},
+            thisState = this.state || {};
+        if ( Object.keys( thisProps ).length !== Object.keys( nextProps ).length || Object.keys( thisState ).length !== Object.keys( nextState ).length ) {
+            return true;
+        }
+        for ( const key in nextProps ) {
+            if (!is(thisProps[key], nextProps[key])) {
+                return true;
+            }
+        }
+        for ( const key in nextState ) {
+            if (thisState[key] !== nextState[key] || !is(thisState[key], nextState[key])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    //=======================================================
     clearCheckbox( ) {
         this._setCheckStatus( this.state.checkMap.list, false )
     }
@@ -231,26 +249,24 @@ export default class TableEX extends React.Component {
         this.tableDiv.scrollLeft = this.tableHead.scrollLeft = e.target.scrollLeft
     }
     // Hover
-    onRowMouseOut = ({ event, index, rowData }) => {
-        const { reRenderRows } = this.state
+    onRowMouseOver = ({ event, index, rowData }) => {
         if ( event.target.className.indexOf( 'rowColumn' ) == -1 ) {
             return false;
         }
-        reRenderRows.add( index )
-        this.setState({ hoverRowIndex: null, reRenderRows })
-    }
-    onRowMouseOver = ({ event, index, rowData }) => {
-        const { reRenderRows } = this.state
-        reRenderRows.add( index )
-        this.setState({ hoverRowIndex: index, reRenderRows })
-    }
-    hoverDelay( ) {
-        if ( disablePointerEventsTimeoutId ) {
-            cancelAnimationTimeout( disablePointerEventsTimeoutId );
+        if ( this.state.currentHoverKey != index ) {
+            let reRenderRows = [ index ];
+            let { data } = this.state
+            data = data.map(( o, key ) => {
+                if ( o.hover && index != key ) {
+                    o.hover = false
+                    reRenderRows.push( key )
+                } else if ( key == index ) {
+                    o.hover = true
+                    reRenderRows.push( key )
+                }
+            })
+            this.setState({ currentHoverKey: index, data, reRenderRows })
         }
-        disablePointerEventsTimeoutId = requestAnimationTimeout( ( ) => {
-            this.setState({ activeRow: index })
-        }, 50 );
     }
     // 引用
     setTableDivRef = ( dom ) => {
@@ -264,7 +280,7 @@ export default class TableEX extends React.Component {
         this.scrollBar && this.scrollBar.addEventListener("scroll", this.onBarScroll.bind( this ))
     }
 
-    // props => state
+    // ======================== props => state=========================
     formatDataSource( nextProps ) {
         const { filters, isGroup, groupSetting, dataSource, checkDetailVisiable } = nextProps || this.props;
         const { groupVisiable } = this.state;
@@ -317,7 +333,7 @@ export default class TableEX extends React.Component {
             }
         })
         this.setState({
-            data,
+            data: List( data ),
             checkMap: {
                 ...this.state.checkMap,
                 disabledList,
@@ -362,8 +378,7 @@ export default class TableEX extends React.Component {
             fixedRight: !!fixedRightWidth
         })
     }
-
-    // 表格渲染组件
+    //============= 表格渲染组件==========================================
     groupTitleRender = ({ rowData, key, className, style, position }) => {
         const { checkMap } = this.state;
         let checked,
@@ -407,12 +422,20 @@ export default class TableEX extends React.Component {
             return get( rowData, dataKey );
         }
     }
-    cellRenderer = ({ cellData, columnData, rowData, dataKey, columnIndex }) => {
+    cellRenderer = ({
+        cellData,
+        columnData,
+        rowData,
+        dataKey,
+        columnIndex,
+        rowIndex
+    }) => {
         if ( rowData._isGroupTitle ) {
             return '';
         }
         if ( columnData && columnData.render ) {
-            return columnData.render( cellData, rowData )
+            this.cellCache[rowIndex + '-' + columnIndex] = this.cellCache[rowIndex + '-' + columnIndex] || columnData.render( cellData, rowData )
+            return this.cellCache[rowIndex + '-' + columnIndex]
         } else {
             if ( cellData == 0 || cellData === undefined ) {
                 return '-'
@@ -459,10 +482,12 @@ export default class TableEX extends React.Component {
                 a11yProps.onDoubleClick = event => onRowDoubleClick({ event, index, rowData });
             }
             if ( onRowMouseOut ) {
-                a11yProps.onMouseOut = event => onRowMouseOut({ event, index, rowData });
+                // a11yProps.onMouseOut = event => onRowMouseOut({ event, index, rowData });
+                a11yProps.onMouseLeave = event => onRowMouseOut({ event, index, rowData });
             }
             if ( onRowMouseOver ) {
-                a11yProps.onMouseOver = event => onRowMouseOver({ event, index, rowData });
+                // a11yProps.onMouseOver = event => onRowMouseOver({ event, index, rowData });
+                a11yProps.onMouseEnter = event => onRowMouseOver({ event, index, rowData });
             }
             if ( onRowRightClick ) {
                 a11yProps.onContextMenu = event => onRowRightClick({ event, index, rowData });
@@ -476,8 +501,7 @@ export default class TableEX extends React.Component {
         if ( rowData._isGroupTitle ) {
             return this.groupTitleRender({ rowData, key, className, style, position })
         }
-        const { hoverRowIndex } = this.state
-        if ( hoverRowIndex == index ) {
+        if ( rowData.hover || rowData.active ) {
             className += ' active'
         }
         console.log( "我re-render了" );
@@ -566,7 +590,7 @@ export default class TableEX extends React.Component {
         visibleColumnIndices,
         visibleRowIndices
     }) => {
-        const { reRenderRows } = this.state
+        const { currentHoverKey } = this.state
         const renderedCells = [ ];
         const areOffsetsAdjusted = columnSizeAndPositionManager.areOffsetsAdjusted( ) || rowSizeAndPositionManager.areOffsetsAdjusted( );
         const canCacheStyle = !isScrolling && !areOffsetsAdjusted;
@@ -614,13 +638,8 @@ export default class TableEX extends React.Component {
                         cellCache[key] = cellRenderer( cellRendererParams );
                     }
                     renderedCell = cellCache[key];
-                } else if ( reRenderRows.size ) {
-                    if (reRenderRows.has( rowIndex )) {
-                        cellCache[key] = cellRenderer( cellRendererParams );
-                    }
-                    if (!cellCache[key]) {
-                        cellCache[key] = cellRenderer( cellRendererParams );
-                    }
+                } else if ( currentHoverKey == rowIndex ) {
+                    cellCache[key] = cellRenderer( cellRendererParams );
                     renderedCell = cellCache[key];
                 } else {
                     renderedCell = cellCache[key] || cellRenderer( cellRendererParams );
@@ -664,14 +683,15 @@ export default class TableEX extends React.Component {
                 rowHeight={rowHeight}
                 rowRenderer={this.rowRenderer.bind( this, position )}
                 rowRangeRenderer={this.rowRangeRenderer}
-                rowCount={data.length}
-                rowGetter={({ index }) => data[index]}
+                rowCount={data.size}
+                rowGetter={({ index }) => data.get( index )}
                 onRowMouseOut={this.onRowMouseOut}
                 onRowMouseOver={this.onRowMouseOver}>
                 {this.renderExtraColumns( columns, position )}
             </TableHoc>
         )
     }
+    // ===============Table head ====================
     renderTableHead( ) {
         const { extraHead, extraHeadHeight, headHeight, columns } = this.props
         const {
@@ -735,6 +755,7 @@ export default class TableEX extends React.Component {
             </AutoSizer>
         )
     }
+    // ===============Table body ===============
     renderBaseTable( obj ) {
         const { paddingTop } = obj;
         return (
@@ -872,7 +893,5 @@ export default class TableEX extends React.Component {
             </div>
         )
     }
-    componentDidUpdate( ) {
-        this.state.reRenderRows.clear( )
-    }
+
 }

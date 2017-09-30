@@ -240,6 +240,7 @@ export default class KeywordList extends React.Component {
                 width: 300,
                 fixed: 'left',
                 render: ( text, record ) => {
+                    const active = record.active;
                     if ( record._isChildren ) {
                         return (
                             <span>-</span>
@@ -259,7 +260,7 @@ export default class KeywordList extends React.Component {
                             {record.isFocusKeyword && ( <Icon type="star"/> )}
                             <span>{text}</span>
                         </a>
-                        {this.getExtraBtnGroup( record )}
+                        {active && this.getExtraBtnGroup( record )}
                     </span>
                 }
             }, {
@@ -274,15 +275,18 @@ export default class KeywordList extends React.Component {
                         )
                     }
                     const obj = formatNum(price, { mode: 'price' })
+                    const active = record.active;
                     return (
                         <span>
                             {obj.text}
                             <span>元</span>
-                            <Trigger popup={( <EditWordPrice mode='pc'/> )}>
-                                <span className="table-edit-icon">
-                                    <Icon type="xiugaibi" className="show-on-row-hover"/>
-                                </span>
-                            </Trigger>
+                            {active && (
+                                <Trigger popup={( <EditWordPrice mode='pc'/> )}>
+                                    <span className="table-edit-icon">
+                                        <Icon type="xiugaibi" className="show-on-row-hover"/>
+                                    </span>
+                                </Trigger>
+                            )}
                         </span>
                     )
                 }
