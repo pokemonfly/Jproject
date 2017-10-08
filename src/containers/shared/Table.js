@@ -4,8 +4,15 @@ import { AutoSizer, Column, Table, Grid } from 'react-virtualized';
 import WindowScroller from './WindowScroller'
 import { Checkbox, Affix } from 'antd';
 import PubSub from 'pubsub-js';
-import { get, omit, fill, pull, without } from 'lodash'
-import { List, is } from 'immutable'
+import {
+    get,
+    omit,
+    fill,
+    pull,
+    without,
+    isBoolean
+} from 'lodash'
+import { fromJS, is, isKeyed, Set } from 'immutable'
 import cn from "classnames";
 import { requestAnimationTimeout, cancelAnimationTimeout } from "@/utils/requestAnimationTimeout";
 import './Table.less'
@@ -93,8 +100,6 @@ class TableHoc extends Table {
 排序
 */
 const DEFAULT_CELL_WIDTH = 100
-// 防止hover触发太频繁
-let hoverEventsTimeoutId = null;
 export default class TableEX extends React.Component {
     static propTypes = {
         columns: PropTypes.array.isRequired,
@@ -136,6 +141,8 @@ export default class TableEX extends React.Component {
         this.state = {
             extraHeadVisible: false,
             data: [],
+            reRenderRows: Set( ),
+            _cacheData: null,
             groupVisiable: fill( Array( props.groupSetting.length ), true ),
             checkMap: {},
             currentHoverKey: null
@@ -148,6 +155,7 @@ export default class TableEX extends React.Component {
         this.formatDataSource( )
     }
     componentWillReceiveProps( nextProps ) {
+        // const thisProps = this.props || { }; if ( thisProps.dataSource.length == nextProps.dataSource.length ) {     return; }
         this.calcWidth( nextProps )
         this.formatDataSource( nextProps )
     }
@@ -176,6 +184,7 @@ export default class TableEX extends React.Component {
                 return true;
             }
         }
+        console.log( '==============shouldComponentUpdate  false ===================' )
         return false;
     }
     //=======================================================
@@ -198,23 +207,42 @@ export default class TableEX extends React.Component {
         arr.forEach(key => {
             obj[key] = checked
         })
+        let newStatus = {
+            ...checkMap,
+            ...obj
+        }
+        this.syncCheckStatus( newStatus );
         this.setState( {
-            checkMap: {
-                ...checkMap,
-                ...obj
-            }
+            checkMap: newStatus
         }, this.triggerCheckboxEvent )
+    }
+    // 同步选中的状态到data 同时确定需要更新的列
+    syncCheckStatus( obj ) {
+        let { reRenderRows, data } = this.state
+        for ( const key in obj ) {
+            const s = obj[key],
+                ind = obj.list.indexOf( + key )
+            if ( isBoolean( s ) && !!data.getIn([ ind, 'checked' ]) != s ) {
+                data = data.setIn( [
+                    ind, 'checked'
+                ], s )
+                reRenderRows = reRenderRows.add( ind )
+            }
+        }
+        this.setState({ reRenderRows, data })
     }
     onCheckboxAllChange = ( e ) => {
         this._setCheckStatus( this.state.checkMap.list, e.target.checked )
     }
     onCheckboxChange = ( e ) => {
         const { checked, value } = e.target
+        let newStatus = {
+            ...this.state.checkMap,
+            [ value ]: checked
+        }
+        this.syncCheckStatus( newStatus );
         this.setState( {
-            checkMap: {
-                ...this.state.checkMap,
-                [ value ]: checked
-            }
+            checkMap: newStatus
         }, this.triggerCheckboxEvent )
     }
     onClickGroupTitle( index, e ) {
@@ -233,11 +261,13 @@ export default class TableEX extends React.Component {
         checkMap.group[value].forEach(key => {
             obj[key] = checked
         })
+        let newStatus = {
+            ...checkMap,
+            ...obj
+        }
+        this.syncCheckStatus( newStatus );
         this.setState( {
-            checkMap: {
-                ...checkMap,
-                ...obj
-            }
+            checkMap: newStatus
         }, this.triggerCheckboxEvent )
     }
     // 固定表头
@@ -254,18 +284,16 @@ export default class TableEX extends React.Component {
             return false;
         }
         if ( this.state.currentHoverKey != index ) {
-            let reRenderRows = [ index ];
             let { data } = this.state
             data = data.map(( o, key ) => {
-                if ( o.hover && index != key ) {
-                    o.hover = false
-                    reRenderRows.push( key )
+                if ( o.get( 'hover' ) && index != key ) {
+                    o = o.set( 'hover', false )
                 } else if ( key == index ) {
-                    o.hover = true
-                    reRenderRows.push( key )
+                    o = o.set( 'hover', true )
                 }
+                return o
             })
-            this.setState({ currentHoverKey: index, data, reRenderRows })
+            this.setState({currentHoverKey: index, data, reRenderRows: this.calcReRenderRows( data )})
         }
     }
     // 引用
@@ -333,7 +361,9 @@ export default class TableEX extends React.Component {
             }
         })
         this.setState({
-            data: List( data ),
+            data: fromJS( data ),
+            _cacheData: fromJS( data ),
+            reRenderRows: this.state.reRenderRows.clear( ),
             checkMap: {
                 ...this.state.checkMap,
                 disabledList,
@@ -377,6 +407,18 @@ export default class TableEX extends React.Component {
             fixedLeft: !!fixedLeftWidth,
             fixedRight: !!fixedRightWidth
         })
+    }
+    calcReRenderRows( now, old = this.state._cacheData ) {
+        let { reRenderRows } = this.state
+        now.forEach(( obj, key ) => {
+            if ( !old ) {
+                reRenderRows = reRenderRows.add( key )
+            } else if (!is(obj, old.get( key ))) {
+                reRenderRows = reRenderRows.add( key )
+            }
+        })
+        this.state._cacheData = now;
+        return reRenderRows
     }
     //============= 表格渲染组件==========================================
     groupTitleRender = ({ rowData, key, className, style, position }) => {
@@ -430,6 +472,7 @@ export default class TableEX extends React.Component {
         columnIndex,
         rowIndex
     }) => {
+        // const rowDataObj = rowData.toJSON( )
         if ( rowData._isGroupTitle ) {
             return '';
         }
@@ -590,7 +633,7 @@ export default class TableEX extends React.Component {
         visibleColumnIndices,
         visibleRowIndices
     }) => {
-        const { currentHoverKey } = this.state
+        let { reRenderRows } = this.state
         const renderedCells = [ ];
         const areOffsetsAdjusted = columnSizeAndPositionManager.areOffsetsAdjusted( ) || rowSizeAndPositionManager.areOffsetsAdjusted( );
         const canCacheStyle = !isScrolling && !areOffsetsAdjusted;
@@ -638,11 +681,12 @@ export default class TableEX extends React.Component {
                         cellCache[key] = cellRenderer( cellRendererParams );
                     }
                     renderedCell = cellCache[key];
-                } else if ( currentHoverKey == rowIndex ) {
-                    cellCache[key] = cellRenderer( cellRendererParams );
-                    renderedCell = cellCache[key];
+                } else if (reRenderRows.size && reRenderRows.has( rowIndex )) {
+                    this.state.reRenderRows = reRenderRows.delete( rowIndex )
+                    // 更新需要更新的行
+                    renderedCell = cellCache[key] = cellRenderer( cellRendererParams )
                 } else {
-                    renderedCell = cellCache[key] || cellRenderer( cellRendererParams );
+                    renderedCell = cellCache[key] = cellCache[key] || cellRenderer( cellRendererParams );
                 }
                 if ( renderedCell == null || renderedCell === false ) {
                     continue;
@@ -684,7 +728,7 @@ export default class TableEX extends React.Component {
                 rowRenderer={this.rowRenderer.bind( this, position )}
                 rowRangeRenderer={this.rowRangeRenderer}
                 rowCount={data.size}
-                rowGetter={({ index }) => data.get( index )}
+                rowGetter={({ index }) => data.get( index ).toJSON( )}
                 onRowMouseOut={this.onRowMouseOut}
                 onRowMouseOver={this.onRowMouseOver}>
                 {this.renderExtraColumns( columns, position )}

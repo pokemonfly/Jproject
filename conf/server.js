@@ -21,10 +21,12 @@ const getAgent = ( ) => {
     superagent.get( url ).set( headerObj ).redirects( 0 ).end((e, { headers }) => {
         headerObj.cookie = headers["set-cookie"];
         url = headers["location"]
-        superagent.get( url ).set( headerObj ).redirects( 0 ).end( function ( e, resp1 ) {
-            headerObj.cookie = resp1.headers["set-cookie"];
-            debug( 'Login API Server Success' );
-        })
+        if ( url ) {
+            superagent.get( url ).set( headerObj ).redirects( 0 ).end( function ( e, resp1 ) {
+                headerObj.cookie = resp1.headers["set-cookie"];
+                debug( 'Login API Server Success' );
+            })
+        }
     })
 
 }
@@ -58,13 +60,9 @@ if ( config.env === 'development' ) {
         if ( url.indexOf( '.mock' ) > -1 ) {
             // mock 数据
             url = url.replace( /\//g, function ( a, b ) {
-                return b
-                    ? '.'
-                    : '\/'
+                return b ? '.' : '\/'
             });
-            url = url.replace( '.mock', ( method.toLowerCase( ) != 'get'
-                ? '.' + method.toLowerCase( )
-                : '' ) + '.json' );
+            url = url.replace( '.mock', ( method.toLowerCase( ) != 'get' ? '.' + method.toLowerCase( ) : '' ) + '.json' );
             debug( 'Get Local Mock Data : ' + url );
             const filename = paths.mock( ) + url;
             debug( filename );
