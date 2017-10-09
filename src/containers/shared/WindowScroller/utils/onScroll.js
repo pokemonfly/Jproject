@@ -8,7 +8,7 @@ function enablePointerEventsIfDisabled( ) {
     if ( disablePointerEventsTimeoutId ) {
         disablePointerEventsTimeoutId = null;
 
-        document.body.style.pointerEvents = originalBodyPointerEvents;
+        // document.body.style.pointerEvents = originalBodyPointerEvents;
         originalBodyPointerEvents = null;
     }
 }
@@ -31,12 +31,14 @@ function enablePointerEventsAfterDelay( ) {
 }
 
 function onScrollWindow( event ) {
+    /*
     if ( event.currentTarget === window && originalBodyPointerEvents == null ) {
         originalBodyPointerEvents = document.body.style.pointerEvents;
 
         document.body.style.pointerEvents = "none";
     }
     enablePointerEventsAfterDelay( );
+    */
     mountedInstances.forEach(instance => {
         if ( instance.scrollElement === event.currentTarget ) {
             instance.__handleWindowScrollEvent( event );

@@ -148,44 +148,65 @@ export default class TableEX extends React.Component {
             currentHoverKey: null
         }
         this.cellCache = {};
+        this.rowCache = {};
+        this._delayRemoveArr = [ ];
         window.table = this
     }
     componentWillMount( ) {
         this.calcWidth( )
         this.formatDataSource( )
     }
+    _compareProps( a, b ) {}
     componentWillReceiveProps( nextProps ) {
-        // const thisProps = this.props || { }; if ( thisProps.dataSource.length == nextProps.dataSource.length ) {     return; }
-        this.calcWidth( nextProps )
-        this.formatDataSource( nextProps )
+        const thisProps = this.props || {};
+        const arr = [
+            'columns',
+            'filters',
+            'isGroup',
+            'groupSetting',
+            'dataSource',
+            'checkDetailVisiable'
+        ]
+        this.__shouldUpdate = false
+        for ( const i in arr ) {
+            // 排除function的影响
+            if (JSON.stringify(thisProps[arr[i]]) != JSON.stringify(nextProps[arr[i]])) {
+                console.log( `${ arr[i] } changed, re-render` )
+                this.__shouldUpdate = true
+                break;
+            }
+        }
+        if ( this.__shouldUpdate ) {
+            this.calcWidth( nextProps )
+            this.formatDataSource( nextProps )
+            this.rowCache = {};
+            this.state.reRenderRows = this.state.reRenderRows.clear( )
+        }
     }
     componentDidUpdate( ) {
         PubSub.subscribe('table.resize', ( ) => {
             this.refs.windowScroller && this.refs.windowScroller.updatePosition( );
         })
+        if ( this._delayRemoveArr && this._delayRemoveArr.length ) {
+            this._delayRemoveArr.forEach(( key ) => {
+                this.state.reRenderRows = this.state.reRenderRows.delete( key )
+            })
+            this._delayRemoveArr = [ ];
+        }
     }
     componentWillUnmount( ) {
         PubSub.unsubscribe( 'table.resize' );
         this.scrollBar.removeEventListener( "scroll", this.onBarScroll )
     }
     shouldComponentUpdate(nextProps = {}, nextState = {}) {
-        const thisProps = this.props || {},
-            thisState = this.state || {};
-        if ( Object.keys( thisProps ).length !== Object.keys( nextProps ).length || Object.keys( thisState ).length !== Object.keys( nextState ).length ) {
-            return true;
+        // __shouldUpdate 用于防御table导致父组件render后（checkbox的回调）的componentWillReceiveProps的再render
+        if (isBoolean( this.__shouldUpdate )) {
+            let r = this.__shouldUpdate
+            this.__shouldUpdate = null;
+            console.log( `==============shouldComponentUpdate  ${ r } ===================` )
+            return r;
         }
-        for ( const key in nextProps ) {
-            if (!is(thisProps[key], nextProps[key])) {
-                return true;
-            }
-        }
-        for ( const key in nextState ) {
-            if (thisState[key] !== nextState[key] || !is(thisState[key], nextState[key])) {
-                return true;
-            }
-        }
-        console.log( '==============shouldComponentUpdate  false ===================' )
-        return false;
+        return true;
     }
     //=======================================================
     clearCheckbox( ) {
@@ -220,15 +241,20 @@ export default class TableEX extends React.Component {
     syncCheckStatus( obj ) {
         let { reRenderRows, data } = this.state
         for ( const key in obj ) {
-            const s = obj[key],
-                ind = obj.list.indexOf( + key )
-            if ( isBoolean( s ) && !!data.getIn([ ind, 'checked' ]) != s ) {
-                data = data.setIn( [
-                    ind, 'checked'
-                ], s )
-                reRenderRows = reRenderRows.add( ind )
+            const s = obj[key]
+            if (isBoolean( s )) {
+                const ind = data.findIndex(( v, i ) => {
+                    return v.get( 'key' ) == key
+                })
+                if ( !!data.getIn([ ind, 'checked' ]) != s ) {
+                    data = data.setIn( [
+                        ind, 'checked'
+                    ], s )
+                    reRenderRows = reRenderRows.add( + key )
+                }
             }
         }
+        console.log('reRenderRows:   ' + reRenderRows.toJSON( ))
         this.setState({ reRenderRows, data })
     }
     onCheckboxAllChange = ( e ) => {
@@ -251,6 +277,9 @@ export default class TableEX extends React.Component {
         }
         let { groupVisiable } = this.state
         groupVisiable[index] = !groupVisiable[index];
+        // key发生了变化 缓存失效
+        this.rowCache = {};
+        this.state.reRenderRows = this.state.reRenderRows.clear( );
         this.setState({ groupVisiable })
         this.formatDataSource( )
     }
@@ -273,6 +302,10 @@ export default class TableEX extends React.Component {
     // 固定表头
     onScrollHead = ( extraHeadVisible ) => {
         this.setState({ extraHeadVisible })
+    }
+    onResize = ( ) => {
+        // 宽度变化了，重绘
+        this.rowCache = {};
     }
     //同步滚动
     onBarScroll = ( e ) => {
@@ -412,23 +445,32 @@ export default class TableEX extends React.Component {
         let { reRenderRows } = this.state
         now.forEach(( obj, key ) => {
             if ( !old ) {
-                reRenderRows = reRenderRows.add( key )
+                reRenderRows = reRenderRows.add(+ obj.get( 'key' ))
             } else if (!is(obj, old.get( key ))) {
-                reRenderRows = reRenderRows.add( key )
+                reRenderRows = reRenderRows.add(+ obj.get( 'key' ))
             }
         })
         this.state._cacheData = now;
+        console.log('reRenderRows:   ' + reRenderRows.toJSON( ))
         return reRenderRows
     }
     //============= 表格渲染组件==========================================
-    groupTitleRender = ({ rowData, key, className, style, position }) => {
+    groupTitleRender = ({
+        rowData,
+        key,
+        className,
+        style,
+        position,
+        a11yProps
+    }) => {
         const { checkMap } = this.state;
+        const rowKey = rowData.get( 'key' );
         let checked,
             indeterminate,
             disabled,
             onChange;
         if ( position == 'left' ) {
-            const items = checkMap.group[rowData.key]
+            const items = checkMap.group[rowKey]
             const checkedCount = items.filter(key => checkMap[key]).length
             const disabledCount = items.filter(key => checkMap.disabledList[key]).length
             checked = checkedCount > 0 && checkedCount == items.length
@@ -436,7 +478,7 @@ export default class TableEX extends React.Component {
             disabled = disabledCount == items.length
         }
         return (
-            <div role="row" key={key} className={className} style={style} onClick={this.onClickGroupTitle.bind( this, rowData.key )}>
+            <div role="row" key={key} className={className} style={style} onClick={this.onClickGroupTitle.bind( this, rowKey )}>
                 {position == 'left' && (
                     <div className="ReactVirtualized__Table__rowColumn table-group-title">
                         <Checkbox
@@ -445,8 +487,8 @@ export default class TableEX extends React.Component {
                             disabled={disabled}
                             indeterminate={indeterminate}
                             onChange={this.onClickGroupTitleCheckbox}
-                            value={rowData.key}/> {rowData.title}
-                        ({rowData.count})
+                            value={rowKey}/> {rowData.get( 'title' )}
+                        ({rowData.get( 'count' )})
                     </div>
                 )}
                 {position != 'left' && (
@@ -472,13 +514,12 @@ export default class TableEX extends React.Component {
         columnIndex,
         rowIndex
     }) => {
-        // const rowDataObj = rowData.toJSON( )
-        if ( rowData._isGroupTitle ) {
+        if (rowData.get( '_isGroupTitle' )) {
             return '';
         }
         if ( columnData && columnData.render ) {
-            this.cellCache[rowIndex + '-' + columnIndex] = this.cellCache[rowIndex + '-' + columnIndex] || columnData.render( cellData, rowData )
-            return this.cellCache[rowIndex + '-' + columnIndex]
+            this.cellCache[rowIndex + '-' + columnIndex + dataKey] = this.cellCache[rowIndex + '-' + columnIndex + dataKey] || columnData.render( cellData, rowData )
+            return this.cellCache[rowIndex + '-' + columnIndex + dataKey]
         } else {
             if ( cellData == 0 || cellData === undefined ) {
                 return '-'
@@ -512,8 +553,15 @@ export default class TableEX extends React.Component {
         rowData,
         style
     }) => {
+        const { reRenderRows } = this.state
+        const rowKey = rowData.get( 'key' )
+        // 检查是否需要更新
+        if (reRenderRows.size && reRenderRows.has( rowKey )) {
+            this._delayRemoveArr.push( rowKey )
+        } else if (this.rowCache[rowKey + position]) {
+            return this.rowCache[rowKey + position]
+        }
         const a11yProps = {};
-
         if ( onRowClick || onRowDoubleClick || onRowMouseOut || onRowMouseOver || onRowRightClick ) {
             a11yProps["aria-label"] = "row";
             a11yProps.tabIndex = 0;
@@ -538,21 +586,30 @@ export default class TableEX extends React.Component {
         }
 
         // 这里禁用掉overflow 是为了显示绝对定位的自定义内容 分组的支持
-        if ( rowData._isChildren || rowData._isGroupTitle ) {
+        if (rowData.get( '_isChildren' ) || rowData.get( '_isGroupTitle' )) {
             delete style.overflow
         }
-        if ( rowData._isGroupTitle ) {
-            return this.groupTitleRender({ rowData, key, className, style, position })
+        if (rowData.get( '_isGroupTitle' )) {
+            return this.groupTitleRender({
+                rowData,
+                key,
+                className,
+                style,
+                position,
+                a11yProps
+            })
         }
-        if ( rowData.hover || rowData.active ) {
+        if (rowData.get( 'hover' ) || rowData.get( 'active' )) {
             className += ' active'
         }
-        console.log( "我re-render了" );
-        return (
+        console.log( "行re-render " );
+        let r = (
             <div role="row" {...a11yProps} key={key} className={className} style={style}>
                 {columns}
             </div>
         );
+        this.rowCache[rowKey + position] = r
+        return r;
     }
     renderCheckbox = (type, { cellData, rowData, dataKey, columnIndex }) => {
         const { checkMap } = this.state;
@@ -608,7 +665,7 @@ export default class TableEX extends React.Component {
                 key='checkbox'
                 dataKey='checkbox'
                 width={32}
-                cellDataGetter={({ rowData }) => ( rowData.key )}
+                cellDataGetter={({ rowData }) => (rowData.get( 'key' ))}
                 headerRenderer={this.renderCheckbox.bind( null, 'header' )}
                 cellRenderer={this.renderCheckbox.bind( null, 'cell' )}/> )
         }
@@ -726,14 +783,14 @@ export default class TableEX extends React.Component {
                 disableHeader={true}
                 rowHeight={rowHeight}
                 rowRenderer={this.rowRenderer.bind( this, position )}
-                rowRangeRenderer={this.rowRangeRenderer}
                 rowCount={data.size}
-                rowGetter={({ index }) => data.get( index ).toJSON( )}
+                rowGetter={({ index }) => data.get( index )}
                 onRowMouseOut={this.onRowMouseOut}
                 onRowMouseOver={this.onRowMouseOver}>
                 {this.renderExtraColumns( columns, position )}
             </TableHoc>
         )
+        //        rowRangeRenderer={this.rowRangeRenderer}
     }
     // ===============Table head ====================
     renderTableHead( ) {
@@ -751,7 +808,7 @@ export default class TableEX extends React.Component {
             minWidth
         } = this.state
         return (
-            <AutoSizer disableHeight={true}>
+            <AutoSizer disableHeight={true} onResize={this.onResize}>
                 {({ width }) => (
                     <Affix offsetTop={extraHeadHeight} onChange={this.onScrollHead} style={{
                         width

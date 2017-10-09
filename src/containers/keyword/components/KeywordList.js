@@ -199,7 +199,9 @@ export default class KeywordList extends React.Component {
         })
     }
     // 关键词后面的下拉按钮组
-    getExtraBtnGroup({ optimizeStatus, isFocusKeyword }) {
+    getExtraBtnGroup( record ) {
+        const optimizeStatus = record.get( 'optimizeStatus' ),
+            isFocusKeyword = record.get( 'isFocusKeyword' )
         return (
             <span className="keyword-extra-btn-dropdown show-on-row-hover">
                 <Dropdown.Button
@@ -240,24 +242,24 @@ export default class KeywordList extends React.Component {
                 width: 300,
                 fixed: 'left',
                 render: ( text, record ) => {
-                    const active = record.active;
-                    if ( record._isChildren ) {
+                    const active = record.get( 'active' );
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
                     }
-                    if ( record.matchScope == 1 ) {
+                    if ( record.get( 'matchScope' ) == 1 ) {
                         text = '[ ' + text + ' ]'
                     }
                     return <span>
                         <a href="#">
-                            {record.wordscorelist && record.wordscorelist.wirelessQscore >= 6 && ( <Icon type="wuxian"/> )}
-                            {record.wordscorelist && record.wordscorelist.wirelessQscore >= 6 && (
+                            {record.get( 'wordscorelist' ) && record.getIn([ 'wordscorelist', 'wirelessQscore' ]) >= 6 && ( <Icon type="wuxian"/> )}
+                            {record.get( 'wordscorelist' ) && record.getIn([ 'wordscorelist', 'wirelessQscore' ]) >= 6 && (
                                 <Tooltip title="有机会在淘宝网电脑版搜索结果首页左侧推广位置展示（每天定时更新）" arrowPointAtCenter>
                                     <Icon type="zuo01"/>
                                 </Tooltip>
                             )}
-                            {record.isFocusKeyword && ( <Icon type="star"/> )}
+                            {record.get( 'isFocusKeyword' ) && ( <Icon type="star"/> )}
                             <span>{text}</span>
                         </a>
                         {active && this.getExtraBtnGroup( record )}
@@ -269,13 +271,13 @@ export default class KeywordList extends React.Component {
                 width: 110,
                 fixed: 'left',
                 render: ( price, record ) => {
-                    if ( record._isChildren ) {
+                    const active = record.get( 'active' );
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
                     }
                     const obj = formatNum(price, { mode: 'price' })
-                    const active = record.active;
                     return (
                         <span>
                             {obj.text}
@@ -296,24 +298,26 @@ export default class KeywordList extends React.Component {
                 width: 110,
                 fixed: 'left',
                 render: ( price, record ) => {
-                    if ( record._isChildren ) {
+                    const active = record.get( 'active' );
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
                     }
-                    if ( record.mobileIsDefaultPrice ) {
-                        price = record.maxPrice * mobileDiscount / 100
+                    if (record.get( 'mobileIsDefaultPrice' )) {
+                        price = record.get( 'maxPrice' ) * mobileDiscount / 100
                     }
                     const obj = formatNum(price, { mode: 'price' });
                     return (
                         <span>
                             {obj.text}
-                            元
-                            <Trigger popup={( <EditWordPrice mode='mobile'/> )}>
-                                <span className="table-edit-icon">
-                                    <Icon type="xiugaibi" className="show-on-row-hover"/>
-                                </span>
-                            </Trigger>
+                            元 {active && (
+                                <Trigger popup={( <EditWordPrice mode='mobile'/> )}>
+                                    <span className="table-edit-icon">
+                                        <Icon type="xiugaibi" className="show-on-row-hover"/>
+                                    </span>
+                                </Trigger>
+                            )}
                         </span>
                     )
                 }
@@ -323,7 +327,7 @@ export default class KeywordList extends React.Component {
                 width: 90,
                 fixed: 'left',
                 render: ( text, record ) => {
-                    if ( record._isChildren ) {
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
@@ -344,12 +348,13 @@ export default class KeywordList extends React.Component {
                 colSpan: 2,
                 width: 60,
                 render: ( text, record ) => {
-                    if ( record._isChildren ) {
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
                     }
-                    let { pc, pcAuto } = record.grab || {}
+                    let pc = record.getIn([ 'grab', 'pc' ]),
+                        pcAuto = record.getIn([ 'grab', 'pcAuto' ])
                     if ( pcAuto == -1 ) {
                         pc = -1
                     }
@@ -374,12 +379,13 @@ export default class KeywordList extends React.Component {
                 colSpan: 0,
                 width: 60,
                 render: ( text, record ) => {
-                    if ( record._isChildren ) {
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
                     }
-                    let { mobile, mobileAuto } = record.grab || {}
+                    let mobile = record.getIn([ 'grab', 'mobile' ]),
+                        mobileAuto = record.getIn([ 'grab', 'mobileAuto' ])
                     if ( mobileAuto == -1 ) {
                         mobile = -1
                     }
@@ -406,7 +412,7 @@ export default class KeywordList extends React.Component {
                 sorter: ( a, b ) => ( a.wordscorelist.qscore - b.wordscorelist.qscore ),
                 sortOrder: sorter.columnKey == 'wordscorelist.qscore' && sorter.order,
                 render: ( text, record ) => {
-                    if ( record._isChildren ) {
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
@@ -420,7 +426,7 @@ export default class KeywordList extends React.Component {
                 sorter: ( a, b ) => ( a.wordscorelist.wirelessQscore - b.wordscorelist.wirelessQscore ),
                 sortOrder: sorter.columnKey === 'wordscorelist.wirelessQscore' && sorter.order,
                 render: ( text, record ) => {
-                    if ( record._isChildren ) {
+                    if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
                         )
@@ -446,12 +452,16 @@ export default class KeywordList extends React.Component {
             width: 130,
             fixed: 'right',
             render: ( val, record ) => {
-                if ( record._isChildren ) {
+                if (record.get( '_isChildren' )) {
                     return (
                         <span>&nbsp;</span>
                     )
                 }
-                const { blackStatus, isOptimizeChangePrice, isOptimizeChangeMobilePrice, isOptimizeChangeMatchScope, optimizeStatus } = record
+                const blackStatus = record.get( 'blackStatus' ),
+                    isOptimizeChangePrice = record.get( 'isOptimizeChangePrice' ),
+                    isOptimizeChangeMobilePrice = record.get( 'isOptimizeChangeMobilePrice' ),
+                    isOptimizeChangeMatchScope = record.get( 'isOptimizeChangeMatchScope' ),
+                    optimizeStatus = record.get( 'optimizeStatus' )
                 if ( blackStatus != 'toDel' ) {
                     return (
                         <div className="op-type">
