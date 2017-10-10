@@ -1,5 +1,41 @@
 @import '../../../styles/common';
 .keyword-head {
-    min-height: 100px;
-    margin: 12px;
+    min-height     : 100px;
+    margin         : 12px 0;
+    padding        : 16px;
+    display        : flex;
+    flex-direction : row;
+    justify-content: space-between;
+    border         : 1px solid @border-color;
+    .button-groups {
+        > button:not(:last-child) {
+            margin-right: 12px;
+        }
+    }
+}
+.keyword-setting-panel {
+    padding: 20px 20px 0;
+    input {
+        width : 50px;
+        margin: 0 10px;
+    }
+    hr.line {
+        margin: 0 -20px;
+    }
+    .score-type {
+        display: inline-block;
+        width  : 3em;
+    }
+    .pull-right {
+        float: right;
+    }
+    .menu {
+        border-right: 0;
+        margin      : 0 -19px 0 -20px;
+        width       : auto;
+        > .ant-menu-item {
+            background-color: @background-light;
+            margin-bottom   : 1px;
+        }
+    }
 }

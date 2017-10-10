@@ -1,205 +1,114 @@
 import React, { Component, PropTypes } from 'react';
 import PubSub from 'pubsub-js';
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux';
+import { pick } from 'lodash'
+import {
+    Layout,
+    Icon,
+    Select,
+    Button,
+    Form,
+    Input,
+    Switch,
+    Menu,
+    Dropdown
+} from 'antd';
 import './KeywordHeadStyle.less'
-import Table from '@/containers/shared/Table'
+import KeywordInfo from './KeywordInfo'
+import { fetchAdgroupsProfiles } from './KeywordHeadRedux'
+const FormItem = Form.Item;
 
+@Form.create( )
+@connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, head: state.keyword.keywordHead, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
+    fetchAdgroupsProfiles
+}, dispatch )))
 export default class KeywordHead extends React.Component {
     state = {
-        filters: {
-            'key': {
-                type: 'key',
-                key: 20,
-                fn: ( type, key, obj ) => {
-                    return obj[type] < key
-                }
-            }
-        },
-        isGroup: true,
-        groupTitleRender: ({ rowData, key, className, style, position }) => {
-            return (
-                <div role="row" key={key} className={className} style={style} onClick={this.handleGroupTitle.bind( this, rowData.index )}>
-                    {position == 'left' && (
-                        <span>
-                            {rowData.title}
-                            ({rowData.count})
-                        </span>
-                    )}
-                </div>
-            )
-        },
-        groupSetting: [
-            {
-                title: 'group1',
-                show: true,
-                filter: ( obj ) => {
-                    return obj.key % 2 == 0
-                }
-            }, {
-                title: 'group2',
-                show: false,
-                filter: ( obj ) => {
-                    return obj.key % 2 == 1
-                }
-            }
-        ],
-        detailVisiable: {
-            type: 1,
-            'c1': 1
-        },
-        detailRowRender: ({ columnIndex, dataKey, rowData }) => {
-            if ( columnIndex == 0 && dataKey == 'name' && rowData.key == 'c1' ) {
-                return (
-                    <span
-                        style={{
-                        height: 60,
-                        width: 200,
-                        background: 'red',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        overflow: 'hidden'
-                    }}>xxx
-                        <br/>
-                        yyy
-                        <br/>
-                        bbxxx
-                        <br/>
-                        yyy
-                        <br/>
-                        bb</span>
-                )
-            } else {
-                return null;
-            }
-        }
+        moreDropdownVisible: false
     }
-    handleGroupTitle( index ) {
-        let { groupSetting } = this.state
-        groupSetting[index].show = !groupSetting[index].show;
-        this.setState({ groupSetting })
+    componentWillMount( ) {
+        this.props.fetchAdgroupsProfiles({ campaignId: '17922607', adgroupId: '661397773', fromDate: '2017-09-25', toDate: '2017-10-09' });
     }
-    getData( ) {
-        const data = [ ];
-        for ( let i = 0; i < 100; i++ ) {
-            data.push({ key: i, name: `Edrward ${ i }`, age: 32, address: `London Park no. ${ i }` });
-        }
-        data[0].children = [
-            {
-                key: 'c1',
-                address: '34234234',
-                visible: (detailVisiable, { key }) => ( detailVisiable[key] == 1 )
-            }, {
-                key: 'c11',
-                address: '34234234',
-                visible: (detailVisiable, { key }) => ( detailVisiable.type == 1 )
-            }, {
-                key: 'c2',
-                name: 'c2',
-                age: 2,
-                address: '34234234999',
-                visible: (detailVisiable, { key }) => ( detailVisiable.type == 1 )
-            }
-        ]
-        return data;
+    onChangeCommit( ) {}
+    onClickMenu( ) {}
+    handleVisibleChange( flag ) {
+        this.setState({ moreDropdownVisible: flag });
+    }
+    renderSettingPanel( ) {
+        const { getFieldDecorator } = this.props.form;
+        // qScoreLimitOpenStatus
+        const { pcQScoreFloor, mobileQScoreFloor, wordLimit } = this.props;
+        return (
+            <Form className="keyword-setting-panel">
+                <FormItem>
+                    <span>出词数量控制</span>
+                    {getFieldDecorator('wordLimitSwitch', { valuePropName: 'checked' })( <Switch onChange={this.onChangeCommit} className="pull-right"/> )}
+                </FormItem>
+                <FormItem>
+                    <span>
+                        词数超过 {getFieldDecorator('add_upper_limit', { initialValue: wordLimit })( <Input onChange={this.onChangeCommit}/> )}
+                        不加词
+                    </span>
+                </FormItem>
+                <hr className="line"/>
+                <FormItem>
+                    <span>质量分下限</span>
+                    {getFieldDecorator('QScoreLimitSwitch', { valuePropName: 'checked' })( <Switch onChange={this.onChangeCommit} className="pull-right"/> )}
+                </FormItem>
+                <FormItem>
+                    <span className="score-type">PC：</span>
+                    {getFieldDecorator('pcQScoreFloor', { initialValue: pcQScoreFloor })( <Input onChange={this.onChangeCommit}/> )}
+                </FormItem>
+                <FormItem>
+                    <span className="score-type">无线：</span>
+                    {getFieldDecorator('mobileQScoreFloor', { initialValue: mobileQScoreFloor })( <Input onChange={this.onChangeCommit}/> )}
+                </FormItem>
+                <Menu selectedKeys={null} onClick={this.onClickMenu} mode="inline" className="menu">
+                    <Menu.Item key='black'>
+                        黑名单列表
+                    </Menu.Item>
+                    <Menu.Item key='sale'>
+                        卖点词列表
+                    </Menu.Item>
+                </Menu>
+            </Form>
+        )
     }
     render( ) {
-        window.xx = this
-        const columns = [
-            {
-                title: 'Full Name',
-                width: 100,
-                dataIndex: 'name',
-                key: 'name',
-                fixed: 'left'
-            }, {
-                title: 'Age',
-                width: 100,
-                dataIndex: 'age',
-                key: 'age',
-                fixed: 'left'
-            }, {
-                title: 'Column 1',
-                dataIndex: 'address',
-                key: '1',
-                width: 150
-            }, {
-                title: 'Column 2',
-                dataIndex: 'address',
-                key: '2',
-                width: 150
-            }, {
-                title: 'Column 3',
-                dataIndex: 'address',
-                key: '3',
-                width: 150
-            }, {
-                title: 'Column 4',
-                dataIndex: 'address',
-                key: '4',
-                width: 150
-            }, {
-                title: 'Column 5',
-                dataIndex: 'address',
-                key: '5',
-                width: 150
-            }, {
-                title: 'Column 6',
-                dataIndex: 'address',
-                key: '6',
-                width: 150
-            }, {
-                title: 'Column 7',
-                dataIndex: 'address',
-                key: '7',
-                width: 150
-            }, {
-                title: 'Column 8',
-                dataIndex: 'address',
-                key: '8',
-                width: 150
-            }, {
-                title: 'Column 9',
-                dataIndex: 'address',
-                key: '9',
-                width: 150
-            }, {
-                title: 'Column 10',
-                dataIndex: 'address',
-                key: '10',
-                width: 150
-            }, {
-                title: 'Column 11',
-                dataIndex: 'address',
-                key: '11',
-                width: 150
-            }, {
-                title: 'Column 12',
-                dataIndex: 'address',
-                key: '12',
-                width: 150
-            }, {
-                title: 'Column 13',
-                dataIndex: 'address',
-                key: '13',
-                width: 150
-            }, {
-                title: 'Action',
-                key: 'operation',
-                fixed: 'right',
-                width: 100,
-                render: ( ) => (
-                    <a href="#">action</a>
-                )
-            }
-        ];
-        const { type } = this.state
+        const { moreDropdownVisible } = this.state
+        const infoObj = pick(this.props.head.adgroup, [
+            'numIid',
+            'title',
+            'picUrl',
+            'catName',
+            'price',
+            'volume',
+            'num',
+            'wordMaxPrice',
+            'mobileWordMaxPrice',
+            'mobileDiscount'
+        ])
         return (
-            <div className="keyword-head">
-                <div ></div>
-
-            </div>
+            <Layout className="keyword-head">
+                <div>
+                    <KeywordInfo {...infoObj}></KeywordInfo>
+                </div>
+                <div className="button-groups">
+                    <Button type="primary">一键优化</Button>
+                    <Button type="primary">计算ROI盈亏点</Button>
+                    <Dropdown
+                        overlay={this.renderSettingPanel( )}
+                        trigger={[ 'click' ]}
+                        visible={moreDropdownVisible}
+                        onVisibleChange={this.handleVisibleChange.bind( this )}>
+                        <Button type="primary">
+                            关键词设置
+                            <Icon type="down"/>
+                        </Button>
+                    </Dropdown>
+                </div>
+            </Layout>
         );
     }
 }
-
-//    <Table dataSource={this.getData( )} columns={columns} {...this.state}/>

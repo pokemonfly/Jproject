@@ -62,7 +62,7 @@ if ( config.env === 'development' ) {
             url = url.replace( /\//g, function ( a, b ) {
                 return b ? '.' : '\/'
             });
-            url = url.replace( '.mock', ( method.toLowerCase( ) != 'get' ? '.' + method.toLowerCase( ) : '' ) + '.json' );
+            url = url.replace( /\.mock.*/, ( method.toLowerCase( ) != 'get' ? '.' + method.toLowerCase( ) : '' ) + '.json' );
             debug( 'Get Local Mock Data : ' + url );
             const filename = paths.mock( ) + url;
             debug( filename );

@@ -1,0 +1,50 @@
+.keyword-info {
+    display       : flex;
+    flex-direction: row;
+    .left {
+        min-width   : 100px;
+        margin-right: 12px;
+    }
+    .right {
+        .row1 {
+            a {
+                color: @text-color;
+            }
+            .tag {
+                width        : 52px;
+                height       : 20px;
+                border       : 1px solid @success-color;
+                border-radius: 3px;
+                color        : @success-color;
+                margin-left  : 12px;
+                padding: 2px 4px;
+            }
+        }
+        .row2 {
+            margin-top: 12px;
+            .select {
+                color       : @success-color;
+                margin-right: 16px;
+                .ant-select-selection {
+                    border: 1px solid @success-color;
+                }
+            }
+            > span {
+                color       : @text-color-lighter;
+                margin-right: 16px;
+            }
+        }
+        .row3 {
+            margin-top: 14px;
+            .cat {
+                max-width    : 250px;
+                overflow     : hidden;
+                text-overflow: ellipsis;
+                margin-right  : 12px;
+            }
+            .detail {
+                color: @text-color-lightest;
+            }
+        }
+    }
+}

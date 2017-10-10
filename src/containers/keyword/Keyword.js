@@ -15,7 +15,7 @@ export default class Keyword extends Component {
     }
     render( ) {
         return (
-            <Layout>
+            <div>
                 <Breadcrumb>
                     <Breadcrumb.Item>首页</Breadcrumb.Item>
                     <Breadcrumb.Item>
@@ -29,7 +29,7 @@ export default class Keyword extends Component {
                 <KeywordHead></KeywordHead>
                 <KeywordOverview></KeywordOverview>
                 <KeywordView></KeywordView>
-            </Layout>
+            </div>
         );
     }
 }

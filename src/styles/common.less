@@ -4,7 +4,11 @@ div:focus {
 }
 hr {
     height    : 0;
+    border    : 0;
     border-top: 1px dashed @border-color-base;
+    &.line {
+        border-top: 1px solid @border-color-base;
+    }
 }
 .hide {
     display: none;
@@ -12,7 +16,6 @@ hr {
 .rc-trigger-popup {
     z-index: 10;
 }
-
 // 表格的修改笔站位
 .table-edit-icon {
     width  : 24px;

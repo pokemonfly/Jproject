@@ -11,6 +11,11 @@ module.exports = ( ) => {
         'normal-color': '#51b95b',
         // Background
         'body-background': '#f2f2f2',
+        'background-light': '#fafafa',
+        //Font
+        'text-color': '#333333',
+        'text-color-lighter': '#666666',
+        'text-color-lightest': '#999999',
         // Layout
         'layout-body-background': '#fff',
         'layout-header-background': '#51b95b',
@@ -21,7 +26,8 @@ module.exports = ( ) => {
         // link
         'link-color': '#51b95b',
         // Border color
-        "border-color-base": "#d9d9d9",
+        "border-color": "#cccccc",
+        "border-color-base": "#cccccc",
         // avatar
         'avatar-size-lg': '60px',
         'avatar-size-base': '30px',

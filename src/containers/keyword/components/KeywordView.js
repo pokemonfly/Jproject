@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { bindActionCreators } from 'redux';
 import KeywordList from './KeywordList'
 import {
+    Layout,
     Tabs,
     Button,
     Input,
@@ -77,7 +78,7 @@ export default class KeywordView extends React.Component {
             </div>
         );
         return (
-            <div className="keyword-view">
+            <Layout className="keyword-view">
                 <Tabs tabBarExtraContent={tabBarContent} defaultActiveKey="keywordList" type="card">
                     <TabPane tab="管理关键词" key="keywordList">
                         <KeywordList/>
@@ -93,7 +94,7 @@ export default class KeywordView extends React.Component {
                         <span>开发中</span>
                     </TabPane>
                 </Tabs>
-            </div>
+            </Layout>
         );
     }
 }
