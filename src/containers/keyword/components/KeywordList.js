@@ -586,7 +586,7 @@ export default class KeywordList extends React.Component {
             </Radio.Group>
         )
         return (
-            <div className="keyword-list">
+            <Layout className="keyword-list">
                 {selectedRowKeys.length == 0 ? (
                     <div className="control-row">
                         {modeSw}
@@ -630,7 +630,7 @@ export default class KeywordList extends React.Component {
                     </div>
                 )}
                 <Table ref={this.setTableRef} dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
-            </div>
+            </Layout>
         )
     }
 }

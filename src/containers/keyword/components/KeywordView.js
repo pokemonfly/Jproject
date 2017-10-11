@@ -13,7 +13,7 @@ import {
 } from 'antd';
 import { connect } from 'react-redux'
 import { filterKeywordWord, changeReportCols, switchMoreDropdown } from './KeywordViewRedux'
-import Search from '../../shared/Search'
+import Search from '@/containers/shared/Search'
 import More from '@/containers/shared/More'
 import { keywordReports } from '@/utils/constants'
 import './KeywordView.less'
@@ -78,7 +78,7 @@ export default class KeywordView extends React.Component {
             </div>
         );
         return (
-            <Layout className="keyword-view">
+            <div className="keyword-view">
                 <Tabs tabBarExtraContent={tabBarContent} defaultActiveKey="keywordList" type="card">
                     <TabPane tab="管理关键词" key="keywordList">
                         <KeywordList/>
@@ -94,7 +94,7 @@ export default class KeywordView extends React.Component {
                         <span>开发中</span>
                     </TabPane>
                 </Tabs>
-            </Layout>
+            </div>
         );
     }
 }

@@ -70,6 +70,16 @@ export const grabRankStatusMobileMap = {
 }
 
 // 关键词列表 报表排序用
+/**
+ * 新加字段逻辑
+ * directPpr(Plus purchase rate) 直接加购率=直接购物车数/点击量
+ * indirectPpr(Plus purchase rate) 间接加购率=间接购物车数/点击量
+ * pprTotal(Plus purchase rate) 总加购率=总购物车数/点击量
+ * favItemRate 宝贝收藏率=收藏宝贝数/点击量
+ * favShopRate 店铺收藏率=收藏店铺数/点击量
+ * favRate 总收藏率=总收藏数/点击量
+ * directPprFavRate 直接加购收藏率（兴趣度）=（收藏宝贝数+直接购物车数）/点击量
+ */
 export const keywordReports = {
     'impressions': {
         'name': '展现量',

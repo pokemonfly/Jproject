@@ -1,4 +1,25 @@
 .keyword-overview {
-    min-height: 160px;
-    margin: 12px;
+    margin: 12px 0;
+    .ant-tabs-bar {
+        margin-bottom: 0;
+    }
+    .keyword-overview-content {
+        min-height: 100px;
+        padding   : 16px;
+        border    : 1px solid @border-color;
+        border-top: 0;
+        .chart-sw {
+            background: @background-light;
+            text-align: center;
+            margin    : 0 -16px -16px;
+            padding   : 8px;
+            color     : @text-color-lighter;
+            cursor: pointer;
+        }
+    }
+    .keyword-float-panel {
+        .ant-dropdown-link  {
+            margin-right: 12px
+        }
+    }
 }
