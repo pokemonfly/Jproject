@@ -28,12 +28,39 @@
     }
     .control-row {
         padding: 12px;
-        > .ant-btn , .ant-btn-group{
+        .ant-btn-group,
+        > .ant-btn {
             margin-right: 8px;
             transition  : none;
         }
     }
     .op-type > * {
         display: inline-block;
+    }
+    .extra-head {
+        height      : 60px;
+        margin-top  : -60px;
+        background  : #fff;
+        border-left : 1px solid @border-color;
+        border-right: 1px solid @border-color;
+        padding     : 16px;
+        > * {
+            vertical-align: middle;
+        }
+        .ant-dropdown-link {
+            margin-left: 16px;
+        }
+        .report-item {
+            margin-left: 16px;
+            .num {
+                color: @primary-color;
+            }
+        }
+        .action-panel {
+            float: right;
+            > * {
+                margin-left: 8px;
+            }
+        }
     }
 }

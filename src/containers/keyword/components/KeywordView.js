@@ -17,8 +17,6 @@ import Search from '@/containers/shared/Search'
 import More from '@/containers/shared/More'
 import { keywordReports } from '@/utils/constants'
 import './KeywordView.less'
-import Trigger from '@/containers/shared/Trigger';
-import EditWordPrice from './EditWordPrice'
 
 const { TabPane } = Tabs
 const Option = Select.Option;

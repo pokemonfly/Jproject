@@ -92,7 +92,7 @@ export default class KeywordHead extends React.Component {
         return (
             <Layout className="keyword-head">
                 <div>
-                    <KeywordInfo {...infoObj}></KeywordInfo>
+                    <KeywordInfo {...infoObj} optimizationState={0}></KeywordInfo>
                 </div>
                 <div className="button-groups">
                     <Button type="primary">一键优化</Button>

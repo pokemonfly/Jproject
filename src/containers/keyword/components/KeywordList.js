@@ -24,6 +24,7 @@ import EditWordPrice from './EditWordPrice'
 import ClipboardButton from 'react-clipboard.js';
 import DelKeyword from './DelKeyword'
 import EditMultiWordPrice from './EditMultiWordPrice'
+import KeywordExtraBar from './KeywordExtraBar'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -139,14 +140,8 @@ export default class KeywordList extends React.Component {
                 return null;
             }
         },
-        extraHeadHeight: 50,
-        extraHead: (
-            <div style={{
-                height: 50,
-                marginTop: -50,
-                background: 'gray'
-            }}>~~~~</div>
-        )
+        extraHeadHeight: 60,
+        extraHead: ( <KeywordExtraBar/> )
     }
 
     componentWillMount( ) {
@@ -159,6 +154,7 @@ export default class KeywordList extends React.Component {
     setTableRef = ( table ) => {
         this.table = table;
     }
+
     clear = ( ) => {
         this.table.clearCheckbox( )
     }

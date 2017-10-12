@@ -10,28 +10,32 @@
             a {
                 color: @text-color;
             }
+            .title {
+                margin-right: 12px;
+            }
             .tag {
                 width        : 52px;
                 height       : 20px;
                 border       : 1px solid @success-color;
                 border-radius: 3px;
                 color        : @success-color;
-                margin-left  : 12px;
-                padding: 2px 4px;
+                padding      : 2px 4px;
             }
         }
         .row2 {
-            margin-top: 12px;
-            .select {
-                color       : @success-color;
-                margin-right: 16px;
-                .ant-select-selection {
-                    border: 1px solid @success-color;
-                }
-            }
+            margin-top : 12px;
+            height     : 28px;
+            line-height: 28px;
             > span {
                 color       : @text-color-lighter;
                 margin-right: 16px;
+            }
+            .tag {
+                border       : 1px solid @success-color;
+                border-radius: 3px;
+                margin-right : 16px;
+                color        : @success-color;
+                padding      : 2px 4px;
             }
         }
         .row3 {
@@ -40,10 +44,22 @@
                 max-width    : 250px;
                 overflow     : hidden;
                 text-overflow: ellipsis;
-                margin-right  : 12px;
+                margin-right : 12px;
             }
             .detail {
                 color: @text-color-lightest;
+            }
+        }
+        .edit-icon {
+            opacity    : 0;
+            font-size  : 14px;
+            color      : @primary-color;
+            margin-left: 0.5em;
+            cursor     : pointer;
+        }
+        &:hover {
+            .edit-icon {
+                opacity: 1;
             }
         }
     }

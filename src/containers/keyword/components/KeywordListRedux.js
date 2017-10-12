@@ -247,8 +247,12 @@ function _formatReport( report ) {
                 report.favShopRate = report.favShopCount / report.click * 100
                 report.favRate = report.favCount / report.click * 100
                 if ( report.cartTotal ) {
+                    // 总加购率
                     report.pprTotal = report.cartTotal / report.click * 100
+                    // 直接加购收藏率（兴趣度）
                     report.directPprFavRate = ( report.favItemCount + report.directCartTotal ) / report.click * 100
+                    //加购收藏率
+                    report.pprFavRate = ( report.favCount + report.cartTotal ) / report.click * 100
                 }
             }
         }

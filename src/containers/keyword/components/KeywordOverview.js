@@ -10,7 +10,7 @@ import { keywordReports } from '@/utils/constants'
 import './KeywordOverviewStyle.less'
 
 const { TabPane } = Tabs
-const DATATYPE = {
+const DATA_TYPE = {
     '0': '汇总',
     '1': '只看PC',
     '2': '只看无线'
@@ -18,11 +18,11 @@ const DATATYPE = {
 @connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, head: state.keyword.keywordHead, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {}, dispatch )))
 export default class KeywordOverview extends React.Component {
     state = {
-        dataTypeStr: DATATYPE['0'],
+        dataTypeStr: DATA_TYPE['0'],
         chartSw: false
     }
     onClickDataType = ({ key }) => {
-        this.setState({dataTypeStr: DATATYPE[key]})
+        this.setState({dataTypeStr: DATA_TYPE[key]})
     }
     getContent( isRealTime ) {
         const { chartSw } = this.state
@@ -49,10 +49,10 @@ export default class KeywordOverview extends React.Component {
         const { dataTypeStr } = this.state
         const menu = (
             <Menu onClick={this.onClickDataType}>
-                <Menu.Item key="0">{DATATYPE['0']}</Menu.Item>
+                <Menu.Item key="0">{DATA_TYPE['0']}</Menu.Item>
                 <Menu.Divider/>
-                <Menu.Item key="1">{DATATYPE['1']}</Menu.Item>
-                <Menu.Item key="2">{DATATYPE['2']}</Menu.Item>
+                <Menu.Item key="1">{DATA_TYPE['1']}</Menu.Item>
+                <Menu.Item key="2">{DATA_TYPE['2']}</Menu.Item>
             </Menu>
         )
         return (
