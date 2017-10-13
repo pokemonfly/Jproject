@@ -123,7 +123,9 @@ export default class EditMultiWordPrice extends React.Component {
     onTypeChange = ( e ) => {
         this.setState({ type: e.target.value })
     }
-    onSubmit = ( ) => {}
+    onSubmit = ( ) => {
+        this.props.onClose( );
+    }
 
     handleButtonClick = ( type ) => {
         this.setState({ type })

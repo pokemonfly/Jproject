@@ -23,6 +23,8 @@ import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/
 import EditWordPrice from './EditWordPrice'
 import ClipboardButton from 'react-clipboard.js';
 import DelKeyword from './DelKeyword'
+import EditMatch from './EditMatch'
+import EditOptimization from './EditOptimization'
 import EditMultiWordPrice from './EditMultiWordPrice'
 import KeywordExtraBar from './KeywordExtraBar'
 import './KeywordList.less'
@@ -100,8 +102,11 @@ export default class KeywordList extends React.Component {
             }
         },
         detailRowRender: ({ columnIndex, dataKey, rowData, rowHeight, width }) => {
-            const rowspan = rowData._status == '3' ? 4 : 2;
-            if ( columnIndex == 0 && rowData._row == 0 ) {
+            const _status = rowData.get( '_status' ),
+                _row = rowData.get( '_row' ),
+                _key = rowData.get( '_key' ),
+                rowspan = _status == '3' ? 4 : 2;
+            if ( columnIndex == 0 && _row == 0 ) {
                 return (
                     <span
                         className='table-special-panel'
@@ -109,24 +114,24 @@ export default class KeywordList extends React.Component {
                         height: rowHeight * rowspan - 1,
                         width
                     }}>
-                        <Radio.Group onChange={this.onDetailRadioChange.bind( null, rowData._key )} value={rowData._status} className="radio-group">
+                        <Radio.Group onChange={this.onDetailRadioChange.bind( null, _key )} value={_status} className="radio-group">
                             <Radio value="1">PC/无线数据</Radio><br/>
                             <Radio value="2">站内/站外数据</Radio><br/>
                             <Radio value="3">PC/无线/站内/站外数据</Radio>
                         </Radio.Group>
-                        {rowData._status == '1' && (
+                        {_status == '1' && (
                             <div className="fake-title">
                                 ＰＣ数据
                                 <br/>无线数据
                             </div>
                         )}
-                        {rowData._status == '2' && (
+                        {_status == '2' && (
                             <div className="fake-title">
                                 站内数据<br/>
                                 站外数据
                             </div>
                         )}
-                        {rowData._status == '3' && (
+                        {_status == '3' && (
                             <div className="fake-title">
                                 ＰＣ站内<br/>
                                 无线站内<br/>
@@ -581,14 +586,18 @@ export default class KeywordList extends React.Component {
                 </Radio.Button>
             </Radio.Group>
         )
+        const filterExtraComponent = (
+            <div>
+                {modeSw}
+                <Button type="primary">智能淘词</Button>
+                <Button type="primary">指定加词</Button>
+            </div>
+        )
         return (
             <Layout className="keyword-list">
                 {selectedRowKeys.length == 0 ? (
                     <div className="control-row">
-                        {modeSw}
-                        <Button type="primary">智能淘词</Button>
-                        <Button type="primary">指定加词</Button>
-                        <KeywordFilter onSetFilter/>
+                        <KeywordFilter mode="full" extraComponent={filterExtraComponent} onSetFilter/>
                     </div>
                 ) : (
                     <div className="control-row">
@@ -597,13 +606,18 @@ export default class KeywordList extends React.Component {
                         <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}>
                             <Button type="primary">删除关键词</Button>
                         </DelKeyword>
-                        <Button type="primary">修改匹配方式</Button>
+                        <Trigger popup={( <EditMatch type='scope'/> )}>
+                            <Button type="primary">修改匹配方式</Button>
+                        </Trigger>
                         <Button type="primary">抢排名</Button>
                         <Button type="primary">查排名</Button>
                         <ClipboardButton option-text={this.getWordForCopy} className="ant-btn" onSuccess={this.onCopySuccess}>复制关键词</ClipboardButton>
                         <Button>重点关注词</Button>
-                        <Button>修改优化方式</Button>
+                        <Trigger popup={( <EditOptimization type='scope'/> )}>
+                            <Button>修改优化方式</Button>
+                        </Trigger>
                         <Dropdown
+                            trigger={[ 'click' ]}
                             overlay={(
                             <Menu onClick={this.onSeparateClick}>
                                 <Menu.Item key="0">汇总数据</Menu.Item>
@@ -623,6 +637,7 @@ export default class KeywordList extends React.Component {
                                 <IconAntd type="down"/>
                             </Button>
                         </div>
+                        <KeywordFilter mode="tag"/>
                     </div>
                 )}
                 <Table ref={this.setTableRef} dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
@@ -630,16 +645,3 @@ export default class KeywordList extends React.Component {
         )
     }
 }
-
-/*
-
-<Table
-    size="middle"
-    className="table-row-hover"
-    dataSource={this.getTableData( )}
-    rowSelection={rowSelection}
-    columns={this.getTableCols( )}
-    pagination={false}
-    onChange={this.props.keywordTableChange}></Table>
-
-*/

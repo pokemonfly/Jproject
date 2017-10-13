@@ -316,6 +316,9 @@ export default class TableEX extends React.Component {
         if ( event.target.className.indexOf( 'rowColumn' ) == -1 ) {
             return false;
         }
+        if (rowData.get( '_isChildren' )) {
+            return false;
+        }
         if ( this.state.currentHoverKey != index ) {
             let { data } = this.state
             data = data.map(( o, key ) => {
@@ -344,8 +347,8 @@ export default class TableEX extends React.Component {
     // ======================== props => state=========================
     formatDataSource( nextProps ) {
         const { filters, isGroup, groupSetting, dataSource, checkDetailVisiable } = nextProps || this.props;
-        const { groupVisiable } = this.state;
-        let data = [],
+        const { groupVisiable, data } = this.state;
+        let dataArr = [],
             arr = dataSource,
             disabledList = [],
             group = {};
@@ -376,14 +379,14 @@ export default class TableEX extends React.Component {
         }
         // 细分数据
         arr.forEach(i => {
-            data.push( i );
+            dataArr.push( i );
             if ( i.disabled ) {
                 disabledList.push( i.key )
             }
             if ( i.children ) {
                 let _arr = checkDetailVisiable( i.children, i.detailStatus )
                 _arr.forEach(( j, ind ) => {
-                    data.push({
+                    dataArr.push({
                         ...j,
                         _isChildren: true,
                         _row: ind,
@@ -393,9 +396,10 @@ export default class TableEX extends React.Component {
                 })
             }
         })
+        const _data = fromJS( dataArr );
         this.setState({
-            data: fromJS( data ),
-            _cacheData: fromJS( data ),
+            data: _data,
+            _cacheData: _data,
             reRenderRows: this.state.reRenderRows.clear( ),
             checkMap: {
                 ...this.state.checkMap,
@@ -553,8 +557,10 @@ export default class TableEX extends React.Component {
         rowData,
         style
     }) => {
-        const { reRenderRows } = this.state
-        const rowKey = rowData.get( 'key' )
+        const { reRenderRows } = this.state;
+        const rowKey = rowData.get( 'key' ),
+            isChildren = rowData.get( '_isChildren' ),
+            childrenStatus = rowData.get( '_status' );
         // 检查是否需要更新
         if (reRenderRows.size && reRenderRows.has( rowKey )) {
             this._delayRemoveArr.push( rowKey )
@@ -586,7 +592,7 @@ export default class TableEX extends React.Component {
         }
 
         // 这里禁用掉overflow 是为了显示绝对定位的自定义内容 分组的支持
-        if (rowData.get( '_isChildren' ) || rowData.get( '_isGroupTitle' )) {
+        if (isChildren || rowData.get( '_isGroupTitle' )) {
             delete style.overflow
         }
         if (rowData.get( '_isGroupTitle' )) {
@@ -608,7 +614,7 @@ export default class TableEX extends React.Component {
                 {columns}
             </div>
         );
-        this.rowCache[rowKey + position] = r
+        this.rowCache[rowKey + position + ( isChildren ? childrenStatus : '' )] = r
         return r;
     }
     renderCheckbox = (type, { cellData, rowData, dataKey, columnIndex }) => {
@@ -619,7 +625,7 @@ export default class TableEX extends React.Component {
             checked = false,
             onChange
         if ( type == 'cell' ) {
-            disabled = rowData.disabled
+            disabled = rowData.get( 'disabled' )
             checked = checkMap[cellData]
             onChange = this.onCheckboxChange
         } else {
@@ -631,7 +637,7 @@ export default class TableEX extends React.Component {
             indeterminate = checkedCount > 0
             disabled = disabledCount == items.length
         }
-        if ( rowData && rowData._isChildren ) {
+        if (rowData && rowData.get( '_isChildren' )) {
             return detailRowRender({ columnIndex, dataKey, rowData, rowHeight, width: this.state.fixedLeftWidth }) || (
                 <span>&nbsp;</span>
             )

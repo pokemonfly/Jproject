@@ -1,3 +1,31 @@
 .keyword-filter {
-    float: right;
+    .filter-row {
+        display        : flex;
+        flex-wrap      : wrap;
+        justify-content: space-between;
+        margin-top     : -12px;
+        > * {
+            padding-top: 12px;
+        }
+    }
+    .filter-tag-row {
+        margin-top: 12px;
+        .filter-tag {}
+    }
+    .filter-bar {
+        > * {
+            border-color: @primary-color;
+            color       : @primary-color;
+            padding     : 0 12px;
+        }
+    }
+}
+// 小弹窗
+.keyword-filter-panel {
+    .ant-form-item-control {
+        display: flex;
+    }
+    .input-num {
+        width: 35px
+    }
 }
