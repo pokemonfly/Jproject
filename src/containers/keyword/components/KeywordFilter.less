@@ -24,8 +24,22 @@
 .keyword-filter-panel {
     .ant-form-item-control {
         display: flex;
+         > .ant-input,
+        > .ant-input-group-wrapper {
+            width: 65px;
+        }
     }
-    .input-num {
-        width: 35px
+    .name {
+        flex         : 1;
+        white-space  : nowrap;
+        padding-right: 12px;
+        line-height  : 22px;
+    }
+    .to-mark {
+        padding    : 0 4px;
+        line-height: 22px;
+    }
+    .footer {
+        margin-top: 12px;
     }
 }

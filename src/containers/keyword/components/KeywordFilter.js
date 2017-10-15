@@ -17,50 +17,71 @@ const CFG = [
     {
         name: '出价',
         type: 'price',
-        height: 56,
         width: 240,
         items: [
             {
                 type: 'range',
                 key: 'maxPrice',
-                name: 'PC出价',
+                name: 'PC',
                 unit: '元'
             }, {
                 type: 'range',
                 key: 'maxMobilePrice',
-                name: '无线出价',
+                name: '无线',
                 unit: '元'
             }
         ]
     }, {
         name: '质量分',
         type: 'qscore',
-        height: 56,
-        width: 210,
-        key: [ 'wordscorelist', 'qscore', 'wirelessQscore' ]
+        width: 220,
+        items: [
+            {
+                type: 'range',
+                key: 'qscore',
+                name: 'PC'
+            }, {
+                type: 'range',
+                key: 'wirelessQscore',
+                name: '无线'
+            }
+        ]
     }, {
         name: '展现时长',
         type: 'createTime',
-        height: 56,
-        width: 275,
-        key: [ 'keyword', 'createTime' ]
+        width: 235,
+        items: [
+            {
+                type: 'range',
+                key: 'createTime',
+                name: '展现时长'
+            }
+        ]
     }, {
         name: '展现量',
         type: 'impressions',
-        height: 80,
         width: 222,
-        key: [ 'report', 'impressions' ]
+        items: [
+            {
+                type: 'range',
+                key: 'impressions',
+                name: '展现量'
+            }
+        ]
     }, {
         name: '点击量',
-        id: 'filter-click-box',
         type: 'click',
-        height: 56,
         width: 222,
-        key: [ 'report', 'click' ]
+        items: [
+            {
+                type: 'range',
+                key: 'click',
+                name: '点击量'
+            }
+        ]
     }, {
         name: '点击率',
         type: 'ctr',
-        height: 116,
         width: 290,
         key: [ 'report', 'ctr' ]
     }, {
