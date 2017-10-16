@@ -16,19 +16,29 @@ import {
 } from 'antd';
 import './KeywordHeadStyle.less'
 import KeywordInfo from './KeywordInfo'
-import { fetchAdgroupsProfiles } from './KeywordHeadRedux'
+import { fetchAdgroupsProfiles, postAdgroupsStatus } from './KeywordHeadRedux'
 const FormItem = Form.Item;
 
 @Form.create( )
-@connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, head: state.keyword.keywordHead, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
-    fetchAdgroupsProfiles
+@connect(state => ({
+    query: state.location.query,
+    user: state.user,
+    campaign: state.campaign,
+    keyword: state.keyword.keywordList,
+    head: state.keyword.keywordHead,
+    view: state.keyword.keywordView
+}), dispatch => (bindActionCreators( {
+    fetchAdgroupsProfiles,
+    postAdgroupsStatus
 }, dispatch )))
 export default class KeywordHead extends React.Component {
     state = {
+        ...this.props.query,
         moreDropdownVisible: false
     }
     componentWillMount( ) {
-        this.props.fetchAdgroupsProfiles({ campaignId: '17922607', adgroupId: '661397773', fromDate: '2017-09-25', toDate: '2017-10-09' });
+        // { campaignId: '17922607', adgroupId: '661397773', fromDate: '2017-09-25', toDate: '2017-10-09' }
+        this.props.fetchAdgroupsProfiles( this.state );
     }
     onChangeCommit( ) {}
     onClickMenu( ) {}
@@ -77,22 +87,28 @@ export default class KeywordHead extends React.Component {
     }
     render( ) {
         const { moreDropdownVisible } = this.state
-        const infoObj = pick(this.props.head.adgroup, [
+        let infoObj = pick(this.props.head.adgroup, [
+            'adgroupId',
+            'campaignId',
             'numIid',
             'title',
             'picUrl',
             'catName',
+            'type',
             'price',
             'volume',
             'num',
             'wordMaxPrice',
             'mobileWordMaxPrice',
-            'mobileDiscount'
+            'mobileDiscount',
+            'onlineStatus',
+            'optimizationState'
         ])
+        console.log( 'keywordInfo:', infoObj )
         return (
             <Layout className="keyword-head">
                 <div>
-                    <KeywordInfo {...infoObj} optimizationState={0}></KeywordInfo>
+                    <KeywordInfo {...infoObj} api={this.props.postAdgroupsStatus}></KeywordInfo>
                 </div>
                 <div className="button-groups">
                     <Button type="primary">一键优化</Button>

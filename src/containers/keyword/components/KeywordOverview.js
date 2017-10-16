@@ -15,9 +15,18 @@ const DATA_TYPE = {
     '1': '只看PC',
     '2': '只看无线'
 }
-@connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, head: state.keyword.keywordHead, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {}, dispatch )))
+@connect(state => ({
+    query: state.location.query,
+    user: state.user,
+    campaign: state.campaign,
+    keyword: state.keyword.keywordList,
+    head: state.keyword.keywordHead,
+    view: state.keyword.keywordView
+}), dispatch => (bindActionCreators( {}, dispatch )))
 export default class KeywordOverview extends React.Component {
     state = {
+        fromDate: this.props.query.fromDate,
+        toDate: this.props.query.toDate,
         dataTypeStr: DATA_TYPE['0'],
         chartSw: false
     }
@@ -25,13 +34,14 @@ export default class KeywordOverview extends React.Component {
         this.setState({dataTypeStr: DATA_TYPE[key]})
     }
     getContent( isRealTime ) {
-        const { chartSw } = this.state
+        const { chartSw, fromDate, toDate } = this.state
         if ( this.props.head.isFetching ) {
             return (
                 <div>Loading</div>
             )
         }
-        const dataSource = this.props.head.report['2017-09-25-2017-10-09']
+
+        const dataSource = this.props.head.report[fromDate + '-' + toDate]
 
         return (
             <Layout className="keyword-overview-content">

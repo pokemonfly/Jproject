@@ -54,7 +54,7 @@ const CFG = [
             {
                 type: 'range',
                 key: 'createTime',
-                name: '展现时长'
+                name: '展现时长(天)'
             }
         ]
     }, {
@@ -63,9 +63,23 @@ const CFG = [
         width: 222,
         items: [
             {
-                type: 'range',
-                key: 'impressions',
-                name: '展现量'
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
+                type: 'radio',
+                items: [
+                    {
+                        type: 'tag',
+                        value: 0,
+                        key: 'impressions',
+                        name: '无展现'
+                    }, {
+                        type: 'range',
+                        key: 'impressions',
+                        name: '展现量'
+                    }
+                ]
             }
         ]
     }, {
@@ -74,6 +88,10 @@ const CFG = [
         width: 222,
         items: [
             {
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
                 type: 'range',
                 key: 'click',
                 name: '点击量'
@@ -83,38 +101,160 @@ const CFG = [
         name: '点击率',
         type: 'ctr',
         width: 290,
-        key: [ 'report', 'ctr' ]
+        items: [
+            {
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
+                type: 'radio',
+                items: [
+                    {
+                        type: 'range',
+                        value: 0,
+                        key: 'ctr',
+                        name: '点击率：'
+                    }, {
+                        type: 'tag',
+                        key: 'ctr',
+                        value: 1,
+                        name: '点击率小于市场平均'
+                    }, {
+                        type: 'tag',
+                        key: 'ctr',
+                        value: 2,
+                        name: '点击率等于市场平均'
+                    }, {
+                        type: 'tag',
+                        key: 'ctr',
+                        value: 3,
+                        name: '点击率大于市场平均'
+                    }
+                ]
+            }
+        ]
     }, {
         name: 'ROI',
         type: 'roi',
-        height: 56,
         width: 222,
-        key: [ 'report', 'realRoi' ]
+        items: [
+            {
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
+                type: 'range',
+                key: 'realRoi',
+                name: 'ROI：'
+            }
+        ]
     }, {
         name: '全网均价',
         type: 'dayPrice',
-        height: 40,
         width: 240,
-        key: [ 'wordBase', 'dayPrice' ]
+        items: [
+            {
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
+                type: 'range',
+                key: 'dayPrice',
+                name: '全网均价：'
+            }
+        ]
     }, {
         name: '全网展现',
         type: 'dayPv',
-        height: 56,
         width: 222,
-        key: [ 'wordBase', 'dayPv' ]
+        items: [
+            {
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
+                type: 'range',
+                key: 'dayPv',
+                name: '全网展现：'
+            }
+        ]
     }, {
         name: '全网点击指数',
         type: 'dayClick',
-        height: 56,
         width: 280,
-        key: [ 'wordBase', 'dayClick' ]
+        items: [
+            {
+                type: 'scope'
+            }, {
+                type: 'hr'
+            }, {
+                type: 'range',
+                key: 'dayClick',
+                name: '全网点击指数：'
+            }
+        ]
     }
-]
+];
 @Form.create( )
 class FilterPanel extends Component {
+    rowRender = ( obj, ind ) => {
+        const { getFieldDecorator } = this.props.form;
+        switch ( obj.type ) {
+            case 'range':
+                return (
+                    <Form.Item key={ind}>
+                        <span className="name">{obj.name}</span>
+                        {getFieldDecorator( obj.key + 'Min' )( <Input size="small" className="input-num" addonAfter={obj.unit}/> )}
+                        <span className="to-mark">-</span>
+                        {getFieldDecorator( obj.key + 'Max' )( <Input size="small" className="input-num" addonAfter={obj.unit}/> )}
+                    </Form.Item>
+                )
+            case 'scope':
+                return (
+                    <Form.Item key={ind}>
+                        {getFieldDecorator('scope', { initialValue: 0 })(
+                            <Radio.Group >
+                                <Radio value={0} key={0}>
+                                    <span>汇总</span>
+                                </Radio>
+                                <Radio value={1} key={1}>
+                                    <span>PC</span>
+                                </Radio>
+                                <Radio value={2} key={2}>
+                                    <span>无线</span>
+                                </Radio>
+                            </Radio.Group>
+                        )}
+                    </Form.Item>
+                )
+            case 'hr':
+                return ( <hr key={ind}/> )
+            case 'tag':
+                return (
+                    <span key={ind}>{obj.name}</span>
+                )
+            case 'radio':
+                return (
+                    <Form.Item key={ind}>
+                        {getFieldDecorator( 'radio' )(
+                            <Radio.Group >
+                                {obj.items.map(( item, indx ) => {
+                                    return (
+                                        <Radio value={indx}>
+                                            {this.rowRender( item, indx )}
+                                        </Radio>
+                                    )
+                                })}
+                            </Radio.Group>
+                        )}
+                    </Form.Item>
+                )
+            default:
+                return ''
+        }
+    }
     render( ) {
         const { items, width } = this.props
-        const { getFieldDecorator } = this.props.form;
         if ( !items )
             return null;
         return (
@@ -122,21 +262,7 @@ class FilterPanel extends Component {
                 width
             }}>
                 <Form>
-                    {items.map(( obj ) => {
-                        switch ( obj.type ) {
-                            case 'range':
-                                return (
-                                    <Form.Item key={obj.key}>
-                                        <span className="name">{obj.name}</span>
-                                        {getFieldDecorator( obj.key + 'Min' )( <Input size="small" className="input-num" addonAfter={obj.unit}/> )}
-                                        <span className="to-mark">-</span>
-                                        {getFieldDecorator( obj.key + 'Max' )( <Input size="small" className="input-num" addonAfter={obj.unit}/> )}
-                                    </Form.Item>
-                                )
-                            default:
-                                return ''
-                        }
-                    })}
+                    {items.map( this.rowRender )}
                     <div className="footer">
                         <Button type="primary" onClick={this.onSubmit}>确定</Button>
                         <a onClick={this.props.onClose} className="cancel-btn">取消</a>

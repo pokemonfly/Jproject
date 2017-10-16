@@ -14,7 +14,11 @@ export default({
 }) => {
     let cfg = {
         method: method || 'GET',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+            'Accept': 'application/json, application/xml, text/plain, text/html, *.*',
+            'Content-Type': 'application/json;charset=UTF-8'
+        }
     };
     if ( body ) {
         if ( cfg.method == 'GET' ) {

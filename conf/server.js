@@ -79,6 +79,7 @@ if ( config.env === 'development' ) {
             // 测试服务器数据
             let url = config.api_server + '/sources' + req.url;
             debug( `Request From :  ${ url }` );
+            debug( `Request Body :  ${ JSON.stringify( req.body ) }` );
             superagent( req.method, url ).set( headerObj ).set( 'Content-Type', 'application/json;charset=UTF-8' ).send( req.body ).pipe( res );
             // s.end( ( err, res ) => {     debug( JSON.stringify( res ) ); } )
         }
