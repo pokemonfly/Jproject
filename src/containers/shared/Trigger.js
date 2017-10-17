@@ -8,6 +8,8 @@ import { hasClass } from 'rc-util/lib/Dom/class';
 HACK
 源： https://github.com/react-component/trigger/blob/master/src/index.js
 为了保证Trigger内部可以再次触发其他的trigger而不关闭
+
+??? antd Popover  似乎有同样的功能 
 */
 class TriggerHack extends Trigger {
     componentWillMount( ) {

@@ -1,5 +1,6 @@
 // import ajax from '../../../utils/ajax'
 import ajax from '@/utils/ajax'
+import { formatReport } from '@/utils/tools'
 import { normalize, schema } from 'normalizr'
 import { omit, capitalize, pick, difference } from 'lodash'
 const { Entity } = schema;
@@ -237,27 +238,7 @@ function _sumReport( a, b ) {
 
     return result
 }
-function _formatReport( report ) {
-    for ( let key in report ) {
-        if (report.hasOwnProperty( key )) {
-            if ( report.click ) {
-                report.directPpr = report.directCartTotal / report.click * 100
-                report.indirectPpr = report.indirectCartTotal / report.click * 100
-                report.favItemRate = report.favItemCount / report.click * 100
-                report.favShopRate = report.favShopCount / report.click * 100
-                report.favRate = report.favCount / report.click * 100
-                if ( report.cartTotal ) {
-                    // 总加购率
-                    report.pprTotal = report.cartTotal / report.click * 100
-                    // 直接加购收藏率（兴趣度）
-                    report.directPprFavRate = ( report.favItemCount + report.directCartTotal ) / report.click * 100
-                    //加购收藏率
-                    report.pprFavRate = ( report.favCount + report.cartTotal ) / report.click * 100
-                }
-            }
-        }
-    }
-}
+
 const keywordDetail = new Entity('keywordDetail', {}, {
     processStrategy: ( obj, parent ) => {
         const wordsVo = obj.detailWordsDataVO,
@@ -277,7 +258,7 @@ const keywordDetail = new Entity('keywordDetail', {}, {
             outside: _sumReport( pcOutside, pcOutside )
         }
         for ( let i in result ) {
-            _formatReport(result[i])
+            formatReport(result[i])
         }
         return result
     }

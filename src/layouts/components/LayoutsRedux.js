@@ -79,7 +79,7 @@ export function fetchCampaignInfo( ) {
     return dispatch => {
         dispatch(reqCampaignInfo( ))
         return ajax({
-            api: '/sources/campaign.mock',
+            api: '/sources/campaign',
             format: json => {
                 const { data } = json;
                 let obj;

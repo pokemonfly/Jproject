@@ -1,7 +1,9 @@
 import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux'
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 import { DatePicker } from 'antd';
+import { hashHistory } from 'react-router';
 import './DataRangePicker.less'
 
 moment.locale( 'zh-cn' );
@@ -34,6 +36,7 @@ const defaultRanges = {
         ]
     }
 }
+@connect(state => ({ location: state.location }))
 export default class DataRangePicker extends React.Component {
     state = {
         fromDate: moment( ).subtract( 7, 'days' ),
@@ -43,11 +46,28 @@ export default class DataRangePicker extends React.Component {
         const { fromDate, toDate } = nextProps
         this.setState({fromDate: moment( fromDate ), toDate: moment( toDate )})
     }
-    onOk( ) {}
-    onChange( ) {}
+    onChange = ( date, dateString ) => {
+        this.state.fromString = dateString[0]
+        this.state.toString = dateString[1]
+
+    }
+    onOk = ( ) => {
+        const { location } = this.props
+        const { fromString, toString } = this.state
+        if ( fromString && toString ) {
+            hashHistory.push({
+                ...location,
+                query: {
+                    ...location.query,
+                    fromDate: fromString,
+                    toDate: toString
+                }
+            });
+        }
+    }
     renderExtraFooter( ) {
         return (
-            <div>扩展的额外内容</div>
+            <div>(留空)扩展的额外内容</div>
         )
     }
     render( ) {
@@ -56,6 +76,7 @@ export default class DataRangePicker extends React.Component {
             allowClear={false}
             className="data-range-picker"
             pickerClass='asdf'
+            format="YYYY-MM-DD"
             defaultValue={[ fromDate, toDate ]}
             renderExtraFooter={this.renderExtraFooter}
             ranges={defaultRanges.default}

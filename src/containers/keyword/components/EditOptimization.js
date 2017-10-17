@@ -19,12 +19,11 @@ import './EditOptimization.less'
 @Form.create( )
 export default class EditOptimization extends React.Component {
     state = {
-        optimizationState: 1, // Fix me
         hasTitle: true,
         onlyPrice: false,
         hasHmAuth: false,
         hasOff: true,
-        adjustPcPrice: false,
+        adjustPcPrice: true,
         adjustMobilePrice: true,
         isAllRound: false,
         ...this.props
@@ -49,7 +48,7 @@ export default class EditOptimization extends React.Component {
         this.setState({ optimizationState: e.target.value });
     }
     onSwitchChange = ( e ) => {
-        // this.props.form.setFieldsValue({ adjustPcPrice: true, adjustMobilePrice: true })
+        // TODO this.props.form.setFieldsValue({ adjustPcPrice: true, adjustMobilePrice: true })
     }
     renderSwitch( ) {
         const { getFieldDecorator } = this.props.form;

@@ -1,4 +1,5 @@
 import ajax from '@/utils/ajax'
+import { formatReport } from '@/utils/tools'
 import { pick, get as getFromObj, isArray } from 'lodash'
 
 // 关键词列表
@@ -7,6 +8,9 @@ export const RES_ADGROUPS_PROFILES = 'RES_ADGROUPS_PROFILES'
 // 修改宝贝状态
 export const REQ_POST_ADGROUPS = "REQ_POST_ADGROUPS"
 export const RES_POST_ADGROUPS = "RES_POST_ADGROUPS"
+// 修改宝贝优化状态
+export const REQ_POST_ADGROUPS_OPTIMIZATION = "REQ_POST_ADGROUPS_OPTIMIZATION"
+export const RES_POST_ADGROUPS_OPTIMIZATION = "RES_POST_ADGROUPS_OPTIMIZATION"
 
 export const reqAdgroupsProfiles = ( ) => {
     return {
@@ -66,6 +70,7 @@ export function fetchAdgroupsProfiles( params ) {
                     // 宝贝只优化出词
                     optimizeStatus = 2;
                 }
+                formatReport( adgroupProfiles.report );
                 return {
                     adgroup: {
                         ...adgroup,
@@ -116,8 +121,8 @@ export function postAdgroupsStatus( params ) {
             method: 'post',
             body: body,
             format: json => {
-                // 先按照只会修改一条处理
-                if ( getFromObj(json, [ 'data', 'result', params.adgroupId ]) === true ) {
+                // 先按照只会修改一条处理   返回的结构可能不一致  容错
+                if (getFromObj(json, [ 'data', 'result', params.adgroupId ]) === true || ( !json.data && json.success )) {
                     return {
                         ...params
                     }
@@ -130,7 +135,52 @@ export function postAdgroupsStatus( params ) {
     }
 }
 
-const defaultState = {}
+export const reqPostAdgroupsOptimization = ( ) => {
+    return {
+        type: REQ_POST_ADGROUPS_OPTIMIZATION,
+        data: {
+            isPosting: true
+        }
+    }
+}
+
+export const resPostAdgroupsOptimization = ( data ) => {
+    return {
+        type: RES_POST_ADGROUPS_OPTIMIZATION,
+        adgroup: {
+            ...data
+        },
+        data: {
+            isPosting: false
+        }
+    }
+}
+
+export function postAdgroupsOptimization( params ) {
+    return dispatch => {
+        dispatch(reqPostAdgroupsOptimization( ));
+        return ajax({
+            api: `/sources/optimizationSettings/ddgroup/submit`,
+            method: 'post',
+            body: params,
+            format: json => {
+                // 先按照只会修改一条处理   返回的结构可能不一致  容错
+                if ( json.success ) {
+                    return params
+                } else {
+                    return null
+                }
+            },
+            success: data => dispatch(resPostAdgroupsOptimization( data ))
+        })
+    }
+}
+
+const defaultState = {
+    adgroup: {},
+    daemonSettingMap: {},
+    report: {}
+}
 export default function keywordHeadReducer( state = defaultState, action ) {
     switch ( action.type ) {
         case REQ_ADGROUPS_PROFILES:
@@ -141,6 +191,16 @@ export default function keywordHeadReducer( state = defaultState, action ) {
             }
         case REQ_POST_ADGROUPS:
         case RES_POST_ADGROUPS:
+            return {
+                ...state,
+                adgroup: {
+                    ...state.adgroup,
+                    ...action.adgroup
+                },
+                ...action.data
+            }
+        case REQ_POST_ADGROUPS_OPTIMIZATION:
+        case RES_POST_ADGROUPS_OPTIMIZATION:
             return {
                 ...state,
                 adgroup: {

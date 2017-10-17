@@ -1,14 +1,28 @@
 import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux'
 import { Icon as AntdIcon, Select, Button, Menu, Dropdown } from 'antd';
-import EditableText from '@/containers/shared/EditableText'
 import Trigger from '@/containers/shared/Trigger';
 import EditOptimization from './EditOptimization'
+import EditPriceModal from './EditPriceModal'
 import { pick } from 'lodash'
 import { OPTIMIZE_TYPE } from '@/utils/constants'
-const Option = Select.Option;
 import './KeywordInfo.less'
 
+const Option = Select.Option;
+
+@connect(state => ({ campaignMap: state.layout.campaignMap }))
 export default class KeywordInfo extends Component {
+    constructor( props ) {
+        super( props );
+        this.componentWillReceiveProps( props )
+    }
+    componentWillReceiveProps( props ) {
+        const { campaignMap, campaignId, mobileWordMaxPrice, mobileDiscount } = props
+        if (campaignMap.hasOwnProperty( campaignId )) {
+            this.campaign = campaignMap[campaignId];
+            this.wordPriceLimit = this.campaign.wordPriceLimit == -1 ? mobileWordMaxPrice / ( mobileDiscount / 100 ) : this.campaign.wordPriceLimit
+        }
+    }
     optimizeChange( ) {}
     onOnlineStatusChange = ({ key }) => {
         let params = pick(this.props, [ 'adgroupId', 'campaignId' ])
@@ -65,16 +79,17 @@ export default class KeywordInfo extends Component {
                             hasTitle={false}
                             hasHmAuth={true}
                             api={this.props.api}
-                            {...pick(this.props, ['adgroupId', 'campaignId', 'type'])}/> )}>
+                            {...pick(this.props, ['adgroupId', 'campaignId', 'type','optimizationState'])}/> )}>
                             <Button>
                                 <span>
                                     {OPTIMIZE_TYPE[optimizationState]}
                                     <AntdIcon type="down"/></span>
                             </Button>
                         </Trigger>
-                        <span>PC限价：</span><EditableText value={wordMaxPrice} onChange={this.onPriceChange.bind( this, 'pc' )} width={100}/>
-                        <span>移动限价：</span><EditableText value={mobileWordMaxPrice} onChange={this.onPriceChange.bind( this, 'mobile' )} width={100}/>
-                        <span>移动溢价：</span><EditableText value={mobileDiscount} onChange={this.onPriceChange.bind( this, 'discount' )} width={100}/>
+
+                        <span>PC限价：{wordMaxPrice}</span><EditPriceModal {...this.props} editType='pc' title="PC限价" wordPriceLimit={this.wordPriceLimit}/>
+                        <span>移动限价：{mobileWordMaxPrice}</span><EditPriceModal {...this.props} editType='mobile' title="移动限价"/>
+                        <span>移动溢价：{mobileDiscount}</span><EditPriceModal {...this.props} editType='mobileDiscount' title="移动溢价"/>
                     </div>
                     <div className="row3">
                         <span className="cat " title={catName}>{catName}</span>

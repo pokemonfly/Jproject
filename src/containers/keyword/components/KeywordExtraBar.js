@@ -41,7 +41,14 @@ const REPORT_KEY = [
         'unit': '%'
     }
 ]
-@connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, head: state.keyword.keywordHead, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
+@connect(state => ({
+    query: state.location.query,
+    user: state.user,
+    campaign: state.campaign,
+    keyword: state.keyword.keywordList,
+    head: state.keyword.keywordHead,
+    view: state.keyword.keywordView
+}), dispatch => (bindActionCreators( {
     filterKeywordWord,
     changeReportCols,
     switchMoreDropdown
@@ -67,16 +74,19 @@ export default class KeywordExtraBar extends React.Component {
                 <span className='report-item'>Loading</span>
             )
         }
-        const dataSource = this.props.head.report['2017-09-25-2017-10-09']
+        let { fromDate, toDate } = this.props.query
+        const dataSource = this.props.head.report[`${ fromDate }-${ toDate }`]
         return REPORT_KEY.map(( obj, ind ) => {
-            let num = dataSource[obj.key];
+            let num = dataSource[obj.key],
+                unit = obj.unit
             if (!Number.isFinite( + num )) {
                 num = '-'
+                unit = ''
             }
             return (
                 <span className='report-item' key={ind}>
                     <span>{`${ obj.name }：`}</span>
-                    <span className="num">{`${ num } ${ obj.unit }`}</span>
+                    <span className="num">{`${ num } ${ unit }`}</span>
                 </span>
             )
         })
