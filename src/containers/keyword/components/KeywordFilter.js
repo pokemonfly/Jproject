@@ -9,6 +9,11 @@ import {
     Input,
     Button
 } from 'antd';
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux';
+import { isString, find, remove } from 'lodash'
+import { filterKeyword, removeKeywordFilter } from './KeywordViewRedux'
+import Trigger from '@/containers/shared/Trigger';
 import './KeywordFilter.less'
 
 const { Group } = Radio
@@ -30,7 +35,52 @@ const CFG = [
                 name: '无线',
                 unit: '元'
             }
-        ]
+        ],
+        toString: ( filterOpt ) => {
+            const { maxPriceMin, maxPriceMax, maxMobilePriceMin, maxMobilePriceMax } = filterOpt;
+            let s = ''
+            if ( maxPriceMin || maxPriceMax ) {
+                s += 'PC : '
+                if ( maxPriceMin && !maxPriceMax ) {
+                    s += `${ maxPriceMin }元以上`
+                } else if ( maxPriceMax && !maxPriceMin ) {
+                    s += `${ maxPriceMax }元以下`
+                } else {
+                    s += `${ maxPriceMin }-${ maxPriceMax }`
+                }
+            }
+            if ( maxMobilePriceMin || maxMobilePriceMax ) {
+                if ( s ) {
+                    s += ', '
+                }
+                s += '无线 : '
+                if ( maxMobilePriceMin && !maxMobilePriceMax ) {
+                    s += `${ maxMobilePriceMin }元以上`
+                } else if ( maxMobilePriceMax && !maxMobilePriceMin ) {
+                    s += `${ maxMobilePriceMax }元以下`
+                } else {
+                    s += `${ maxMobilePriceMin }-${ maxMobilePriceMax }`
+                }
+            }
+            return s;
+        },
+        fn: ( type, filterOpt, keywordObj ) => {
+            const { maxPriceMin, maxPriceMax, maxMobilePriceMin, maxMobilePriceMax } = filterOpt;
+            const { maxPrice, maxMobilePrice } = keywordObj
+            if ( maxPriceMin && maxPriceMin * 100 > maxPrice ) {
+                return false
+            }
+            if ( maxMobilePriceMin && maxMobilePriceMin * 100 > maxMobilePrice ) {
+                return false
+            }
+            if ( maxPriceMax && maxPriceMax * 100 < maxPrice ) {
+                return false
+            }
+            if ( maxMobilePriceMax && maxMobilePriceMax * 100 < maxMobilePrice ) {
+                return false
+            }
+            return true;
+        }
     }, {
         name: '质量分',
         type: 'qscore',
@@ -49,7 +99,7 @@ const CFG = [
     }, {
         name: '展现时长',
         type: 'createTime',
-        width: 235,
+        width: 250,
         items: [
             {
                 type: 'range',
@@ -60,7 +110,7 @@ const CFG = [
     }, {
         name: '展现量',
         type: 'impressions',
-        width: 222,
+        width: 245,
         items: [
             {
                 type: 'scope'
@@ -166,7 +216,7 @@ const CFG = [
     }, {
         name: '全网展现',
         type: 'dayPv',
-        width: 222,
+        width: 250,
         items: [
             {
                 type: 'scope'
@@ -192,17 +242,57 @@ const CFG = [
                 key: 'dayClick',
                 name: '全网点击指数：'
             }
-        ]
+        ],
+        fn: ( type, filterOpt, keywordObj ) => {
+            const { dayClickMin, dayClickMax, scope } = filterOpt;
+            let tar;
+            switch ( scope ) {
+                case 1:
+                    tar = keywordObj[type];
+                    break;
+                case 2:
+                    tar = keywordObj[type];
+                    break;
+                default:
+                    tar = keywordObj[type];
+            }
+            if ( dayClickMin && dayClickMin > tar ) {
+                return false
+            }
+            if ( dayClickMax && dayClickMax < tar ) {
+                return false
+            }
+            return true;
+        }
     }
 ];
+@connect(null, dispatch => (bindActionCreators( {
+    filterKeyword,
+    removeKeywordFilter
+}, dispatch )))
 @Form.create( )
 class FilterPanel extends Component {
+    onSubmit = ( ) => {
+        let formObj = this.props.form.getFieldsValue( )
+        const { type, fn, toString } = this.props;
+
+        for ( const key in formObj ) {
+            if (isString(formObj[key])) {
+                // 转为数字
+                formObj[key] = +formObj[key]
+            }
+        }
+        //TODO
+        this.props.filterKeyword({ type, obj: formObj, fn })
+        this.props.afterCb({key: type, str: toString( formObj )})
+        this.props.onClose( )
+    }
     rowRender = ( obj, ind ) => {
         const { getFieldDecorator } = this.props.form;
         switch ( obj.type ) {
             case 'range':
                 return (
-                    <Form.Item key={ind}>
+                    <Form.Item key={ind} className="range-row">
                         <span className="name">{obj.name}</span>
                         {getFieldDecorator( obj.key + 'Min' )( <Input size="small" className="input-num" addonAfter={obj.unit}/> )}
                         <span className="to-mark">-</span>
@@ -240,7 +330,7 @@ class FilterPanel extends Component {
                             <Radio.Group >
                                 {obj.items.map(( item, indx ) => {
                                     return (
-                                        <Radio value={indx}>
+                                        <Radio value={indx} className="radio-row" key={indx}>
                                             {this.rowRender( item, indx )}
                                         </Radio>
                                     )
@@ -272,35 +362,67 @@ class FilterPanel extends Component {
         )
     }
 }
+
+@connect(null, dispatch => (bindActionCreators( {
+    removeKeywordFilter
+}, dispatch )))
 export default class KeywordFilter extends Component {
-    onCloseTag = ( ) => {}
+    state = {
+        selectedFilter: [ ]
+    }
+    afterCb = ( obj ) => {
+        const { selectedFilter } = this.state
+        let selected = find(selectedFilter, ( o ) => {
+            return o.key == obj.key
+        })
+        if ( selected ) {
+            Object.assign( selected, obj )
+        } else {
+            selectedFilter.push( obj )
+        }
+        this.setState({ selectedFilter })
+    }
+    onCloseTag = ( key ) => {
+        const { selectedFilter } = this.state
+        remove(selectedFilter, ( o ) => {
+            return o.key == key
+        })
+        this.setState({ selectedFilter })
+        this.props.removeKeywordFilter( key )
+    }
     renderTagRow( ) {
-        return (
-            <div className="filter-tag-row">
-                <span>已选条件：
-                </span>
-                <Tag className="filter-tag" closable onClose={this.onCloseTag}>
-                    PC质量分：1-3
-                </Tag>
-                <Tag className="filter-tag" closable onClose={this.onCloseTag}>
-                    PC质量分：1-3
-                </Tag>
-            </div>
-        )
+        const { selectedFilter } = this.state
+        if ( !selectedFilter.length ) {
+            return null
+        } else {
+            return (
+                <div className="filter-tag-row">
+                    <span>已选条件：
+                    </span>
+                    {selectedFilter.map(( obj, ind ) => {
+                        return (
+                            <Tag className="filter-tag" key={ind} closable onClose={this.onCloseTag.bind( obj.key )}>
+                                {obj.str}
+                            </Tag>
+                        )
+                    })}
+                </div>
+            )
+        }
     }
     createOverlay( obj ) {
-        return ( <FilterPanel {...obj}/> )
+        return ( <FilterPanel {...obj} afterCb={this.afterCb}/> )
     }
     renderFilter( ) {
         return (
             <Group className="filter-bar">
                 {CFG.map(( obj ) => {
                     return (
-                        <Dropdown overlay={this.createOverlay( obj )} trigger={[ 'click' ]} key={obj.type}>
+                        <Trigger popup={this.createOverlay( obj )} key={obj.type}>
                             <Radio.Button value={obj.type}>{obj.name}
                                 <Icon type="down"/>
                             </Radio.Button>
-                        </Dropdown>
+                        </Trigger>
                     )
                 })}
             </Group>

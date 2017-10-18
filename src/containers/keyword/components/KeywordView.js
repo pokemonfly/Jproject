@@ -83,7 +83,6 @@ export default class KeywordView extends React.Component {
                     </TabPane>
                     <TabPane tab="搜索人群" key="searchCrowd">
                         <span>开发中</span>
-                        <More map={keywordReports} sort={view.reportSort} onOkCallback={changeReportCols} hint="123" limit="12"/>
                     </TabPane>
                     <TabPane tab="管理创意" key="creativeManage">
                         <span>开发中</span>

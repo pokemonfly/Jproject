@@ -1,7 +1,9 @@
 import { omit } from 'lodash'
 import { getKeywordDefaultReportCols } from '@/utils/constants'
 export const FILTER_KEYWORD_WORD = 'FILTER_KEYWORD_WORD'
+export const FILTER_KEYWORD = 'FILTER_KEYWORD'
 export const REMOVE_FILTER_KEYWORD_WORD = 'REMOVE_FILTER_KEYWORD_WORD'
+export const REMOVE_FILTER_KEYWORD = 'REMOVE_FILTER_KEYWORD'
 export const UPDATE_KEYWORD_REPORT_COLS = 'UPDATE_KEYWORD_REPORT_COLS'
 
 export const filterKeywordWord = ( searchText ) => {
@@ -22,6 +24,24 @@ export const filterKeywordWord = ( searchText ) => {
             filter: {
                 type: 'word'
             }
+        }
+    }
+}
+export function filterKeyword( opt ) {
+    return {
+        type: FILTER_KEYWORD,
+        filter: {
+            type: opt.type,
+            key: opt.obj,
+            fn: opt.fn
+        }
+    }
+}
+export function removeKeywordFilter( opt ) {
+    return {
+        type: REMOVE_FILTER_KEYWORD,
+        filter: {
+            type: opt.type
         }
     }
 }
@@ -49,6 +69,7 @@ const defaultState = {
 export default function keywordReducer( state = defaultState, action ) {
     switch ( action.type ) {
         case FILTER_KEYWORD_WORD:
+        case FILTER_KEYWORD:
             return {
                 ...state,
                 filters: {
@@ -57,6 +78,7 @@ export default function keywordReducer( state = defaultState, action ) {
                 }
             }
         case REMOVE_FILTER_KEYWORD_WORD:
+        case REMOVE_FILTER_KEYWORD:
             return {
                 ...state,
                 filters: {

@@ -21,7 +21,7 @@ export function fetchUserInfo( ) {
     return dispatch => {
         dispatch(reqUserInfo( ))
         return ajax({
-            api: '/sources/users.mock',
+            api: '/sources/users',
             format: json => {
                 let obj = json.data.users
                 obj.versionName = versionNameMap[obj.versionNum] || '未知'

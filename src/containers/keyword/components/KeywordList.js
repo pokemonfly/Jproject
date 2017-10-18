@@ -15,9 +15,10 @@ import {
     notification
 } from 'antd';
 import { connect } from 'react-redux'
+import { pick } from 'lodash'
 import KeywordFilter from './KeywordFilter'
 import Icon from '../../shared/Icon'
-import { fetchKeywordList, keywordTableChange, fetchKeywordSeparate } from './KeywordListRedux'
+import { fetchKeywordList, keywordTableChange, fetchKeywordSeparate, postKeyword } from './KeywordListRedux'
 import { formatNum } from '@/utils/tools'
 import { grabRankStatusPcMap, grabRankStatusMobileMap, keywordReports } from '@/utils/constants'
 import EditWordPrice from './EditWordPrice'
@@ -31,10 +32,19 @@ import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
 
-@connect(state => ({ user: state.user, campaign: state.campaign, keyword: state.keyword.keywordList, view: state.keyword.keywordView }), dispatch => (bindActionCreators( {
+@connect(state => ({
+    query: state.location.query,
+    user: state.user,
+    campaign: state.campaign,
+    head: state.keyword.keywordHead,
+    adgroup: state.keyword.keywordHead.adgroup,
+    keyword: state.keyword.keywordList,
+    view: state.keyword.keywordView
+}), dispatch => (bindActionCreators( {
     fetchKeywordList,
     keywordTableChange,
-    fetchKeywordSeparate
+    fetchKeywordSeparate,
+    postKeyword
 }, dispatch )))
 export default class KeywordList extends React.Component {
     state = {
@@ -150,8 +160,9 @@ export default class KeywordList extends React.Component {
     }
 
     componentWillMount( ) {
-        this.props.fetchKeywordList( );
-        this.props.fetchKeywordSeparate( );
+        const { query } = this.props
+        this.props.fetchKeywordList( query );
+        this.props.fetchKeywordSeparate( query );
     }
     componentWillReceiveProps( nextProps ) {
         this.setState({ isLoading: nextProps.keyword.isFetching })
@@ -243,7 +254,7 @@ export default class KeywordList extends React.Component {
                 width: 300,
                 fixed: 'left',
                 render: ( text, record ) => {
-                    const active = record.get( 'active' );
+                    const active = record.get( 'hover' ) || record.get( 'active' );
                     if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
@@ -253,16 +264,14 @@ export default class KeywordList extends React.Component {
                         text = '[ ' + text + ' ]'
                     }
                     return <span>
-                        <a href="#">
-                            {record.get( 'wordscorelist' ) && record.getIn([ 'wordscorelist', 'wirelessQscore' ]) >= 6 && ( <Icon type="wuxian"/> )}
-                            {record.get( 'wordscorelist' ) && record.getIn([ 'wordscorelist', 'wirelessQscore' ]) >= 6 && (
-                                <Tooltip title="有机会在淘宝网电脑版搜索结果首页左侧推广位置展示（每天定时更新）" arrowPointAtCenter>
-                                    <Icon type="zuo01"/>
-                                </Tooltip>
-                            )}
-                            {record.get( 'isFocusKeyword' ) && ( <Icon type="star"/> )}
-                            <span>{text}</span>
-                        </a>
+                        {record.get( 'wordscorelist' ) && record.getIn([ 'wordscorelist', 'wirelessQscore' ]) >= 6 && ( <Icon type="wuxian"/> )}
+                        {record.get( 'wordscorelist' ) && record.getIn([ 'wordscorelist', 'wirelessQscore' ]) >= 6 && (
+                            <Tooltip title="有机会在淘宝网电脑版搜索结果首页左侧推广位置展示（每天定时更新）" arrowPointAtCenter>
+                                <Icon type="zuo01"/>
+                            </Tooltip>
+                        )}
+                        {record.get( 'isFocusKeyword' ) && ( <Icon type="star"/> )}
+                        <span>{text}</span>
                         {active && this.getExtraBtnGroup( record )}
                     </span>
                 }
@@ -272,7 +281,7 @@ export default class KeywordList extends React.Component {
                 width: 110,
                 fixed: 'left',
                 render: ( price, record ) => {
-                    const active = record.get( 'active' );
+                    const active = record.get( 'hover' ) || record.get( 'active' );
                     if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
@@ -299,7 +308,7 @@ export default class KeywordList extends React.Component {
                 width: 110,
                 fixed: 'left',
                 render: ( price, record ) => {
-                    const active = record.get( 'active' );
+                    const active = record.get( 'hover' ) || record.get( 'active' );
                     if (record.get( '_isChildren' )) {
                         return (
                             <span>-</span>
@@ -575,6 +584,7 @@ export default class KeywordList extends React.Component {
         return arr
     }
     render( ) {
+        // let infoObj = pick(this.props.head.adgroup, [ 'adgroupId', 'campaignId' ])
         const { selectedRowKeys } = this.state
         const modeSw = (
             <Radio.Group className="keyword-list-type" defaultValue='1' onChange={this.onChangeGroupMode}>
@@ -587,7 +597,7 @@ export default class KeywordList extends React.Component {
             </Radio.Group>
         )
         const filterExtraComponent = (
-            <div>
+            <div className="filter-extra-bar">
                 {modeSw}
                 <Button type="primary">智能淘词</Button>
                 <Button type="primary">指定加词</Button>
@@ -602,7 +612,11 @@ export default class KeywordList extends React.Component {
                 ) : (
                     <div className="control-row">
                         {modeSw}
-                        <EditMultiWordPrice selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap}></EditMultiWordPrice>
+                        <EditMultiWordPrice
+                            mobileDiscount={this.props.adgroup.mobileDiscount}
+                            selectedRowKeys={selectedRowKeys}
+                            keywordMap={this.props.keyword.keywordMap}
+                            api={this.props.postKeyword}></EditMultiWordPrice>
                         <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}>
                             <Button type="primary">删除关键词</Button>
                         </DelKeyword>
@@ -640,7 +654,13 @@ export default class KeywordList extends React.Component {
                         <KeywordFilter mode="tag"/>
                     </div>
                 )}
-                <Table ref={this.setTableRef} dataSource={this.getTableData( )} columns={this.getTableCols( )} {...this.tableConfig} {...this.state}/>
+                <Table
+                    ref={this.setTableRef}
+                    dataSource={this.getTableData( )}
+                    filters={this.props.view.filters}
+                    columns={this.getTableCols( )}
+                    {...this.tableConfig}
+                    {...this.state}/>
             </Layout>
         )
     }

@@ -80,8 +80,11 @@ if ( config.env === 'development' ) {
             let url = config.api_server + '/sources' + req.url;
             debug( `Request From :  ${ url }` );
             debug( `Request Body :  ${ JSON.stringify( req.body ) }` );
-            superagent( req.method, url ).set( headerObj ).set( 'Content-Type', 'application/json;charset=UTF-8' ).send( req.body ).pipe( res );
-            // s.end( ( err, res ) => {     debug( JSON.stringify( res ) ); } )
+            superagent( req.method, url ).set( headerObj ).set( 'Content-Type', 'application/json;charset=UTF-8' ).send( req.body ).on('response', ( response ) => {
+                if ( response.status !== 200 ) {
+                    debug( `Response Error ${ response.status } : ${ url }` )
+                }
+            }).pipe( res )
         }
     });
 

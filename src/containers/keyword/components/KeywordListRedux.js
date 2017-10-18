@@ -1,8 +1,8 @@
 // import ajax from '../../../utils/ajax'
 import ajax from '@/utils/ajax'
-import { formatReport } from '@/utils/tools'
+import { formatReport, notify } from '@/utils/tools'
 import { normalize, schema } from 'normalizr'
-import { omit, capitalize, pick, difference } from 'lodash'
+import { omit, capitalize, pick, difference, isArray } from 'lodash'
 const { Entity } = schema;
 // 关键词列表
 export const REQ_KEYWORD_LIST = 'REQ_KEYWORD_LIST'
@@ -12,9 +12,13 @@ export const REQ_KEYWORD_SEPARATE = 'REQ_KEYWORD_SEPARATE'
 export const RES_KEYWORD_SEPARATE = 'RES_KEYWORD_SEPARATE'
 // Todo del this?
 export const KEYWORD_TABLE_CHANGE = 'KEYWORD_TABLE_CHANGE'
+//修改设置
+export const REQ_POST_KEYWORD = 'REQ_POST_KEYWORD'
+export const RES_POST_KEYWORD = 'RES_POST_KEYWORD'
 //删词
 export const REQ_DEL_KEYWORD = 'REQ_DEL_KEYWORD'
 export const RES_DEL_KEYWORD = 'RES_DEL_KEYWORD'
+
 export const reqKeywordList = ( ) => {
     return {
         type: REQ_KEYWORD_LIST,
@@ -150,7 +154,7 @@ export function fetchKeywordList( params ) {
     return dispatch => {
         dispatch(reqKeywordList( ))
         return ajax({
-            api: '/sources/keywords.mock',
+            api: '/sources/keywords',
             body: params,
             format: json => {
                 let obj;
@@ -267,7 +271,7 @@ export function fetchKeywordSeparate( params ) {
     return dispatch => {
         dispatch(reqKeywordSeparate( ))
         return ajax({
-            api: '/sources/keywords/detailData.mock',
+            api: '/sources/keywords/detailData',
             body: params,
             format: json => {
                 let obj;
@@ -276,8 +280,38 @@ export function fetchKeywordSeparate( params ) {
                 obj = normalize(json.data, {keywordDetailInfos: [ keywordDetail ]});
                 return obj;
             },
-            success: data => dispatch(resKeywordSeparate( data )),
-            error: err => console.error( err )
+            success: data => dispatch(resKeywordSeparate( data ))
+        })
+    }
+}
+
+export const reqPostKeyword = ( ) => {
+    return {
+        type: REQ_POST_KEYWORD,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPostKeyword = ( data ) => {
+    notify( '设置成功' )
+    return {
+        type: RES_POST_KEYWORD,
+        data: {
+            isFetching: false
+        },
+        mergeItems: data
+    }
+}
+export function postKeyword( params, keys ) {
+    let body = isArray( params ) ? params : [ params ]
+    return dispatch => {
+        dispatch(reqPostKeyword( ))
+        return ajax({
+            api: '/sources/keywords',
+            method: 'post',
+            body: body,
+            success: ( ) => dispatch(resPostKeyword( body ))
         })
     }
 }
@@ -291,6 +325,7 @@ export const reqDelKeyword = ( ) => {
     }
 }
 export const resDelKeyword = ( data ) => {
+    notify( '删除成功' )
     return {
         type: RES_DEL_KEYWORD,
         data: {
@@ -303,14 +338,14 @@ export function deleteKeyword( params, keys ) {
     return dispatch => {
         dispatch(reqDelKeyword( ))
         return ajax({
-            api: '/sources/keywords.mock',
+            api: '/sources/keywords',
             method: 'delete',
             body: params,
-            success: ( ) => dispatch(resDelKeyword( keys )),
-            error: err => console.error( err )
+            success: ( ) => dispatch(resDelKeyword( keys ))
         })
     }
 }
+
 const defaultState = {
     pagination: {},
     filters: {},
@@ -324,16 +359,26 @@ export default function keywordReducer( state = defaultState, action ) {
         case RES_KEYWORD_LIST:
         case RES_KEYWORD_SEPARATE:
         case KEYWORD_TABLE_CHANGE:
+        case REQ_POST_KEYWORD:
             return {
                 ...state,
                 ...action.data
             }
         case RES_DEL_KEYWORD:
-            const keywords = difference( state.keywords, action.deletedItems );
             return {
                 ...state,
                 ...action.data,
-                keywords
+                keywords: difference( state.keywords, action.deletedItems )
+            }
+        case RES_POST_KEYWORD:
+            let keywordMap = state.keywordMap;
+            action.mergeItems.forEach(o => {
+                Object.assign( keywordMap[o.keywordId], o )
+            });
+            return {
+                ...state,
+                ...action.data,
+                keywordMap
             }
         default:
             return state

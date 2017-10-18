@@ -15,6 +15,7 @@ import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
 import DropdownButton from '@/containers/shared/DropdownButton'
 import './EditMultiWordPrice.less'
+import { pick, isString } from 'lodash'
 import EditWordPrice from './EditWordPrice'
 
 const selectItem = [
@@ -124,9 +125,155 @@ export default class EditMultiWordPrice extends React.Component {
         this.setState({ type: e.target.value })
     }
     onSubmit = ( ) => {
+        const formObj = this.props.form.getFieldsValue( );
+        for ( const k in formObj ) {
+            if (isString(formObj[k])) {
+                formObj[k] = +formObj[k]
+            }
+        }
+        if (formObj['value']) {
+            formObj['value'] *= 100
+        }
+        if (formObj['limit']) {
+            formObj['limit'] *= 100
+        } else {
+            delete formObj.limit
+        }
+        const { activeKey, isShowNotOptimizeStatus } = this.props
+        let fn;
+        switch ( activeKey ) {
+            case 1:
+                fn = this.getAddFn( formObj );
+                break;
+            case 2:
+                fn = this.getSubFn( formObj );
+                break;
+            case 3:
+                //TODO  FixME!!   确认业务
+                fn = this.getAddFn( formObj );
+                break;
+            case 4:
+                fn = this.getAbsFn( formObj );
+                break;
+        }
+        const commitObj = this.getArr( ).map( fn )
+        console.log( 'EditMultiWordPrice commit Obj: ', commitObj )
+        this.props.api( commitObj )
         this.props.onClose( );
     }
-
+    fixPrice( obj, max = 9999, min = 5 ) {
+        if ( obj.maxPrice ) {
+            if ( obj.maxPrice > max ) {
+                obj.maxPrice = max
+            }
+            if ( obj.maxPrice < min ) {
+                obj.maxPrice = min
+            }
+        }
+        if ( obj.maxMobilePrice ) {
+            if ( obj.maxMobilePrice > max ) {
+                obj.maxMobilePrice = max
+            }
+            if ( obj.maxMobilePrice < min ) {
+                obj.maxMobilePrice = min
+            }
+        }
+    }
+    getAddFn({ radio, select, type, value, limit }) {
+        return ({ adgroupId, campaignId, keywordId, maxPrice, maxMobilePrice }) => {
+            let obj = {
+                adgroupId,
+                campaignId,
+                keywordId
+            }
+            if ( type == 1 || type == 0 ) {
+                // PC
+                obj.maxPrice = maxPrice + ( radio == 0 ? value : select * maxPrice )
+            }
+            if ( type == 2 || type == 0 ) {
+                // 无线
+                obj.maxMobilePrice = maxMobilePrice + ( radio == 0 ? value : select * maxMobilePrice )
+                obj.mobileIsDefaultPrice = 0
+            }
+            this.fixPrice( obj, limit );
+            return obj
+        }
+    }
+    getSubFn({ radio, select, type, value, limit }) {
+        return ({ adgroupId, campaignId, keywordId, maxPrice, maxMobilePrice }) => {
+            let obj = {
+                adgroupId,
+                campaignId,
+                keywordId
+            }
+            if ( type == 1 || type == 0 ) {
+                // PC
+                obj.maxPrice = maxPrice - ( radio == 0 ? value : select * maxPrice )
+            }
+            if ( type == 2 || type == 0 ) {
+                // 无线
+                obj.maxMobilePrice = maxMobilePrice - ( radio == 0 ? value : select * maxMobilePrice )
+                obj.mobileIsDefaultPrice = 0
+            }
+            this.fixPrice( obj );
+            return obj
+        }
+    }
+    getAbsFn({ radio, select, type, value, limit }) {
+        return ({ adgroupId, campaignId, keywordId, maxPrice, maxMobilePrice }) => {
+            let obj = {
+                adgroupId,
+                campaignId,
+                keywordId
+            }
+            if ( type == 1 ) {
+                // PC
+                obj.maxPrice = value
+            }
+            if ( type == 0 ) {
+                //全部
+                obj.maxPrice = obj.maxMobilePrice = value
+                obj.mobileIsDefaultPrice = 0
+            }
+            if ( type == 1 ) {
+                switch ( radio ) {
+                    case 0:
+                        //使用移动折扣出价
+                        obj.mobileIsDefaultPrice = 1
+                        break;
+                    case 1:
+                        //使用自定义出价（价格不变）
+                        obj.maxMobilePrice = maxMobilePrice
+                        obj.mobileIsDefaultPrice = 0
+                        break;
+                    case 2:
+                        //自定义出价
+                        obj.maxMobilePrice = value
+                        obj.mobileIsDefaultPrice = 0
+                }
+            }
+            this.fixPrice( obj );
+            return obj
+        }
+    }
+    getArr( ) {
+        const { selectedRowKeys, keywordMap, mobileDiscount } = this.props;
+        return selectedRowKeys.map(key => {
+            let obj = pick(keywordMap[key], [
+                'adgroupId',
+                'campaignId',
+                'keywordId',
+                'maxPrice',
+                'maxMobilePrice',
+                'mobileIsDefaultPrice'
+            ])
+            if ( obj.mobileIsDefaultPrice ) {
+                obj.maxMobilePrice = obj.maxPrice * mobileDiscount / 100
+            }
+            // 全网均价处理 obj.pcAvg =
+            return obj
+        })
+    }
     handleButtonClick = ( type ) => {
         this.setState({ type })
         this.refs.trigger.setPopupVisible( true )
@@ -151,13 +298,13 @@ export default class EditMultiWordPrice extends React.Component {
             case 3:
                 switch ( type ) {
                     case 1:
-                        str = 'PC';
+                        str = 'PC全网均价';
                         break;
                     case 2:
-                        str = '无线';
+                        str = '无线全网均价';
                         break;
                     case 0:
-                        str = '全网';
+                        str = '全网均价';
                         break;
                 }
                 break;
@@ -200,8 +347,7 @@ export default class EditMultiWordPrice extends React.Component {
                             {getFieldDecorator('radio', { initialValue: 1 })(
                                 <Radio.Group >
                                     <Radio value={0}>
-                                        <span>{str}：</span>
-                                        {getFieldDecorator( 'value' )( <Input addonAfter="元" className="input-price"/> )}
+                                        <span>{str}</span>
                                     </Radio>
                                     <Radio value={1}>
                                         <span>{str}：</span>
@@ -241,7 +387,7 @@ export default class EditMultiWordPrice extends React.Component {
                     )}
                     {( activeKey == 1 || activeKey == 3 ) && (
                         <Form.Item>
-                            不得高于：{getFieldDecorator('limit', { initialValue: 1 })( <Input addonAfter="元" className="input-price"/> )}
+                            不得高于：{getFieldDecorator( 'limit' )( <Input addonAfter="元" className="input-price"/> )}
                         </Form.Item>
                     )}
                     {isShowNotOptimizeStatus && (

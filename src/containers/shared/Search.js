@@ -15,18 +15,19 @@ export default class SearchEX extends Search {
             ...others
         } = this.props;
         delete others.onSearch;
-        const addonAfter = ( < span onClick = {
-            this.onSearch
-        } > < Icon type = "search" />< span > 搜索 < /span></span > )
-        return (
-            <span>
-                <Input
-                    onPressEnter={this.onSearch}
-                    {...others}
-                    className={classNames( prefixCls, className )}
-                    addonAfter={addonAfter}
-                    ref={node => this.input = node}/>
+        const addonAfter = (
+            <span onClick={this.onSearch}>
+                <Icon type="search"/>
+                <span>
+                    搜索
+                </span>
             </span>
-        );
+        )
+        return ( <Input
+            onPressEnter={this.onSearch}
+            {...others}
+            className={classNames( prefixCls, className )}
+            addonAfter={addonAfter}
+            ref={node => this.input = node}/> );
     }
 }

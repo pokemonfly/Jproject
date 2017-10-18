@@ -1,5 +1,5 @@
 import { isString, isUndefined } from 'lodash'
-
+import { notification } from 'antd';
 /*
 minVal 返回结果不低于此数值
 zeroTransfer 结果为0时转义 mode 预设
@@ -63,4 +63,32 @@ export function formatReport( report ) {
             }
         }
     }
+}
+
+/** 右上角 的贴条提示
+ params  obj / string / string,string,string
+*/
+export function notify( ) {
+    let obj
+    if ( arguments.length == 3 ) {
+        obj = {
+            type: arguments[0],
+            message: arguments[1],
+            description: arguments[2]
+        }
+    } else {
+        if (isString(arguments[0])) {
+            obj = {
+                description: arguments[0]
+            }
+        } else {
+            obj = arguments[0]
+        }
+    }
+    let {
+        type = 'success',
+        message = '操作成功',
+        description
+    } = obj
+    notification[type]({ message, description, duration: 3 });
 }

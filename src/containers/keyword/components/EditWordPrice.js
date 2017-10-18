@@ -88,7 +88,7 @@ export default class EditWordPrice extends React.Component {
 
     renderOption( ) {
         return selectItem.map(i => (
-            <Option value={i.value.toString( )} key={i.value}>{i.text}</Option>
+            <Select.Option value={i.value.toString( )} key={i.value}>{i.text}</Select.Option>
         ))
     }
     getFormContent( ) {

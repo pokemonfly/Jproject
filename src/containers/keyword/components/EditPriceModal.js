@@ -10,6 +10,7 @@ import {
 import { pick } from 'lodash'
 import './EditPriceModal.less'
 import Icon from '@/containers/shared/Icon'
+
 @Form.create( )
 export default class EditPriceModal extends React.Component {
     state = {
@@ -37,7 +38,7 @@ export default class EditPriceModal extends React.Component {
                 commitObj.mobileDiscount = formObj.mobileDiscountType == 2 ? formObj.mobileDiscount : -1
                 break;
         }
-        console.log( EditPriceModal, commitObj )
+        console.log( 'EditPriceModal commit Obj: ', commitObj )
         this.props.api( commitObj )
         this.setVisible( false );
     }

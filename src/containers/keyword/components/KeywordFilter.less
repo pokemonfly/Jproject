@@ -24,8 +24,8 @@
 .keyword-filter-panel {
     .ant-form-item-control {
         display: flex;
-         > .ant-input,
-        > .ant-input-group-wrapper {
+         > .ant-input-group-wrapper,
+        > .ant-input {
             width: 65px;
         }
     }
@@ -43,6 +43,21 @@
         margin-top: 12px;
     }
     .ant-radio-wrapper .ant-form-item {
-            display: inline-block;
+        display: inline-block;
+    }
+    .radio-row {
+        .ant-radio {
+            vertical-align: middle;
+            + span {
+                display       : inline-block;
+                vertical-align: middle;
+                > * {
+                    display: inline;
+                }
+            }
+        }
+    }
+    hr + .range-row {
+        margin-top: 12px
     }
 }

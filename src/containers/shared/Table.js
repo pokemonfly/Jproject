@@ -522,8 +522,10 @@ export default class TableEX extends React.Component {
             return '';
         }
         if ( columnData && columnData.render ) {
+            //TODO no time to fix cache
             this.cellCache[rowIndex + '-' + columnIndex + dataKey] = this.cellCache[rowIndex + '-' + columnIndex + dataKey] || columnData.render( cellData, rowData )
-            return this.cellCache[rowIndex + '-' + columnIndex + dataKey]
+            // return this.cellCache[rowIndex + '-' + columnIndex + dataKey]
+            return columnData.render( cellData, rowData )
         } else {
             if ( cellData == 0 || cellData === undefined ) {
                 return '-'

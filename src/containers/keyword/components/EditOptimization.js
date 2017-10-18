@@ -35,7 +35,7 @@ export default class EditOptimization extends React.Component {
             ...pick(this.props, [ 'adgroupId', 'campaignId', 'type' ])
         }
         for ( const key in commitObj ) {
-            if ( isBoolean ) {
+            if (isBoolean(commitObj[key])) {
                 // 转为数字
                 commitObj[key] = +commitObj[key]
             }
