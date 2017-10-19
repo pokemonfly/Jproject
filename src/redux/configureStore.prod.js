@@ -1,10 +1,12 @@
 import { createStore, combineReducers, compose, applyMiddleware } from 'redux';
 import { routerReducer } from 'react-router-redux';
 import { hashHistory } from 'react-router';
-
 import createFetchMiddleware from 'redux-composable-fetch';
 import ThunkMiddleware from 'redux-thunk';
-import rootReducer from './reducers';
+import { browserHistory } from 'react-router'
+import reducer from './reducers';
+import DevTools from './DevTools';
+import { updateLocation } from './location'
 
 const FetchMiddleware = createFetchMiddleware({
     afterFetch({ action, result }) {
@@ -14,12 +16,12 @@ const FetchMiddleware = createFetchMiddleware({
     }
 });
 
-const finalCreateStore = compose(applyMiddleware( ThunkMiddleware, FetchMiddleware ))( createStore );
-
-const reducer = combineReducers(Object.assign({}, rootReducer, { routing: routerReducer }));
+const finalCreateStore = compose(applyMiddleware( ThunkMiddleware, FetchMiddleware ), DevTools.instrument( ))( createStore );
 
 export default function configureStore( initialState ) {
-    const store = finalCreateStore( reducer, initialState );
+    const store = finalCreateStore( reducer( ), initialState );
     store.asyncReducers = {};
+    store.unsubscribeHistory = browserHistory.listen(updateLocation( store ));
+
     return store;
 }

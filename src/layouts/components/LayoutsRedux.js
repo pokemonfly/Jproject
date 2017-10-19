@@ -44,7 +44,7 @@ export function fetchEnginesInfo( ) {
     return dispatch => {
         dispatch(reqEnginesInfo( ))
         return ajax({
-            api: '/sources/users/engines.mock',
+            api: '/sources/users/engines',
             format: json => {
                 let obj;
                 obj = normalize(json.data, {engines: [ campaign ]});

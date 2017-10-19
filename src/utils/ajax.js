@@ -9,15 +9,16 @@ export default({
     success,
     error,
     format,
-    method,
+    method = 'GET',
     body
 }) => {
     let cfg = {
-        method: method || 'GET',
+        method,
         credentials: 'include',
         headers: {
-            'Accept': 'application/json, application/xml, text/plain, text/html, *.*',
-            'Content-Type': 'application/json;charset=UTF-8'
+            'Content-Type': 'application/json;charset=UTF-8',
+            'X-HTTP-Method-Override': method,
+            'Accept': 'application/json'
         }
     };
     if ( body ) {

@@ -30,9 +30,7 @@ const webpackConfig = {
 const APP_ENTRY = paths.client( 'app.js' )
 
 webpackConfig.entry = {
-    app: __DEV__
-        ? [ APP_ENTRY ].concat( `webpack-hot-middleware/client?path=${ config.compiler_public_path }__webpack_hmr` )
-        : [APP_ENTRY],
+    app: __DEV__ ? [ APP_ENTRY ].concat( `webpack-hot-middleware/client?path=${ config.compiler_public_path }__webpack_hmr` ) : [APP_ENTRY],
     vendor: config.compiler_vendors
 }
 
@@ -41,7 +39,7 @@ webpackConfig.output = {
     filename: `[name].[${ config.compiler_hash_type }].js`,
     chunkFilename: '[name].[chunkhash:8].js',
     path: paths.dist( ),
-    publicPath: config.compiler_public_path
+    publicPath: __DEV__ ? config.compiler_public_path : ''
 }
 
 // ------------------------------------ Plugins ------------------------------------

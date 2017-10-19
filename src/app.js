@@ -14,9 +14,8 @@ const history = syncHistoryWithStore( hashHistory, store );
 ReactDOM.render((
     <Provider store={store}>
         <div>
-            <Router history={history} children={routes( store )}/>
-            <DevTools/>
+            <Router history={history} children={routes( store )}/> {< DevTools />}
         </div>
     </Provider>
 ), document.getElementById( 'root' ));
-//
+//__DEV__ &&

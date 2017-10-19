@@ -12,7 +12,9 @@ export const updateLocation = ({ dispatch }) => {
 }
 
 // ------------------------------------ Reducer ------------------------------------
-const initialState = null
+const initialState = {
+    query: {}
+}
 export default function locationReducer( state = initialState, action ) {
     return action.type === '@@router/LOCATION_CHANGE' ? action.payload : state
 }
