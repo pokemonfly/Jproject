@@ -5,9 +5,9 @@ module.exports = ( ) => {
         'primary-color': '#51b95b',
         'info-color': '#51b95b',
         'success-color': '#51b95b',
-        'error-color': '#51b95b',
+        'error-color': '#ff2c23',
         'highlight-color': '#f0e51f',
-        'warning-color': '#51b95b',
+        'warning-color': '#fd8b11',
         'normal-color': '#51b95b',
         // Background
         'body-background': '#f2f2f2',

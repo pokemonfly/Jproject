@@ -9,7 +9,7 @@ HACK
 源： https://github.com/react-component/trigger/blob/master/src/index.js
 为了保证Trigger内部可以再次触发其他的trigger而不关闭
 
-??? antd Popover  似乎有同样的功能 
+??? antd Popover  似乎有同样的功能
 */
 class TriggerHack extends Trigger {
     componentWillMount( ) {
@@ -69,6 +69,9 @@ export default class TriggerEX extends React.Component {
             <TriggerHack
                 {...omit(this.props, ['context', 'popup', 'width'])}
                 {...this.state}
+                popupStyle={{
+                display: 'inline-block'
+            }}
                 popup={popup}
                 ignoreClz={[ 'ant-select-dropdown' ]}
                 ref='trigger'>

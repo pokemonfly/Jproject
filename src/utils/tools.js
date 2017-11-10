@@ -66,23 +66,29 @@ export function formatReport( report ) {
 }
 
 /** 右上角 的贴条提示
- params  obj / string / string,string,string
+ params  obj / string / string,string / string,string,string
 */
-export function notify( ) {
+export function notify( ...args ) {
     let obj
-    if ( arguments.length == 3 ) {
+    if ( args.length == 3 ) {
         obj = {
-            type: arguments[0],
-            message: arguments[1],
-            description: arguments[2]
+            type: args[0],
+            message: args[1],
+            description: args[2]
+        }
+    }
+    if ( args.length == 2 ) {
+        obj = {
+            message: args[0],
+            description: args[1]
         }
     } else {
-        if (isString(arguments[0])) {
+        if (isString(args[0])) {
             obj = {
-                description: arguments[0]
+                description: args[0]
             }
         } else {
-            obj = arguments[0]
+            obj = args[0]
         }
     }
     let {

@@ -79,7 +79,7 @@ export default class KeywordInfo extends Component {
                             hasTitle={false}
                             hasHmAuth={true}
                             api={this.props.api}
-                            {...pick(this.props, ['adgroupId', 'campaignId', 'type','optimizationState'])}/> )}>
+                            {...pick(this.props, ['adgroupId', 'campaignId', 'type','optimizationState', 'isOptimizeChangePrice','isOptimizeChangeMatchScope','isOptimizeChangeMobilePrice'])}/> )}>
                             <Button>
                                 <span>
                                     {OPTIMIZE_TYPE[optimizationState]}

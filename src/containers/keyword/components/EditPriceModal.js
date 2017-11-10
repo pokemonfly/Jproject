@@ -3,7 +3,7 @@ import {
     Modal,
     Radio,
     Form,
-    Input,
+    InputNumber,
     Checkbox,
     Tooltip
 } from 'antd'
@@ -68,13 +68,14 @@ export default class EditPriceModal extends React.Component {
                     <Radio.Group onChange={this.onOptimizeChange}>
                         <Form.Item>
                             <Radio value={1}>
-                                <span>使用计划PC最高限价：{wordPriceLimit}</span>
+                                <span>使用计划PC最高限价：{wordPriceLimit}
+                                    元</span>
                             </Radio>
                         </Form.Item>
                         <Form.Item>
                             <Radio value={2}>
                                 <span>使用宝贝PC最高限价：</span>
-                                {getFieldDecorator('wordMaxPrice', { initialValue: wordMaxPrice })( <Input addonAfter="元" className="input-price" placeholder='0.05至99.99'/> )}
+                                {getFieldDecorator('wordMaxPrice', { initialValue: wordMaxPrice })( <InputNumber addonAfter="元" className="input-price" placeholder='0.05至99.99'/> )}
                             </Radio>
                         </Form.Item>
                     </Radio.Group>
@@ -83,7 +84,7 @@ export default class EditPriceModal extends React.Component {
                     <Form.Item>
                         <div>
                             <span>使用宝贝无线最高限价：</span>
-                            {getFieldDecorator('mobileWordMaxPrice', { initialValue: mobileWordMaxPrice })( <Input addonAfter="元" className="input-price" placeholder='0.05至99.99'/> )}
+                            {getFieldDecorator('mobileWordMaxPrice', { initialValue: mobileWordMaxPrice })( <InputNumber addonAfter="元" className="input-price" placeholder='0.05至99.99'/> )}
                         </div>
                         {getFieldDecorator('mobileSinglePrice', { initialValue: false })(
                             <Checkbox>将所有关键词无线出价改成单独出价
@@ -98,13 +99,13 @@ export default class EditPriceModal extends React.Component {
                     <Radio.Group>
                         <Form.Item>
                             <Radio value={1}>
-                                <span>{`使用计划移动折扣：${ campaignMobileDiscount }`}</span>
+                                <span>{`使用计划移动折扣：${ campaignMobileDiscount }%`}</span>
                             </Radio>
                         </Form.Item>
                         <Form.Item>
                             <Radio value={2}>
                                 <span>使用宝贝移动折扣：</span>
-                                {getFieldDecorator('mobileDiscount', { initialValue: mobileDiscount })( <Input addonAfter="元" className="input-price" placeholder='0.05至99.99'/> )}
+                                {getFieldDecorator('mobileDiscount', { initialValue: mobileDiscount })( <InputNumber addonAfter="%" className="input-price" placeholder='0.05至99.99'/> )}
                             </Radio>
                         </Form.Item>
                     </Radio.Group>

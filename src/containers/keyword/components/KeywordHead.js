@@ -8,19 +8,18 @@ import {
     Icon,
     Select,
     Button,
-    Form,
     Input,
     Switch,
     Menu,
     Dropdown
 } from 'antd';
+import { notify } from '@/utils/tools'
 import './KeywordHeadStyle.less'
 import KeywordInfo from './KeywordInfo'
-import EditableText from '@/containers/shared/EditableText'
-import { fetchAdgroupsProfiles, postAdgroupsStatus } from './KeywordHeadRedux'
-const FormItem = Form.Item;
+import EditWordLimit from './EditWordLimit'
+import EditQScoreLimit from './EditQScoreLimit'
+import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization } from './KeywordHeadRedux'
 
-@Form.create( )
 @connect(state => ({
     query: state.location.query,
     user: state.user,
@@ -30,7 +29,8 @@ const FormItem = Form.Item;
     view: state.keyword.keywordView
 }), dispatch => (bindActionCreators( {
     fetchAdgroupsProfiles,
-    postAdgroupsStatus
+    postAdgroupsStatus,
+    postAdgroupsOptimization
 }, dispatch )))
 export default class KeywordHead extends React.Component {
     state = {
@@ -38,7 +38,6 @@ export default class KeywordHead extends React.Component {
         moreDropdownVisible: false
     }
     componentWillMount( ) {
-        // { campaignId: '17922607', adgroupId: '661397773', fromDate: '2017-09-25', toDate: '2017-10-09' }
         this.props.fetchAdgroupsProfiles( this.state );
     }
     componentWillReceiveProps( props ) {
@@ -46,58 +45,42 @@ export default class KeywordHead extends React.Component {
             this.props.fetchAdgroupsProfiles( props.query );
         }
     }
-    onChangeCommit( ) {}
-    onChangeQsScore = ( ) => {
-        const formObj = this.props.form.getFieldsValue( )
-        let commitObj = {
-            ...pick(this.props.head.adgroup, [ 'adgroupId', 'campaignId' ]),
-            ...pick(formObj, [ 'qScoreLimitOpenStatus', 'pcQScoreFloor', 'mobileQScoreFloor' ])
+    onClickMenu = ( e ) => {
+        switch ( e.key ) {
+            case 'wordLimit':
+                EditWordLimit({
+                    wordLimit: this.props.head.daemonSettingMap.add_upper_limit,
+                    'adgroupIds': [this.props.head.adgroup.adgroupId],
+                    'campaignId': this.props.head.adgroup.campaignId,
+                    api: this.props.postAdgroupsOptimization
+                });
+                break;
+            case 'qScoreLimit':
+                EditQScoreLimit({
+                    ...pick(this.props.head.adgroup, [ 'adgroupId', 'campaignId', 'pcQScoreFloor', 'mobileQScoreFloor', 'isOpenQScoreLimit' ]),
+                    api: this.props.postAdgroupsStatus
+                });
+                break;
+            case 'black':
+            case 'sale':
+                notify( 'orz', '未实装' );
+                break;
         }
-        console.log( 'EditOptimization commit data:', commitObj );
-        this.props.postAdgroupsStatus( commitObj )
+        this.handleVisibleChange( false );
     }
-    onClickMenu( ) {}
     handleVisibleChange( flag ) {
         this.setState({ moreDropdownVisible: flag });
     }
     renderSettingPanel( ) {
-        const { getFieldDecorator } = this.props.form;
-        // qScoreLimitOpenStatus
-        const { pcQScoreFloor, mobileQScoreFloor, isOpenQScoreLimit } = this.props.head.adgroup
-        const wordLimit = this.props.head.daemonSettingMap.add_upper_limit
         return (
-            <Form className="keyword-setting-panel">
-                <FormItem>
-                    <span>出词数量控制</span>
-                    {getFieldDecorator('wordLimitSwitch', { valuePropName: 'checked' })( <Switch onChange={this.onChangeCommit} className="pull-right"/> )}
-                </FormItem>
-                <FormItem>
-                    <span>
-                        词数超过 {getFieldDecorator('add_upper_limit', { initialValue: wordLimit })( <Input onChange={this.onChangeCommit}/> )}
-                        不加词
-                    </span>
-                </FormItem>
-                <hr className="line"/>
-                <FormItem>
-                    <span>质量分下限</span>
-                    {getFieldDecorator('qScoreLimitOpenStatus', {
-                        valuePropName: 'checked',
-                        initialValue: isOpenQScoreLimit == '1'
-                    })( <Switch onChange={this.onChangeQsScore} className="pull-right"/> )}
-                </FormItem>
-                <FormItem>
-                    <span className="score-type">PC：</span>
-                    {getFieldDecorator('pcQScoreFloor', {
-                        initialValue: pcQScoreFloor > -1 ? pcQScoreFloor : ''
-                    })( <Input onChange={this.onChangeQsScore}/> )}
-                </FormItem>
-                <FormItem>
-                    <span className="score-type">无线：</span>
-                    {getFieldDecorator('mobileQScoreFloor', {
-                        initialValue: mobileQScoreFloor > -1 ? pcQScoreFloor : ''
-                    })( <Input onChange={this.onChangeQsScore}/> )}
-                </FormItem>
+            <div className="float-panel keyword-setting-panel">
                 <Menu selectedKeys={null} onClick={this.onClickMenu} mode="inline" className="menu">
+                    <Menu.Item key='wordLimit'>
+                        出词数量控制
+                    </Menu.Item>
+                    <Menu.Item key='qScoreLimit'>
+                        质量分下限
+                    </Menu.Item>
                     <Menu.Item key='black'>
                         黑名单列表
                     </Menu.Item>
@@ -105,7 +88,7 @@ export default class KeywordHead extends React.Component {
                         卖点词列表
                     </Menu.Item>
                 </Menu>
-            </Form>
+            </div>
         )
     }
     render( ) {
@@ -126,7 +109,10 @@ export default class KeywordHead extends React.Component {
                 'mobileWordMaxPrice',
                 'mobileDiscount',
                 'onlineStatus',
-                'optimizationState'
+                'optimizationState',
+                'isOptimizeChangeMatchScope',
+                'isOptimizeChangePrice',
+                'isOptimizeChangeMobilePrice'
             ]),
             campaignMobileDiscount: get( this.props.head.platform, 'mobileDiscount' ),
             isMobileDiscount: get( this.props.head.platform, 'mobileStatus' )

@@ -17,7 +17,6 @@ import Trigger from '@/containers/shared/Trigger';
 import './KeywordFilter.less'
 
 const { Group } = Radio
-
 const CFG = [
     {
         name: '出价',
@@ -28,42 +27,16 @@ const CFG = [
                 type: 'range',
                 key: 'maxPrice',
                 name: 'PC',
+                title: 'PC出价',
                 unit: '元'
             }, {
                 type: 'range',
                 key: 'maxMobilePrice',
                 name: '无线',
+                title: '无线出价',
                 unit: '元'
             }
         ],
-        toString: ( filterOpt ) => {
-            const { maxPriceMin, maxPriceMax, maxMobilePriceMin, maxMobilePriceMax } = filterOpt;
-            let s = ''
-            if ( maxPriceMin || maxPriceMax ) {
-                s += 'PC : '
-                if ( maxPriceMin && !maxPriceMax ) {
-                    s += `${ maxPriceMin }元以上`
-                } else if ( maxPriceMax && !maxPriceMin ) {
-                    s += `${ maxPriceMax }元以下`
-                } else {
-                    s += `${ maxPriceMin }-${ maxPriceMax }`
-                }
-            }
-            if ( maxMobilePriceMin || maxMobilePriceMax ) {
-                if ( s ) {
-                    s += ', '
-                }
-                s += '无线 : '
-                if ( maxMobilePriceMin && !maxMobilePriceMax ) {
-                    s += `${ maxMobilePriceMin }元以上`
-                } else if ( maxMobilePriceMax && !maxMobilePriceMin ) {
-                    s += `${ maxMobilePriceMax }元以下`
-                } else {
-                    s += `${ maxMobilePriceMin }-${ maxMobilePriceMax }`
-                }
-            }
-            return s;
-        },
         fn: ( type, filterOpt, keywordObj ) => {
             const { maxPriceMin, maxPriceMax, maxMobilePriceMin, maxMobilePriceMax } = filterOpt;
             const { maxPrice, maxMobilePrice } = keywordObj
@@ -89,13 +62,32 @@ const CFG = [
             {
                 type: 'range',
                 key: 'qscore',
-                name: 'PC'
+                name: 'PC',
+                title: 'PC质量分'
             }, {
                 type: 'range',
                 key: 'wirelessQscore',
-                name: '无线'
+                name: '无线',
+                title: '无线质量分'
             }
-        ]
+        ],
+        fn: ( type, filterOpt, keywordObj ) => {
+            const { qscoreMin, qscoreMax, wirelessQscoreMin, wirelessQscoreMax } = filterOpt;
+            const { qscore, wirelessQscore } = keywordObj
+            if ( qscore && qscoreMin > qscore ) {
+                return false
+            }
+            if ( wirelessQscoreMin && wirelessQscoreMin > wirelessQscore ) {
+                return false
+            }
+            if ( qscoreMax && qscoreMax < qscore ) {
+                return false
+            }
+            if ( wirelessQscoreMax && wirelessQscoreMax < wirelessQscore ) {
+                return false
+            }
+            return true;
+        }
     }, {
         name: '展现时长',
         type: 'createTime',
@@ -104,9 +96,11 @@ const CFG = [
             {
                 type: 'range',
                 key: 'createTime',
-                name: '展现时长(天)'
+                name: '展现时长(天)',
+                title: '展现时长'
             }
-        ]
+        ],
+        // fn
     }, {
         name: '展现量',
         type: 'impressions',
@@ -126,8 +120,10 @@ const CFG = [
                         name: '无展现'
                     }, {
                         type: 'range',
+                        value: 1,
                         key: 'impressions',
-                        name: '展现量'
+                        name: '展现量',
+                        title: ''
                     }
                 ]
             }
@@ -163,7 +159,9 @@ const CFG = [
                         type: 'range',
                         value: 0,
                         key: 'ctr',
-                        name: '点击率：'
+                        name: '点击率：',
+                        title: '',
+                        unit: '%'
                     }, {
                         type: 'tag',
                         key: 'ctr',
@@ -274,7 +272,7 @@ const CFG = [
 class FilterPanel extends Component {
     onSubmit = ( ) => {
         let formObj = this.props.form.getFieldsValue( )
-        const { type, fn, toString } = this.props;
+        let { type, fn, toString } = this.props;
 
         for ( const key in formObj ) {
             if (isString(formObj[key])) {
@@ -282,10 +280,75 @@ class FilterPanel extends Component {
                 formObj[key] = +formObj[key]
             }
         }
-        //TODO
-        this.props.filterKeyword({ type, obj: formObj, fn })
-        this.props.afterCb({key: type, str: toString( formObj )})
+        this.props.filterKeyword({
+            type,
+            obj: formObj,
+            fn: fn || this.createFilter( formObj )
+        })
+        this.props.afterCb({key: type, str: this.toString( formObj )})
         this.props.onClose( )
+    }
+    createFilter({ scope }) {
+        // TODO
+        return ( type, filterOpt, keywordObj ) => {
+            return true
+        }
+    }
+    toString( formObj, items = this.props.items, tag ) {
+        let s = '',
+            name = '';
+        items.forEach(obj => {
+            if ( tag != undefined && tag != obj.value ) {
+                return;
+            }
+            switch ( obj.type ) {
+                case 'range':
+                    let min = formObj[obj.key + 'Min'],
+                        max = formObj[obj.key + 'Max'],
+                        unit = obj.unit || '',
+                        title = 'title' in obj ? obj.title : obj.name;
+                    if ( min && max && min > max ) {
+                        let _t = max
+                        max = min
+                        min = _t
+                    }
+                    if ( min || max ) {
+                        if ( s ) {
+                            s = s + ', '
+                        }
+                        if ( title.length ) {
+                            s += `${ title }：`;
+                        }
+                        if ( min && !max ) {
+                            s += `${ min }${ unit }以上`
+                        } else if ( max && !min ) {
+                            s += `${ max }${ unit }以下`
+                        } else {
+                            s += `${ min }${ unit }-${ max }${ unit }`
+                        }
+                    }
+                    break;
+                case 'scope' : let { scope } = formObj;
+                    switch ( scope ) {
+                        case 0:
+                            name = '汇总' + this.props.name
+                            break;
+                        case 1:
+                            name = 'PC' + this.props.name
+                            break;
+                        case 2:
+                            name = '无线' + this.props.name
+                            break;
+                    }
+                    break;
+                case 'radio' : let { radio } = formObj
+                    s = this.toString( formObj, obj.items, radio, '' );
+                    break;
+                case 'tag' : s = obj.name
+                    break;
+            }
+        })
+        return `${ name ? name + ': ' : '' }${ s }`
     }
     rowRender = ( obj, ind ) => {
         const { getFieldDecorator } = this.props.form;

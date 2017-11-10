@@ -1,6 +1,6 @@
 import ajax from '@/utils/ajax'
-import { formatReport } from '@/utils/tools'
-import { pick, get as getFromObj, isArray } from 'lodash'
+import { formatReport, notify } from '@/utils/tools'
+import { pick, get as getFromObj, isArray, mapKeys } from 'lodash'
 
 // 关键词列表
 export const REQ_ADGROUPS_PROFILES = 'REQ_ADGROUPS_PROFILES'
@@ -101,6 +101,7 @@ export const reqPostAdgroups = ( ) => {
 }
 
 export const resPostAdgroups = ( data ) => {
+    notify( '设置成功' )
     return {
         type: RES_POST_ADGROUPS,
         adgroup: {
@@ -112,6 +113,12 @@ export const resPostAdgroups = ( data ) => {
     }
 }
 
+// 转换接口字段与显示字段
+const transMap = {
+    qScoreLimitOpenStatus: 'isOpenQScoreLimit',
+    adjustPcPrice: 'isOptimizeChangePrice',
+    adjustMobilePrice: 'isOptimizeChangeMobilePrice'
+}
 export function postAdgroupsStatus( params ) {
     let body = isArray( params ) ? params : [ params ]
     return dispatch => {
@@ -123,8 +130,15 @@ export function postAdgroupsStatus( params ) {
             format: json => {
                 // 先按照只会修改一条处理   返回的结构可能不一致  容错
                 if (getFromObj(json, [ 'data', 'result', params.adgroupId ]) === true || ( !json.data && json.success )) {
+                    let c = {}
+                    mapKeys(transMap, ( val, key ) => {
+                        if ( key in params ) {
+                            c[val] = +params[key]
+                        }
+                    })
                     return {
-                        ...params
+                        ...params,
+                        ...c
                     }
                 } else {
                     return null
@@ -145,11 +159,10 @@ export const reqPostAdgroupsOptimization = ( ) => {
 }
 
 export const resPostAdgroupsOptimization = ( data ) => {
+    notify( '设置成功' )
     return {
         type: RES_POST_ADGROUPS_OPTIMIZATION,
-        adgroup: {
-            ...data
-        },
+        ...data,
         data: {
             isPosting: false
         }
@@ -164,9 +177,8 @@ export function postAdgroupsOptimization( params ) {
             method: 'post',
             body: params,
             format: json => {
-                // 先按照只会修改一条处理   返回的结构可能不一致  容错
                 if ( json.success ) {
-                    return params
+                    return { daemonSettingMap: params.optimizationSettingMap }
                 } else {
                     return null
                 }
@@ -203,9 +215,9 @@ export default function keywordHeadReducer( state = defaultState, action ) {
         case RES_POST_ADGROUPS_OPTIMIZATION:
             return {
                 ...state,
-                adgroup: {
-                    ...state.adgroup,
-                    ...action.adgroup
+                daemonSettingMap: {
+                    ...state.daemonSettingMap,
+                    ...action.daemonSettingMap
                 },
                 ...action.data
             }
