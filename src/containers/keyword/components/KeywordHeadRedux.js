@@ -11,6 +11,9 @@ export const RES_POST_ADGROUPS = "RES_POST_ADGROUPS"
 // 修改宝贝优化状态
 export const REQ_POST_ADGROUPS_OPTIMIZATION = "REQ_POST_ADGROUPS_OPTIMIZATION"
 export const RES_POST_ADGROUPS_OPTIMIZATION = "RES_POST_ADGROUPS_OPTIMIZATION"
+// 黑名单
+export const REQ_BLACKWORD = 'REQ_BLACKWORD'
+export const RES_BLACKWORD = 'RES_BLACKWORD'
 
 export const reqAdgroupsProfiles = ( ) => {
     return {
@@ -188,10 +191,52 @@ export function postAdgroupsOptimization( params ) {
     }
 }
 
+export const reqBlackword = ( ) => {
+    return {
+        type: REQ_BLACKWORD,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resBlackword = ( data ) => {
+    return {
+        type: RES_BLACKWORD,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+// matchPattern = 0 为 不再投放词  （默认不传
+export function fetchBlackword( params ) {
+    return dispatch => {
+        dispatch(reqBlackword( ));
+        return ajax({
+            api: `/sources/blackKeywords`,
+            body: pick(params, [ 'campaignId', 'adgroupId', 'matchPattern' ]),
+            format: json => {
+                const words = json.data.blackKeywords,
+                    isNever = 'matchPattern' in params;
+                if ( words ) {
+                    return {
+                        [isNever ? 'neverlist' : 'blacklist']: words.map( obj => obj.word )
+                    }
+                } else {
+                    return [ ]
+                }
+            },
+            success: data => dispatch(resBlackword( data ))
+        })
+    }
+}
+
 const defaultState = {
     adgroup: {},
     daemonSettingMap: {},
-    report: {}
+    report: {},
+    blacklist: [],
+    neverlist: [ ]
 }
 export default function keywordHeadReducer( state = defaultState, action ) {
     switch ( action.type ) {
@@ -219,6 +264,12 @@ export default function keywordHeadReducer( state = defaultState, action ) {
                     ...state.daemonSettingMap,
                     ...action.daemonSettingMap
                 },
+                ...action.data
+            }
+        case REQ_BLACKWORD:
+        case RES_BLACKWORD:
+            return {
+                ...state,
                 ...action.data
             }
         default:

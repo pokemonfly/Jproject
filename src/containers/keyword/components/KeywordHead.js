@@ -18,7 +18,9 @@ import './KeywordHeadStyle.less'
 import KeywordInfo from './KeywordInfo'
 import EditWordLimit from './EditWordLimit'
 import EditQScoreLimit from './EditQScoreLimit'
-import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization } from './KeywordHeadRedux'
+import EditBlacklist from './EditBlacklist'
+import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization, fetchBlackword } from './KeywordHeadRedux'
+// import Dialog from '@/containers/shared/Dialog1';
 
 @connect(state => ({
     query: state.location.query,
@@ -30,7 +32,8 @@ import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization } f
 }), dispatch => (bindActionCreators( {
     fetchAdgroupsProfiles,
     postAdgroupsStatus,
-    postAdgroupsOptimization
+    postAdgroupsOptimization,
+    fetchBlackword
 }, dispatch )))
 export default class KeywordHead extends React.Component {
     state = {
@@ -62,6 +65,9 @@ export default class KeywordHead extends React.Component {
                 });
                 break;
             case 'black':
+                // EditBlacklist({ ref: this.refs.dialog });
+                this.refs.blacklist.show( );
+                break;
             case 'sale':
                 notify( 'orz', '未实装' );
                 break;
@@ -83,6 +89,7 @@ export default class KeywordHead extends React.Component {
                     </Menu.Item>
                     <Menu.Item key='black'>
                         黑名单列表
+                        <EditBlacklist ref="blacklist"/>
                     </Menu.Item>
                     <Menu.Item key='sale'>
                         卖点词列表

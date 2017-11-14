@@ -12,10 +12,10 @@ import {
     Switch
 } from 'antd'
 import { pick } from 'lodash'
-import Dialog from '@/containers/shared/Dialog';
+import { SimpleDialog } from '@/containers/shared/Dialog';
 import './EditWordLimit.less'
 
-@Dialog({ title: '出词数量控制', width: 370, hasForm: true, sid: "EditWordLimit" })
+@SimpleDialog({ title: '出词数量控制', width: 370, hasForm: true, sid: "EditWordLimit" })
 @Form.create({ withRef: true })
 export default class EditWordLimit extends React.Component {
     state = {

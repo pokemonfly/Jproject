@@ -10,11 +10,11 @@ import {
     Switch,
     Button
 } from 'antd'
-import Dialog from '@/containers/shared/Dialog';
+import { SimpleDialog } from '@/containers/shared/Dialog';
 import { pick } from 'lodash'
 import './EditQScoreLimit.less'
 
-@Dialog({ title: '质量分下限', width: 320, hasForm: true, sid: "EditQScoreLimit" })
+@SimpleDialog({ title: '质量分下限', width: 320, hasForm: true, sid: "EditQScoreLimit" })
 @Form.create({ withRef: true })
 export default class EditQScoreLimit extends React.Component {
     state = {

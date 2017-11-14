@@ -11,7 +11,7 @@ import {
 let _cache = {}
 
 // 组件弹窗化 并显示
-export default function Dialog({
+export function SimpleDialog({
     wrapClassName = '',
     maskClosable = true,
     width = 320,
@@ -75,6 +75,61 @@ export default function Dialog({
                 }
             }
             ReactDOM.render( ( <HOC/> ), div );
+        }
+    }
+}
+
+export function Dialog({
+    wrapClassName = '',
+    maskClosable = true,
+    width = 320,
+    zIndex = 1000,
+    title = '弹窗',
+    hasForm = false,
+    sid = null,
+    single = true
+}) {
+    return ( WrappedComponent ) => {
+        return class HOC extends React.Component {
+            state = {
+                visible: false
+            }
+            componentDidMount( ) {
+                // https://github.com/ant-design/ant-design/pull/2992  很绝望 this.wc = hasForm ? this.refs.wc.refs.wrappedComponent.refs.formWrappedComponent
+                // : this.refs.wc
+            }
+            close = ( ) => {
+                this.refs.wc.closeCallback && this.refs.wc.closeCallback( );
+                this.hide( )
+            }
+            ok = ( ) => {
+                let r = true;
+                this.refs.wc.okCallback && (r = this.refs.wc.okCallback( this.hide ));
+                if ( r ) {
+                    this.hide( )
+                }
+            }
+            show = ( ) => {
+                this.setState({ visible: true })
+            }
+            hide = ( ) => {
+                this.setState({ visible: false })
+            }
+            render( ) {
+                return (
+                    <Modal
+                        onCancel={this.close}
+                        onOk={this.ok}
+                        visible={this.state.visible}
+                        wrapClassName={wrapClassName}
+                        title={title}
+                        maskClosable={maskClosable}
+                        width={width}
+                        zIndex={zIndex}>
+                        <WrappedComponent {...this.props} ref="wc"/>
+                    </Modal>
+                )
+            }
         }
     }
 }
