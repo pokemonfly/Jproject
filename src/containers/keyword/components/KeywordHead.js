@@ -19,6 +19,7 @@ import KeywordInfo from './KeywordInfo'
 import EditWordLimit from './EditWordLimit'
 import EditQScoreLimit from './EditQScoreLimit'
 import EditBlacklist from './EditBlacklist'
+import EditSellwords from './EditSellwords'
 import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization, fetchBlackword } from './KeywordHeadRedux'
 // import Dialog from '@/containers/shared/Dialog1';
 
@@ -65,11 +66,10 @@ export default class KeywordHead extends React.Component {
                 });
                 break;
             case 'black':
-                // EditBlacklist({ ref: this.refs.dialog });
                 this.refs.blacklist.show( );
                 break;
             case 'sale':
-                notify( 'orz', '未实装' );
+                this.refs.salewords.show( );
                 break;
         }
         this.handleVisibleChange( false );
@@ -93,6 +93,7 @@ export default class KeywordHead extends React.Component {
                     </Menu.Item>
                     <Menu.Item key='sale'>
                         卖点词列表
+                        <EditSellwords ref="salewords"/>
                     </Menu.Item>
                 </Menu>
             </div>

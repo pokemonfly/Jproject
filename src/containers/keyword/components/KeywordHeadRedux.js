@@ -11,9 +11,21 @@ export const RES_POST_ADGROUPS = "RES_POST_ADGROUPS"
 // 修改宝贝优化状态
 export const REQ_POST_ADGROUPS_OPTIMIZATION = "REQ_POST_ADGROUPS_OPTIMIZATION"
 export const RES_POST_ADGROUPS_OPTIMIZATION = "RES_POST_ADGROUPS_OPTIMIZATION"
-// 黑名单
+// 黑名单 & 不再投放词
 export const REQ_BLACKWORD = 'REQ_BLACKWORD'
 export const RES_BLACKWORD = 'RES_BLACKWORD'
+// 修改黑名单
+export const REQ_POST_BLACKWORD = 'REQ_POST_BLACKWORD'
+export const RES_POST_BLACKWORD = 'RES_POST_BLACKWORD'
+// 清空 不再投放词
+export const REQ_DEL_NEVERWORD = 'REQ_DEL_NEVERWORD'
+export const RES_DEL_NEVERWORD = 'RES_DEL_NEVERWORD'
+// 卖点词
+export const REQ_SELLWORDS = 'REQ_SELLWORDS'
+export const RES_SELLWORDS = 'RES_SELLWORDS'
+// 修改卖点词
+export const REQ_PUT_SELLWORDS = 'REQ_PUT_SELLWORDS'
+export const RES_PUT_SELLWORDS = 'RES_PUT_SELLWORDS'
 
 export const reqAdgroupsProfiles = ( ) => {
     return {
@@ -32,7 +44,6 @@ export const resAdgroupsProfiles = ( data ) => {
         }
     }
 }
-
 export function fetchAdgroupsProfiles( params ) {
     return dispatch => {
         dispatch(reqAdgroupsProfiles( ))
@@ -102,7 +113,6 @@ export const reqPostAdgroups = ( ) => {
         }
     }
 }
-
 export const resPostAdgroups = ( data ) => {
     notify( '设置成功' )
     return {
@@ -115,7 +125,6 @@ export const resPostAdgroups = ( data ) => {
         }
     }
 }
-
 // 转换接口字段与显示字段
 const transMap = {
     qScoreLimitOpenStatus: 'isOpenQScoreLimit',
@@ -160,7 +169,6 @@ export const reqPostAdgroupsOptimization = ( ) => {
         }
     }
 }
-
 export const resPostAdgroupsOptimization = ( data ) => {
     notify( '设置成功' )
     return {
@@ -171,7 +179,6 @@ export const resPostAdgroupsOptimization = ( data ) => {
         }
     }
 }
-
 export function postAdgroupsOptimization( params ) {
     return dispatch => {
         dispatch(reqPostAdgroupsOptimization( ));
@@ -231,12 +238,174 @@ export function fetchBlackword( params ) {
     }
 }
 
+export const reqPostBlackword = ( ) => {
+    return {
+        type: REQ_POST_BLACKWORD,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPostBlackword = ( data ) => {
+    return {
+        type: RES_POST_BLACKWORD,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+export function postBlackword( params, cb ) {
+    return dispatch => {
+        dispatch(reqPostBlackword( ));
+        return ajax({
+            api: `/sources/blackKeywords`,
+            method: 'post',
+            body: params,
+            format: json => {
+                if ( json.success ) {
+                    return { blacklist: params.word }
+                } else {
+                    return null
+                }
+            },
+            success: data => {
+                dispatch(resPostBlackword( data ))
+                cb && cb( )
+            }
+        })
+    }
+}
+
+export const reqDelNeverword = ( ) => {
+    return {
+        type: REQ_DEL_NEVERWORD,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resDelNeverword = ( data ) => {
+    return {
+        type: RES_DEL_NEVERWORD,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+export function delNeverword( params, cb ) {
+    return dispatch => {
+        dispatch(reqDelNeverword( ));
+        return ajax({
+            api: `/sources/blackKeywords/neverPutKeywords`,
+            method: 'delete',
+            body: params,
+            format: json => {
+                if ( json.success ) {
+                    return {neverlist: [ ]}
+                } else {
+                    return { }
+                }
+            },
+            success: data => {
+                dispatch(resDelNeverword( data ))
+                cb && cb( )
+            }
+        })
+    }
+}
+
+export const reqSellwords = ( ) => {
+    return {
+        type: REQ_SELLWORDS,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resSellwords = ( data ) => {
+    return {
+        type: RES_SELLWORDS,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+export function fetchSellwords( params ) {
+    return dispatch => {
+        dispatch(reqSellwords( ));
+        return ajax({
+            api: `/sources/extensionKeywords`,
+            body: pick(params, [ 'campaignId', 'adgroupId' ]),
+            format: json => {
+                const obj = json.data.extensionKeywords
+                if ( obj ) {
+                    return {
+                        sellwordsList: obj.map( o => o.word ),
+                        onlyGenerate: json.data.isOptimizeExtensionword
+                    }
+                } else {
+                    return { }
+                }
+            },
+            success: data => dispatch(resSellwords( data ))
+        })
+    }
+}
+
+export const reqPutSellwords = ( ) => {
+    return {
+        type: REQ_PUT_SELLWORDS,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPutSellwords = ( data ) => {
+    notify( '设置成功' )
+    return {
+        type: RES_PUT_SELLWORDS,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+export function putSellwords( params ) {
+    //  scope /单个（广告组级别）：传2 / 批量（计划级别）：传1
+    return dispatch => {
+        dispatch(reqPutSellwords( ));
+        return ajax({
+            api: `/sources/extensionKeywords/new`,
+            method: 'put',
+            body: pick(params, [
+                'campaignId',
+                'adgroupId',
+                'word',
+                'isOverWrite',
+                'onlyGenerateExtend',
+                'scope'
+            ]),
+            format: json => {
+                if ( json.success ) {
+                    return { sellwordsList: params.word, onlyGenerate: params.onlyGenerateExtend }
+                } else {
+                    return { }
+                }
+            },
+            success: data => dispatch(resPutSellwords( data ))
+        })
+    }
+}
 const defaultState = {
     adgroup: {},
     daemonSettingMap: {},
     report: {},
     blacklist: [],
-    neverlist: [ ]
+    neverlist: [],
+    sellwordsList: [ ]
 }
 export default function keywordHeadReducer( state = defaultState, action ) {
     switch ( action.type ) {
@@ -268,6 +437,14 @@ export default function keywordHeadReducer( state = defaultState, action ) {
             }
         case REQ_BLACKWORD:
         case RES_BLACKWORD:
+        case REQ_POST_BLACKWORD:
+        case RES_POST_BLACKWORD:
+        case REQ_DEL_NEVERWORD:
+        case RES_DEL_NEVERWORD:
+        case REQ_SELLWORDS:
+        case RES_SELLWORDS:
+        case REQ_PUT_SELLWORDS:
+        case RES_PUT_SELLWORDS:
             return {
                 ...state,
                 ...action.data

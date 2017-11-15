@@ -86,6 +86,7 @@ export function Dialog({
     zIndex = 1000,
     title = '弹窗',
     hasForm = false,
+    hasConnect = true,
     sid = null,
     single = true
 }) {
@@ -94,17 +95,15 @@ export function Dialog({
             state = {
                 visible: false
             }
-            componentDidMount( ) {
-                // https://github.com/ant-design/ant-design/pull/2992  很绝望 this.wc = hasForm ? this.refs.wc.refs.wrappedComponent.refs.formWrappedComponent
-                // : this.refs.wc
-            }
             close = ( ) => {
-                this.refs.wc.closeCallback && this.refs.wc.closeCallback( );
+                let rf = this.refs.wc.getWrappedInstance( );
+                rf.closeCallback && rf.closeCallback( );
                 this.hide( )
             }
             ok = ( ) => {
                 let r = true;
-                this.refs.wc.okCallback && (r = this.refs.wc.okCallback( this.hide ));
+                let rf = this.refs.wc.getWrappedInstance( );
+                rf.okCallback && (r = rf.okCallback( this.hide ));
                 if ( r ) {
                     this.hide( )
                 }

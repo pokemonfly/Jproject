@@ -98,3 +98,13 @@ export function notify( ...args ) {
     } = obj
     notification[type]({ message, description, duration: 3 });
 }
+// 计数器
+export function counter( num, finishCb ) {
+    let limit = num;
+    return function ( ) {
+        limit--;
+        if ( limit == 0 ) {
+            finishCb && finishCb( );
+        }
+    }
+}
