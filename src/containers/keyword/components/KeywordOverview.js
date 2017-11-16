@@ -7,6 +7,7 @@ import Icon from '@/containers/shared/Icon';
 import TweenBar from '@/containers/shared/TweenBar';
 import DataRangePicker from '@/containers/shared/DataRangePicker';
 import { keywordReports } from '@/utils/constants'
+import Chart from '@/containers/shared/Chart';
 import moment from 'moment';
 import { hashHistory } from 'react-router';
 import './KeywordOverviewStyle.less'
@@ -49,6 +50,46 @@ export default class KeywordOverview extends React.Component {
             this.setDate({ fromDate: today, toDate: today })
         }
     }
+    switchChartShow = ( ) => {
+        const { chartSw } = this.state
+        this.setState({
+            chartSw: !chartSw
+        })
+    }
+    getChartData = ( ) => {
+        return {
+            type: 'dayReport',
+            defaultLegends: ['总收藏率'],
+            mandateDate: 1510273658000,
+            fromDate: "2017-11-09",
+            toDate: "2017-11-15",
+            series: [
+                {
+                    name: '总收藏率',
+                    data: [
+                        1,
+                        21,
+                        3,
+                        41,
+                        15,
+                        6,
+                        17
+                    ]
+                }, {
+                    name: '藏率',
+                    data: [
+                        1e5,
+                        2e5,
+                        3e5,
+                        4e5,
+                        ,
+                        6e5,
+                        7e5
+                    ]
+                }
+            ]
+        }
+    }
     getContent( ) {
         const { chartSw } = this.state
         let { fromDate, toDate } = this.props.query
@@ -61,12 +102,11 @@ export default class KeywordOverview extends React.Component {
             return (
                 <Layout className="keyword-overview-content">
                     <TweenBar dataSource={dataSource} config={keywordReports}></TweenBar>
-                    {!chartSw && (
-                        <div className="chart-sw">
-                            <span>展开历史趋势图</span>
-                            <Icon type="xiangxia"/>
-                        </div>
-                    )}
+                    {chartSw && ( <Chart option={this.getChartData( )}/> )}
+                    <div className="chart-sw">
+                        <span onClick={this.switchChartShow}>{chartSw ? '收起' : '展开'}历史趋势图
+                            <Icon type={chartSw ? "xiangshang" : "xiangxia"}/></span>
+                    </div>
                 </Layout>
             )
         }

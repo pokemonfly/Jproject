@@ -5,7 +5,7 @@ import Icon from '@/containers/shared/Icon';
 import { Dialog } from '@/containers/shared/Dialog';
 import TextEditor from '@/containers/shared/TextEditor'
 import TagBox from '@/containers/shared/TagBox'
-import { counter, notify } from '@/utils/Tools'
+import { counter, notify } from '@/utils/tools'
 import { fetchBlackword, postBlackword, delNeverword } from './KeywordHeadRedux'
 import './EditBlacklist.less'
 import { connect } from 'react-redux'

@@ -1,11 +1,9 @@
 1全能引擎 未支持
-2 rc-trigger-popup   宽度未设置
-3EditOptimization  初始值  onSwitchChange
 4 修改移动折扣  无线策略 ?
 5 过滤  空的时候 清空
 6 trigger 位置修正
 7 isYesterdayDate
-8 全网均价处理 出价 
+8 全网均价处理 出价
 
 
 
