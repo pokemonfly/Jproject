@@ -60,7 +60,7 @@ export default class KeywordOverview extends React.Component {
         return {
             type: 'dayReport',
             defaultLegends: ['总收藏率'],
-            mandateDate: 1510273658000,
+            mandateDate: 1510461000000,
             fromDate: "2017-11-09",
             toDate: "2017-11-15",
             series: [
@@ -77,6 +77,42 @@ export default class KeywordOverview extends React.Component {
                     ]
                 }, {
                     name: '藏率',
+                    data: [
+                        1e5,
+                        2e5,
+                        3e5,
+                        4e5,
+                        ,
+                        6e5,
+                        7e5
+                    ]
+                }, {
+                    name: '藏率1',
+                    unit: '%',
+                    data: [
+                        1e5,
+                        2e5,
+                        3e5,
+                        4e5,
+                        ,
+                        6e5,
+                        7e5
+                    ]
+                }, {
+                    name: '藏率3',
+                    unit: '%',
+                    data: [
+                        1e5,
+                        2e5,
+                        3e5,
+                        4e5,
+                        ,
+                        6e5,
+                        7e5
+                    ]
+                }, {
+                    name: '藏率5',
+                    unit: '%',
                     data: [
                         1e5,
                         2e5,

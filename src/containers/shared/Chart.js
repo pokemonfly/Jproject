@@ -1,11 +1,12 @@
 // import项参考 https://github.com/ecomfe/echarts/blob/master/index.js
 import React from 'react'
-import { max } from 'lodash'
+import { max, includes } from 'lodash'
 import echarts from 'echarts/lib/echarts'
 import 'echarts/lib/chart/line'
 import 'echarts/lib/component/tooltip'
 import 'echarts/lib/component/grid'
 import 'echarts/lib/component/legendScroll'
+import 'echarts/lib/component/markLine'
 import moment from 'moment';
 
 const baseOption = {
@@ -124,6 +125,7 @@ const opt = {
 }
 
 export default class Chart extends React.Component {
+    state = {}
     componentDidMount( ) {
         this.draw( )
         window.addEventListener( "resize", this.onResize, false );
@@ -137,6 +139,19 @@ export default class Chart extends React.Component {
     draw = ( ) => {
         const option = this.getOption( );
         this.echart = echarts.init( this.chart )
+        this.state.option = option
+        this.echart.setOption( option );
+        this.bindEvent( );
+    }
+    bindEvent( ) {
+        this.echart.on('legendselectchanged', ( e ) => {
+            debugger
+        })
+    }
+    // 修正y轴位置
+    fixYAxis( config, ) {
+        let config = this.state.option;
+
         this.echart.setOption( option );
     }
     componentWillUnmount( ) {
@@ -152,26 +167,73 @@ export default class Chart extends React.Component {
     }
     // 按天显示的报表数据
     getDayReport( opt ) {
-        const { fromDate, toDate } = opt;
+        const { fromDate, toDate, mandateDate } = opt;
         let timeArr = [],
             yAxis = [ ];
+        // 给series data标记时间 用
         for ( let fromTime = moment( fromDate ), toTime = moment( toDate ); fromTime.isSameOrBefore( toTime ); ) {
             timeArr.push(+ fromTime.format( 'x' ));
             fromTime.add( 1, 'd' )
         }
         opt.series.forEach(( s, ind ) => {
-            yAxis.push({
-                // min: 0, max: max( s.data ), interval: 7,
-                position: ind % 2 == 0 ? 'left' : 'right',
+            let obj = {
+                splitNumber: 7,
                 axisLabel: {
                     formatter: s.unit ? '{value}' + s.unit : '{value}'
                 }
-            })
+            }
+            yAxis.push( obj )
         })
+        let series = opt.series.map(( i, ind ) => ({
+            type: 'line',
+            smooth: true,
+            yAxisIndex: ind,
+            label: {
+                normal: {
+                    formatter: '{c} %'
+                }
+            },
+            name: i.name,
+            data: i.data.map(( val, ind ) => [ timeArr[ind], val ])
+        }));
+        let selectedLegend = {}
+
+        // 竖虚线
+        if ( mandateDate ) {
+            series.push({
+                type: 'line',
+                markLine: {
+                    symbol: 'circle',
+                    label: {
+                        normal: {
+                            position: 'middle',
+                            formatter: '{b}'
+                        }
+                    },
+                    data: [
+                        [
+                            {
+                                name: '加入自动优化',
+                                xAxis: mandateDate,
+                                y: '20px'
+                            }, {
+                                xAxis: mandateDate,
+                                yAxis: 0
+                            }
+                        ]
+                    ]
+                }
+            })
+        }
+
         let r = {
             ...baseOption,
             legend: {
-                data: opt.series.map( i => i.name ),
+                data: opt.series.map(i => {
+                    selectedLegend[i.name] = opt.defaultLegends ? includes( opt.defaultLegends, i.name ) : true;
+                    return i.name
+                }),
+                selected: selectedLegend,
                 bottom: '10px'
             },
             xAxis: {
@@ -187,19 +249,9 @@ export default class Chart extends React.Component {
                 }
             },
             yAxis,
-            series: opt.series.map(( i, ind ) => ({
-                type: 'line',
-                smooth: true,
-                yAxisIndex: ind,
-                label: {
-                    normal: {
-                        formatter: '{c} %'
-                    }
-                },
-                name: i.name,
-                data: i.data.map(( val, ind ) => [ timeArr[ind], val ])
-            }))
+            series
         }
+        r = this.fixYAxis( r, selectedLegend )
         console.log( r )
         return r;
     }
