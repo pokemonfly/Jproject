@@ -36,8 +36,7 @@ const { Column, ColumnGroup } = Table;
     query: state.location.query,
     user: state.user,
     campaign: state.campaign,
-    head: state.keyword.keywordHead,
-    adgroup: state.keyword.keywordHead.adgroup,
+    adgroup: state.keyword.adgroup.adgroup,
     keyword: state.keyword.keywordList,
     view: state.keyword.keywordView
 }), dispatch => (bindActionCreators( {

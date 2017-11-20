@@ -6,7 +6,7 @@ import { Dialog } from '@/containers/shared/Dialog';
 import TextEditor from '@/containers/shared/TextEditor'
 import TagBox from '@/containers/shared/TagBox'
 import { counter, notify } from '@/utils/tools'
-import { fetchBlackword, postBlackword, delNeverword } from './KeywordHeadRedux'
+import { fetchBlackword, postBlackword, delNeverword } from './AdgroupRedux'
 import './EditBlacklist.less'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
@@ -14,7 +14,7 @@ const Confirm = Modal.confirm;
 const TabPane = Tabs.TabPane;
 
 @Dialog({ title: '黑名单列表', width: 800, hasForm: false, hasConnect: true })
-@connect(state => ({ query: state.location.query, blacklist: state.keyword.keywordHead.blacklist, neverlist: state.keyword.keywordHead.neverlist }), dispatch => (bindActionCreators( {
+@connect(state => ({ query: state.location.query, blacklist: state.keyword.adgroup.blacklist, neverlist: state.keyword.adgroup.neverlist }), dispatch => (bindActionCreators( {
     fetchBlackword,
     postBlackword,
     delNeverword

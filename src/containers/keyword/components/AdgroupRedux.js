@@ -26,6 +26,9 @@ export const RES_SELLWORDS = 'RES_SELLWORDS'
 // 修改卖点词
 export const REQ_PUT_SELLWORDS = 'REQ_PUT_SELLWORDS'
 export const RES_PUT_SELLWORDS = 'RES_PUT_SELLWORDS'
+// 获得当天数据汇总
+export const REQ_ADGROUPS_REALTIME = 'REQ_ADGROUPS_REALTIME'
+export const RES_ADGROUPS_REALTIME = 'RES_ADGROUPS_REALTIME'
 
 export const reqAdgroupsProfiles = ( ) => {
     return {
@@ -49,7 +52,7 @@ export function fetchAdgroupsProfiles( params ) {
         dispatch(reqAdgroupsProfiles( ))
         const time = params.fromDate + '-' + params.toDate;
         return ajax({
-            api: `/sources/adgroups/${ params.adgroupId }/profiles`,
+            api: `/sources/ddgroups/${ params.adgroupId }/profiles`,
             body: pick(params, [ 'campaignId', 'adgroupId', 'fromDate', 'toDate' ]),
             format: json => {
                 const { adgroupProfiles, platform } = json.data;
@@ -399,18 +402,57 @@ export function putSellwords( params ) {
         })
     }
 }
+
+export const reqAdgroupsRealTime = ( ) => {
+    return {
+        type: REQ_ADGROUPS_REALTIME,
+        data: {
+            isFetching: 'realtime'
+        }
+    }
+}
+export const resAdgroupsRealTime = ( data ) => {
+    return {
+        type: RES_ADGROUPS_REALTIME,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+export function fetchAdgroupsRealTime( params ) {
+    return dispatch => {
+        dispatch(reqAdgroupsRealTime( ))
+        return ajax({
+            api: `/sources/reports/ddgroup/realTime/api/single`,
+            body: pick(params, [ 'adgroupId', 'campaignId' ]),
+            format: json => {
+                const key = params.fromDate + '-' + params.toDate
+                if ( json.success ) {
+                    return { realTime: json.data.reports }
+                } else {
+                    return { };
+                }
+            },
+            success: data => dispatch(resAdgroupsRealTime( data ))
+        })
+    }
+}
 const defaultState = {
     adgroup: {},
     daemonSettingMap: {},
     report: {},
     blacklist: [],
     neverlist: [],
-    sellwordsList: [ ]
+    sellwordsList: [],
+    realTime: {}
 }
 export default function keywordHeadReducer( state = defaultState, action ) {
     switch ( action.type ) {
         case REQ_ADGROUPS_PROFILES:
         case RES_ADGROUPS_PROFILES:
+        case REQ_ADGROUPS_REALTIME:
+        case RES_ADGROUPS_REALTIME:
             return {
                 ...state,
                 ...action.data

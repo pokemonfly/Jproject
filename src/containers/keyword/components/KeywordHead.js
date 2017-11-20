@@ -20,7 +20,7 @@ import EditWordLimit from './EditWordLimit'
 import EditQScoreLimit from './EditQScoreLimit'
 import EditBlacklist from './EditBlacklist'
 import EditSellwords from './EditSellwords'
-import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization, fetchBlackword } from './KeywordHeadRedux'
+import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization, fetchBlackword } from './AdgroupRedux'
 // import Dialog from '@/containers/shared/Dialog1';
 
 @connect(state => ({
@@ -28,7 +28,7 @@ import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization, fe
     user: state.user,
     campaign: state.layout.campaignMap,
     keyword: state.keyword.keywordList,
-    head: state.keyword.keywordHead,
+    adgroup: state.keyword.adgroup,
     view: state.keyword.keywordView
 }), dispatch => (bindActionCreators( {
     fetchAdgroupsProfiles,
@@ -53,15 +53,15 @@ export default class KeywordHead extends React.Component {
         switch ( e.key ) {
             case 'wordLimit':
                 EditWordLimit({
-                    wordLimit: this.props.head.daemonSettingMap.add_upper_limit,
-                    'adgroupIds': [this.props.head.adgroup.adgroupId],
-                    'campaignId': this.props.head.adgroup.campaignId,
+                    wordLimit: this.props.adgroup.daemonSettingMap.add_upper_limit,
+                    'adgroupIds': [this.props.adgroup.adgroup.adgroupId],
+                    'campaignId': this.props.adgroup.adgroup.campaignId,
                     api: this.props.postAdgroupsOptimization
                 });
                 break;
             case 'qScoreLimit':
                 EditQScoreLimit({
-                    ...pick(this.props.head.adgroup, [ 'adgroupId', 'campaignId', 'pcQScoreFloor', 'mobileQScoreFloor', 'isOpenQScoreLimit' ]),
+                    ...pick(this.props.adgroup.adgroup, [ 'adgroupId', 'campaignId', 'pcQScoreFloor', 'mobileQScoreFloor', 'isOpenQScoreLimit' ]),
                     api: this.props.postAdgroupsStatus
                 });
                 break;
@@ -102,7 +102,7 @@ export default class KeywordHead extends React.Component {
     render( ) {
         const { moreDropdownVisible } = this.state
         let infoObj = {
-            ...pick(this.props.head.adgroup, [
+            ...pick(this.props.adgroup.adgroup, [
                 'adgroupId',
                 'campaignId',
                 'numIid',
@@ -122,8 +122,8 @@ export default class KeywordHead extends React.Component {
                 'isOptimizeChangePrice',
                 'isOptimizeChangeMobilePrice'
             ]),
-            campaignMobileDiscount: get( this.props.head.platform, 'mobileDiscount' ),
-            isMobileDiscount: get( this.props.head.platform, 'mobileStatus' )
+            campaignMobileDiscount: get( this.props.adgroup.platform, 'mobileDiscount' ),
+            isMobileDiscount: get( this.props.adgroup.platform, 'mobileStatus' )
         }
 
         console.log( 'keywordInfo:', infoObj )

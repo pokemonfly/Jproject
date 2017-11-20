@@ -37,6 +37,7 @@ export const resKeywordList = ( data ) => {
         }
     }
 }
+// TODO ?
 export const keywordTableChange = ( pagination, filters, sorter ) => ({
     type: KEYWORD_TABLE_CHANGE,
     data: {

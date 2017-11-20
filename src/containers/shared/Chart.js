@@ -14,9 +14,9 @@ const baseOption = {
         trigger: 'axis'
     },
     grid: {
-        left: '20px',
+        left: 20,
         top: '20px',
-        right: '20px',
+        right: 20,
         bottom: '40px',
         containLabel: true
     },
@@ -48,16 +48,6 @@ const realTimeBaseOption = {
     colors: [ "#94b854", "#24b0de" ]
 }
 const opt = {
-    title: {
-        text: '一天用电量分布',
-        subtext: '纯属虚构'
-    },
-    tooltip: {
-        trigger: 'axis'
-    },
-    xAxis: {
-        boundaryGap: false
-    },
     yAxis: {
         min: 0
     },
@@ -141,18 +131,55 @@ export default class Chart extends React.Component {
         this.echart = echarts.init( this.chart )
         this.state.option = option
         this.echart.setOption( option );
+        if ( this.props.option.isLoading ) {
+            this.showLoading( )
+        } else {
+            this.hideLoading( )
+        }
         this.bindEvent( );
+    }
+    showLoading( ) {
+        this.echart.showLoading( )
+    }
+    hideLoading( ) {
+        this.echart.hideLoading( )
     }
     bindEvent( ) {
         this.echart.on('legendselectchanged', ( e ) => {
-            debugger
+            let option = this.fixYAxis( this.state.option, e.selected )
+            console.log( option )
+            this.echart.setOption( option );
         })
     }
     // 修正y轴位置
-    fixYAxis( config, ) {
-        let config = this.state.option;
-
-        this.echart.setOption( option );
+    fixYAxis(config, selLegend = {}) {
+        let idx = [],
+            isLeft = true,
+            offset = 0;
+        config.legend.selected = selLegend;
+        config.series.forEach(( o, i ) => {
+            if (selLegend[o.name]) {
+                idx.push( i )
+            }
+        })
+        config.yAxis.forEach(( o, i ) => {
+            if ( idx.indexOf( i ) > -1 ) {
+                o.show = true;
+                o.position = isLeft ? 'left' : 'right';
+                o.offset = 20 * ~~ ( offset / 2 );
+                o.axisLine = {
+                    show: offset < 2
+                }
+                o.axisTick = {
+                    show: offset < 2
+                }
+                isLeft = !isLeft;
+                offset++;
+            } else {
+                o.offset = 0
+            }
+        })
+        return config;
     }
     componentWillUnmount( ) {
         echarts.dispose( this.chart )
@@ -163,6 +190,8 @@ export default class Chart extends React.Component {
         switch ( option.type ) {
             case 'dayReport':
                 return this.getDayReport( option );
+            case 'realTimeReport':
+                return this.getRealTimeReport( option );
         }
     }
     // 按天显示的报表数据
@@ -177,6 +206,7 @@ export default class Chart extends React.Component {
         }
         opt.series.forEach(( s, ind ) => {
             let obj = {
+                show: false,
                 splitNumber: 7,
                 axisLabel: {
                     formatter: s.unit ? '{value}' + s.unit : '{value}'
@@ -239,7 +269,7 @@ export default class Chart extends React.Component {
             xAxis: {
                 type: 'time',
                 minInterval: 1,
-                maxInterval: 8.64e7, // 按天分段
+                maxInterval: 8.64e7, // 按天分段 ms
                 boundaryGap: false,
                 splitLine: {
                     show: false
@@ -255,6 +285,8 @@ export default class Chart extends React.Component {
         console.log( r )
         return r;
     }
+    // 实时报表
+    getRealTimeReport( opt ) {}
     render( ) {
         const {
             width = "100%",

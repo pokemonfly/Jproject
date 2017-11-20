@@ -43,6 +43,16 @@ export function formatNum(val, {
     return {text: num, real: num, num: parseFloat( num )}
 }
 
+/**
+ * 通用报表格式化
+ * directPpr(Plus purchase rate) 直接加购率=直接购物车数/点击量
+ * indirectPpr(Plus purchase rate) 间接加购率=间接购物车数/点击量
+ * pprTotal(Plus purchase rate) 总加购率=总购物车数/点击量
+ * favItemRate 宝贝收藏率=收藏宝贝数/点击量
+ * favShopRate 店铺收藏率=收藏店铺数/点击量
+ * favRate 总收藏率=总收藏数/点击量
+ * directPprFavRate 直接加购收藏率（兴趣度）=（收藏宝贝数+直接购物车数）/点击量
+ */
 export function formatReport( report ) {
     for ( let key in report ) {
         if (report.hasOwnProperty( key )) {
@@ -63,6 +73,26 @@ export function formatReport( report ) {
             }
         }
     }
+}
+
+/*
+格式化 按日分段的报表数据  到 chart显示用数据
+report : [{},{}]
+keyMap :  常量map constants中
+showKey (可选): 只需要指定的字段
+*/
+export function formatDayReport( report, keyMap, showKey ) {
+    showKey = showKey || Object.keys( keyMap );
+    return showKey.map(key => {
+        if (!keyMap[key]) {
+            throw( '[formatDayReport] key不存在：', key );
+        }
+        return {
+            name: keyMap[key].name,
+            unit: keyMap[key].unit,
+            data: report.map(obj => obj[key])
+        }
+    })
 }
 
 /** 右上角 的贴条提示
@@ -98,6 +128,7 @@ export function notify( ...args ) {
     } = obj
     notification[type]({ message, description, duration: 3 });
 }
+
 // 计数器
 export function counter( num, finishCb ) {
     let limit = num;

@@ -8,10 +8,10 @@ import { Dialog } from '@/containers/shared/Dialog';
 import TextEditor from '@/containers/shared/TextEditor'
 import TagBox from '@/containers/shared/TagBox'
 import './EditSellwords.less'
-import { fetchSellwords, putSellwords } from './KeywordHeadRedux'
+import { fetchSellwords, putSellwords } from './AdgroupRedux'
 
 @Dialog({ title: '卖点词列表', width: 800, hasForm: false, hasConnect: true })
-@connect(state => ({ query: state.location.query, sellwordsList: state.keyword.keywordHead.sellwordsList, onlyGenerate: state.keyword.keywordHead.onlyGenerate }), dispatch => (bindActionCreators( {
+@connect(state => ({ query: state.location.query, sellwordsList: state.keyword.adgroup.sellwordsList, onlyGenerate: state.keyword.keywordHead.onlyGenerate }), dispatch => (bindActionCreators( {
     fetchSellwords,
     putSellwords
 }, dispatch )), null, { withRef: true })
