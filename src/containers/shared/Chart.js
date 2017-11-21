@@ -1,6 +1,6 @@
 // import项参考 https://github.com/ecomfe/echarts/blob/master/index.js
 import React from 'react'
-import { max, includes } from 'lodash'
+import { max, includes, isEmpty, forIn } from 'lodash'
 import echarts from 'echarts/lib/echarts'
 import 'echarts/lib/chart/line'
 import 'echarts/lib/component/tooltip'
@@ -8,6 +8,7 @@ import 'echarts/lib/component/grid'
 import 'echarts/lib/component/legendScroll'
 import 'echarts/lib/component/markLine'
 import moment from 'moment';
+import { encodeHTML } from '@/utils/tools'
 
 const baseOption = {
     tooltip: {
@@ -44,9 +45,8 @@ const baseOption = {
         "#b6ef65"
     ]
 }
-const realTimeBaseOption = {
-    colors: [ "#94b854", "#24b0de" ]
-}
+const realTimeColors = [ "#94b854", "#24b0de" ];
+
 const opt = {
     yAxis: {
         min: 0
@@ -118,7 +118,6 @@ export default class Chart extends React.Component {
     state = {}
     componentDidMount( ) {
         this.draw( )
-        window.addEventListener( "resize", this.onResize, false );
     }
     componentDidUpdate( ) {
         this.draw( )
@@ -130,7 +129,9 @@ export default class Chart extends React.Component {
         const option = this.getOption( );
         this.echart = echarts.init( this.chart )
         this.state.option = option
-        this.echart.setOption( option );
+        if (!isEmpty( option )) {
+            this.echart.setOption( option );
+        }
         if ( this.props.option.isLoading ) {
             this.showLoading( )
         } else {
@@ -150,6 +151,10 @@ export default class Chart extends React.Component {
             console.log( option )
             this.echart.setOption( option );
         })
+        if ( !this._bindResize ) {
+            window.addEventListener( "resize", this.onResize, false );
+            this._bindResize = true
+        }
     }
     // 修正y轴位置
     fixYAxis(config, selLegend = {}) {
@@ -220,7 +225,7 @@ export default class Chart extends React.Component {
             yAxisIndex: ind,
             label: {
                 normal: {
-                    formatter: '{c} %'
+                    formatter: '{c}'
                 }
             },
             name: i.name,
@@ -286,7 +291,73 @@ export default class Chart extends React.Component {
         return r;
     }
     // 实时报表
-    getRealTimeReport( opt ) {}
+    getRealTimeReport( opt ) {
+        if ( !opt.dataMap ) {
+            return { };
+        }
+        const hours = opt.isLowVer ? 8 : 24;
+        let selectedLegend = {}
+        let series = [ ];
+        forIn(opt.dataMap, ( v, k ) => {
+            series = series.concat(v.map(( i, ind ) => ({
+                type: 'line',
+                // yAxisIndex: ind,
+                name: k,
+                lineStyle: {
+                    normal: {
+                        color: realTimeColors[ind]
+                    }
+                },
+                encode: {
+                    tooltip: 1
+                },
+                label: {
+                    normal: {
+                        formatter: '{c}'
+                    }
+                },
+                data: i
+            })))
+        })
+
+        let r = {
+            ...baseOption,
+            legend: {
+                data: opt.legend.map(( i, ind ) => {
+                    // 默认选中第一个
+                    selectedLegend[i.name] = !ind;
+                    return i.name
+                }),
+                selected: selectedLegend,
+                bottom: '10px'
+            },
+            xAxis: {
+                data: Array( hours ).fill( 0 ).map( ( i, d ) => d ),
+                boundaryGap: false,
+                splitLine: {
+                    show: false
+                }
+            },
+            yAxis: {
+                show: false
+            },
+            series
+        }
+        r.tooltip.formatter = ( arr ) => {
+            let h = [ ];
+            h.push( arr[0].value[0] + '时  ' + arr[0].seriesName );
+            arr.forEach(( i, ind ) => {
+                h.push(this.getTooltipMarker(realTimeColors[ind]) + opt.keyName[ind] + ' : ' + i.value[1] + opt.legendUnitMap[i.seriesName])
+            })
+            return h.join( '<br/>' );
+        }
+        console.log( r )
+        return r;
+    }
+    // https://github.com/ecomfe/echarts/blob/8d44355b53833ae0b9a42f3872e6bac699190a9e/src/util/format.js
+    getTooltipMarker( color, extraCssText ) {
+        return color ? '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + encodeHTML( color ) + ';' + ( extraCssText || '' ) + '"></span>' : '';
+    }
     render( ) {
         const {
             width = "100%",

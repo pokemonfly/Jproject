@@ -46,7 +46,7 @@ const REPORT_KEY = [
     user: state.user,
     campaign: state.campaign,
     keyword: state.keyword.keywordList,
-    head: state.keyword.keywordHead,
+    head: state.keyword.adgroup,
     view: state.keyword.keywordView
 }), dispatch => (bindActionCreators( {
     filterKeywordWord,

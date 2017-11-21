@@ -8,13 +8,13 @@ import Icon from '@/containers/shared/Icon';
 import TweenBar from '@/containers/shared/TweenBar';
 import DataRangePicker from '@/containers/shared/DataRangePicker';
 import { keywordReports as keyMap } from '@/utils/constants'
-import { formatDayReport } from '@/utils/tools'
+import { formatDayReport, formatRealTimeReport } from '@/utils/tools'
 import Chart from '@/containers/shared/Chart';
 import RealTimeChart from '@/containers/shared/RealTimeChart';
 import moment from 'moment';
 import { hashHistory } from 'react-router';
 import { fetchAdgroupsProfiles, fetchAdgroupsRealTime } from './AdgroupRedux';
-import { fetchAdgroupsDayReport, fetchAdgroupsDayDeviceReport, fetchAdgroupsRealTimeReport } from './ReportRedux'
+import { fetchAdgroupsDayReport, fetchAdgroupsDayDeviceReport, fetchAdgroupsRealTimeReport, fetchAdgroupsRealTimeDeviceReport } from './ReportRedux'
 import './KeywordOverviewStyle.less'
 
 const { TabPane } = Tabs
@@ -49,6 +49,19 @@ const CHART_KEY = [
     "realRoi",
     // "favRoi", "avgPos", "cartTotal", "directCartTotal", "indirectCartTotal", "sevenDaysPay", "sevenDaysPayCount", "sevenDaysRoi"
 ]
+const REAL_TIME_CHART_KEY = [
+    "click",
+    "cost",
+    "pay",
+    "impressions",
+    "ctr",
+    "cpc",
+    "payCount",
+    "realRoi",
+    "cvr",
+    "favCount",
+    "cartTotal"
+];
 const TODAY = moment( ).format( 'YYYY-MM-DD' )
 
 @connect(state => ({ location: state.location, query: state.location.query, adgroup: state.keyword.adgroup, report: state.keyword.report }), dispatch => (bindActionCreators( {
@@ -56,7 +69,8 @@ const TODAY = moment( ).format( 'YYYY-MM-DD' )
     fetchAdgroupsDayDeviceReport,
     fetchAdgroupsProfiles,
     fetchAdgroupsRealTime,
-    fetchAdgroupsRealTimeReport
+    fetchAdgroupsRealTimeReport,
+    fetchAdgroupsRealTimeDeviceReport
 }, dispatch )))
 export default class KeywordOverview extends React.Component {
     state = {
@@ -69,8 +83,10 @@ export default class KeywordOverview extends React.Component {
             this.props.fetchAdgroupsRealTime( this.props.query );
             this.props.fetchAdgroupsRealTimeReport({
                 ...this.props.query,
-                fromDate: TODAY
+                fromDate: TODAY,
+                toDate: TODAY
             })
+            this._loadRealTime = true;
         }
     }
     componentWillReceiveProps( nextProps ) {
@@ -81,8 +97,10 @@ export default class KeywordOverview extends React.Component {
         this.setState({
             isRealTime: nextProps.query.fromDate == nextProps.query.toDate && nextProps.query.fromDate == TODAY
         }, ( ) => {
-            if ( isEmpty( this.props.adgroup.realTime ) && this.state.isRealTime && !this.props.adgroup.isFetching ) {
+            // 切换到实时页面时
+            if ( isEmpty( this.props.adgroup.realTime ) && this.state.isRealTime && !this._loadRealTime ) {
                 this.props.fetchAdgroupsRealTime( this.props.query );
+                this._loadRealTime = true;
             }
         })
     }
@@ -161,16 +179,119 @@ export default class KeywordOverview extends React.Component {
         cfg.series = formatDayReport( data, keyMap, CHART_KEY );
         return cfg
     }
-    getRealTimeData = ( ) => {}
-    onRealTimeChange = ( state ) => {
+    onRealTimeChange = ( sta, justGet ) => {
+        const { report, query } = this.props;
+        const isFetching = justGet || report.isFetching;
+        // if (!sta ) {     sta = this.refs.char }
         const {
             isSum = false,
-            mode = 'day'
-        } = state;
-        const { query } = this.props;
-        this.props.fetchAdgroupsRealTimeReport({
-            ...query
-        })
+            mode = 'day',
+            compareDate = moment( ).subtract( 1, 'd' ).format( "YYYY-MM-DD" ),
+            fromDate,
+            toDate
+        } = sta;
+        const range = `${ fromDate }-${ toDate }`
+        if ( mode == 'day' && !isSum ) {
+            // 日期对比 今天和指定日
+            if ( TODAY in report.realTime && compareDate in report.realTime ) {
+                return formatRealTimeReport( [
+                    report.realTime[TODAY], report.realTime[compareDate]
+                ], keyMap, REAL_TIME_CHART_KEY )
+            } else {
+                !isFetching && this.props.fetchAdgroupsRealTimeReport({
+                    ...query,
+                    fromDate: compareDate,
+                    toDate: compareDate
+                })
+            }
+        }
+        if ( mode == 'day' && isSum ) {
+            // 数天 分时累加
+            if ( range in report.realTime ) {
+                return formatRealTimeReport( [report.realTime[range]], keyMap, REAL_TIME_CHART_KEY )
+            } else {
+                !isFetching && this.props.fetchAdgroupsRealTimeReport({
+                    ...query,
+                    fromDate,
+                    toDate
+                })
+            }
+        }
+        if ( mode == 'device' && !isSum ) {
+            // 设备对比
+            if ( TODAY in report.realTimePc && TODAY in report.realTimeMobile ) {
+                return formatRealTimeReport( [
+                    report.realTimePc[TODAY], report.realTimeMobile[TODAY]
+                ], keyMap, REAL_TIME_CHART_KEY )
+            } else {
+                !isFetching && this.props.fetchAdgroupsRealTimeDeviceReport({
+                    ...query,
+                    fromDate: TODAY,
+                    toDate: TODAY
+                })
+            }
+        }
+        if ( mode == 'device' && isSum ) {
+            //数天 设备累积对比
+            if ( range in report.realTimePc && range in report.realTimeMobile ) {
+                return formatRealTimeReport( [
+                    report.realTimePc[range], report.realTimeMobile[range]
+                ], keyMap, REAL_TIME_CHART_KEY )
+            } else {
+                !isFetching && this.props.fetchAdgroupsRealTimeDeviceReport({
+                    ...query,
+                    fromDate,
+                    toDate
+                })
+            }
+        }
+        return null
+    }
+    getRealTimeData = ( state ) => {
+        const { report, query } = this.props;
+        if ( this.refs.realTime ) {
+            const isFetching = report.isFetching;
+            const sta = state || this.refs.realTime.getStatus( );
+            const {
+                isSum = false,
+                mode = 'day',
+                compareDate = moment( ).subtract( 1, 'd' ).format( "YYYY-MM-DD" ),
+                fromDate,
+                toDate
+            } = sta;
+            const range = `${ fromDate }-${ toDate }`
+            if ( mode == 'day' && !isSum ) {
+                // 日期对比 今天和指定日
+                if ( TODAY in report.realTime && compareDate in report.realTime ) {
+                    return formatRealTimeReport( [
+                        report.realTime[TODAY], report.realTime[compareDate]
+                    ], keyMap, REAL_TIME_CHART_KEY )
+                }
+            }
+            if ( mode == 'day' && isSum ) {
+                // 数天 分时累加
+                if ( range in report.realTime ) {
+                    return formatRealTimeReport( [report.realTime[range]], keyMap, REAL_TIME_CHART_KEY )
+                }
+            }
+            if ( mode == 'device' && !isSum ) {
+                // 设备对比
+                if ( TODAY in report.realTimePc && TODAY in report.realTimeMobile ) {
+                    return formatRealTimeReport( [
+                        report.realTimePc[TODAY], report.realTimeMobile[TODAY]
+                    ], keyMap, REAL_TIME_CHART_KEY )
+                }
+            }
+            if ( mode == 'device' && isSum ) {
+                //数天 设备累积对比
+                if ( range in report.realTimePc && range in report.realTimeMobile ) {
+                    return formatRealTimeReport( [
+                        report.realTimePc[range], report.realTimeMobile[range]
+                    ], keyMap, REAL_TIME_CHART_KEY )
+                }
+            }
+        }
+        return null
     }
     getContent( ) {
         const { chartSw, isRealTime } = this.state

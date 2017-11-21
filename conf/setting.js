@@ -23,8 +23,13 @@ const config = {
     server_port: process.env.PORT || 3100,
 
     api_server: 'http://f002.quicloud.cn',
-    api_login_str: '/system/login_back.htm?userNick=tp_%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80&admin_nick=%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80:%E6%9D%A8%E6%81%BA&f' +
-            'rom=opr&platform=staticResources',
+    api_login_str: '/system/login_back.htm?userNick=' +
+    /* 这里是用户名  */
+    // 'tp_%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80'
+    'menpop'
+    /**/
+    +
+            '&admin_nick=%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80:%E6%9D%A8%E6%81%BA&from=opr&platform=staticResources',
     api_server_header: {
         "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',

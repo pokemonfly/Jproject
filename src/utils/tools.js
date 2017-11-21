@@ -1,5 +1,6 @@
 import { isString, isUndefined } from 'lodash'
 import { notification } from 'antd';
+import moment from 'moment';
 /*
 minVal 返回结果不低于此数值
 zeroTransfer 结果为0时转义 mode 预设
@@ -94,7 +95,26 @@ export function formatDayReport( report, keyMap, showKey ) {
         }
     })
 }
-
+export function formatRealTimeReport( reportArr, keyMap, showKey ) {
+    showKey = showKey || Object.keys( keyMap );
+    let dataMap = {};
+    showKey.forEach(key => {
+        dataMap[keyMap[key].name] = reportArr.map(report => {
+            return report.map(obj => {
+                return [
+                    moment( obj.date ).get( 'h' ),
+                    obj[key]
+                ]
+            })
+        })
+    });
+    let legendUnitMap = {},
+        legend = showKey.map(key => {
+            legendUnitMap[keyMap[key].name] = keyMap[key].unit;
+            return { name: keyMap[key].name }
+        });
+    return { legend, legendUnitMap, dataMap }
+}
 /** 右上角 的贴条提示
  params  obj / string / string,string / string,string,string
 */
@@ -138,4 +158,8 @@ export function counter( num, finishCb ) {
             finishCb && finishCb( );
         }
     }
+}
+
+export function encodeHTML( source ) {
+    return String( source ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 }

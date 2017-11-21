@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Alert, Select, Icon, Button, Radio } from 'antd'
-import { isEqual } from 'lodash';
+import { isEqual, find, result } from 'lodash';
 import moment from 'moment';
 import Chart from './Chart';
 import DataRangePicker from './DataRangePicker';
@@ -8,6 +8,8 @@ import './RealTimeChart.less';
 
 // signupTime
 const Option = Select.Option;
+const TIME_F = "YYYY-MM-DD";
+
 export default class RealTimeChart extends React.Component {
     constructor( props ) {
         super( props );
@@ -15,7 +17,13 @@ export default class RealTimeChart extends React.Component {
             isSum: false,
             mode: 'day',
             limitHour: moment( ).hour( ),
-            selectArr: this._getSelectData( props )
+            compareDate: moment( ).subtract( 1, 'd' ).format( TIME_F ), // 默认对比昨天
+            selectArr: this._getSelectData( props ),
+            fromDate: moment( ).format( TIME_F ),
+            toDate: moment( ).subtract( 7, 'd' ).format( TIME_F ),
+            chartData: {
+                type: 'realTimeReport'
+            }
         }
     }
     componentWillMount( ) {
@@ -26,6 +34,7 @@ export default class RealTimeChart extends React.Component {
         if (!isEqual( nextProps.data, this.props.data )) {
             // this.refs.chart && this.refs.chart.hideLoading( )
         }
+        this.setData( nextProps.data )
     }
     _getSelectData( props ) {
         const { signupTime } = props;
@@ -39,7 +48,7 @@ export default class RealTimeChart extends React.Component {
             lim = Math.min(lim, moment( ).endOf( 'day' ).diff( moment( signupTime ), 'd' ));
         }
         for ( let i = 0; i < 7; i++ ) {
-            let day = time.subtract( 1, 'd' ).format( "YYYY-MM-DD" );
+            let day = time.subtract( 1, 'd' ).format( TIME_F );
             arr.push( day );
         }
         r.push({name: '昨天', value: arr[0]})
@@ -54,21 +63,42 @@ export default class RealTimeChart extends React.Component {
     getStatus( ) {
         return this.state
     }
-    getChartData( ) {
-        return { type: null }
+    setData( data ) {
+        if ( data ) {
+            const { chartData, isSum, mode, compareDate, selectArr } = this.state;
+            let keyName;
+            if ( mode == 'day' ) {
+                const str = result( find(selectArr, ( o ) => {
+                    return o.value == compareDate
+                }), 'name' ) || compareDate
+                keyName = isSum ? [ '汇总' ] : [ '今日', str ]
+            } else {
+                keyName = [ 'PC', '无线' ]
+            }
+            this.setState({
+                chartData: {
+                    ...chartData,
+                    ...data,
+                    keyName
+                }
+            })
+        }
     }
     _change = ( ) => {
-        this.props.onChange( this.state )
+        const r = this.props.onChange( this.state )
+        if ( r ) {
+            this.setData( r )
+        }
         // this.refs.chart && this.refs.chart.showLoading( )
     }
-    onSwitchData( isSum ) {
+    onSwitchData = ( isSum ) => {
         this.setState( {
             isSum
         }, this._change )
     }
-    onModeChange( mode ) {
+    onModeChange = ( e ) => {
         this.setState( {
-            mode
+            mode: e.target.value
         }, this._change )
     }
     onSelectChange = ( compareDate ) => {
@@ -76,6 +106,7 @@ export default class RealTimeChart extends React.Component {
             mcompareDateode
         }, this._change )
     }
+
     render( ) {
         const {
             keyName,
@@ -87,7 +118,8 @@ export default class RealTimeChart extends React.Component {
             fromDate,
             toDate,
             mode,
-            compareDate
+            compareDate,
+            chartData
         } = this.state
         return (
             <div className="real-time-chart">
@@ -129,7 +161,7 @@ export default class RealTimeChart extends React.Component {
                             {mode == 'device' && (
                                 <span>{`PC ${ valueA } 无线${ valueB }`}</span>
                             )}
-                            <Button onClick={this.switchData.bind( this, false )}>切换成今日数据</Button>
+                            <Button onClick={this.onSwitchData.bind( this, false )}>切换成今日数据</Button>
                         </div>
                     )}
                     <Radio.Group onChange={this.onModeChange} value={mode}>
@@ -138,7 +170,7 @@ export default class RealTimeChart extends React.Component {
                     </Radio.Group>
                 </div>
                 <Alert message=" 1、实时数据因淘宝接口的误差，有可能和直通车后台不一致，属于正常情况。2、超过15天未登录，系统将不再同步实时概况数据" showIcon type="warning"/>
-                <Chart option={this.getChartData( )} ref='chart'/>
+                <Chart option={chartData} ref='chart'/>
             </div>
         )
     }
