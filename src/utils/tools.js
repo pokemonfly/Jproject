@@ -97,9 +97,13 @@ export function formatDayReport( report, keyMap, showKey ) {
 }
 export function formatRealTimeReport( reportArr, keyMap, showKey ) {
     showKey = showKey || Object.keys( keyMap );
-    let dataMap = {};
+    let dataMap = {},
+        nameMap = {},
+        isNoData = false;
     showKey.forEach(key => {
-        dataMap[keyMap[key].name] = reportArr.map(report => {
+        nameMap[key] = keyMap[key].name;
+        dataMap[key] = reportArr.map(report => {
+            isNoData = isNoData || !report.length
             return report.map(obj => {
                 return [
                     moment( obj.date ).get( 'h' ),
@@ -111,9 +115,9 @@ export function formatRealTimeReport( reportArr, keyMap, showKey ) {
     let legendUnitMap = {},
         legend = showKey.map(key => {
             legendUnitMap[keyMap[key].name] = keyMap[key].unit;
-            return { name: keyMap[key].name }
+            return keyMap[key].name
         });
-    return { legend, legendUnitMap, dataMap }
+    return { legend, legendUnitMap, dataMap, nameMap, isNoData }
 }
 /** 右上角 的贴条提示
  params  obj / string / string,string / string,string,string

@@ -6,7 +6,7 @@ import { Layout, Menu, Dropdown, Icon as AntdIcon, Tabs } from 'antd';
 import { pick, isEqual, isEmpty } from 'lodash';
 import Icon from '@/containers/shared/Icon';
 import TweenBar from '@/containers/shared/TweenBar';
-import DataRangePicker from '@/containers/shared/DataRangePicker';
+import DateRangePicker from '@/containers/shared/DateRangePicker';
 import { keywordReports as keyMap } from '@/utils/constants'
 import { formatDayReport, formatRealTimeReport } from '@/utils/tools'
 import Chart from '@/containers/shared/Chart';
@@ -139,7 +139,7 @@ export default class KeywordOverview extends React.Component {
         if ( key == 'detail' ) {
             this.setDate({
                 fromDate: moment( ).subtract( 7, 'days' ).format( 'YYYY-MM-DD' ),
-                toDate: moment( 1, 'days' ).format( 'YYYY-MM-DD' )
+                toDate: moment( ).subtract( 1, 'days' ).format( 'YYYY-MM-DD' )
             })
         } else {
             this.setDate({ fromDate: TODAY, toDate: TODAY })
@@ -198,7 +198,7 @@ export default class KeywordOverview extends React.Component {
                     report.realTime[TODAY], report.realTime[compareDate]
                 ], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                !isFetching && this.props.fetchAdgroupsRealTimeReport({
+                this.props.fetchAdgroupsRealTimeReport({
                     ...query,
                     fromDate: compareDate,
                     toDate: compareDate
@@ -210,10 +210,11 @@ export default class KeywordOverview extends React.Component {
             if ( range in report.realTime ) {
                 return formatRealTimeReport( [report.realTime[range]], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                !isFetching && this.props.fetchAdgroupsRealTimeReport({
+                this.props.fetchAdgroupsRealTimeReport({
                     ...query,
                     fromDate,
-                    toDate
+                    toDate,
+                    isSummaryByHour: true
                 })
             }
         }
@@ -224,7 +225,7 @@ export default class KeywordOverview extends React.Component {
                     report.realTimePc[TODAY], report.realTimeMobile[TODAY]
                 ], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                !isFetching && this.props.fetchAdgroupsRealTimeDeviceReport({
+                this.props.fetchAdgroupsRealTimeDeviceReport({
                     ...query,
                     fromDate: TODAY,
                     toDate: TODAY
@@ -238,10 +239,11 @@ export default class KeywordOverview extends React.Component {
                     report.realTimePc[range], report.realTimeMobile[range]
                 ], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                !isFetching && this.props.fetchAdgroupsRealTimeDeviceReport({
+                this.props.fetchAdgroupsRealTimeDeviceReport({
                     ...query,
                     fromDate,
-                    toDate
+                    toDate,
+                    isSummaryByHour: true
                 })
             }
         }
@@ -338,7 +340,7 @@ export default class KeywordOverview extends React.Component {
                         </a>
                     </Dropdown>
                 )}
-                <DataRangePicker {...{fromDate, toDate}}/>
+                <DateRangePicker {...{fromDate, toDate}}/>
             </div>
         )
     }

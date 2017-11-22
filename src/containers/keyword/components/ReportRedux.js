@@ -135,7 +135,7 @@ export function fetchAdgroupsRealTimeReport( params ) {
         dispatch(reqAdgroupsRealTimeReport( ))
         return ajax({
             api: `/sources/reports/ddgroup/realTime/summary`,
-            body: pick(params, [ 'adgroupId', 'campaignId', 'fromDate', 'toDate' ]),
+            body: pick(params, [ 'adgroupId', 'campaignId', 'fromDate', 'toDate', 'isSummaryByHour' ]),
             format: json => {
                 const key = params.fromDate == params.toDate ? params.fromDate : `${ params.fromDate }-${ params.toDate }`;
                 if ( json.success ) {
@@ -173,7 +173,7 @@ export function fetchAdgroupsRealTimeDeviceReport( params ) {
         dispatch(reqAdgroupsRealTimeDeviceReport( ))
         return ajax({
             api: `/sources/reports/ddgroup/realTime/device/summary`,
-            body: pick(params, [ 'adgroupId', 'campaignId', 'fromDate', 'toDate' ]),
+            body: pick(params, [ 'adgroupId', 'campaignId', 'fromDate', 'toDate', 'isSummaryByHour' ]),
             format: json => {
                 const key = params.fromDate == params.toDate ? params.fromDate : `${ params.fromDate }-${ params.toDate }`;
                 if ( json.success ) {
