@@ -20,6 +20,8 @@ import EditWordLimit from './EditWordLimit'
 import EditQScoreLimit from './EditQScoreLimit'
 import EditBlacklist from './EditBlacklist'
 import EditSellwords from './EditSellwords'
+import CalcRoi from './CalcRoi'
+import OneKeyOptimize from '@/containers/shared/OneKeyOptimize'
 import { fetchAdgroupsProfiles, postAdgroupsStatus, postAdgroupsOptimization, fetchBlackword } from './AdgroupRedux'
 // import Dialog from '@/containers/shared/Dialog1';
 
@@ -73,6 +75,9 @@ export default class KeywordHead extends React.Component {
                 break;
         }
         this.handleVisibleChange( false );
+    }
+    onClickOneKeyOpt = ( ) => {
+        this.refs.OneKeyOptimize.show( );
     }
     handleVisibleChange( flag ) {
         this.setState({ moreDropdownVisible: flag });
@@ -133,8 +138,8 @@ export default class KeywordHead extends React.Component {
                     <KeywordInfo {...infoObj} api={this.props.postAdgroupsStatus}></KeywordInfo>
                 </div>
                 <div className="button-groups">
-                    <Button type="primary">一键优化</Button>
-                    <Button type="primary">计算ROI盈亏点</Button>
+                    <Button type="primary" onClick={this.onClickOneKeyOpt}>一键优化<OneKeyOptimize ref="OneKeyOptimize"/></Button>
+                    <CalcRoi/>
                     <Dropdown
                         overlay={this.renderSettingPanel( )}
                         trigger={[ 'click' ]}

@@ -29,6 +29,12 @@ export const RES_PUT_SELLWORDS = 'RES_PUT_SELLWORDS'
 // 获得当天数据汇总
 export const REQ_ADGROUPS_REALTIME = 'REQ_ADGROUPS_REALTIME'
 export const RES_ADGROUPS_REALTIME = 'RES_ADGROUPS_REALTIME'
+//  获得用户设置的商品利润
+export const REQ_ADGROUPS_PROFIT = 'REQ_ADGROUPS_PROFIT'
+export const RES_ADGROUPS_PROFIT = 'RES_ADGROUPS_PROFIT'
+// 设置商品利润
+export const REQ_POST_ADGROUPS_PROFIT = 'REQ_POST_ADGROUPS_PROFIT'
+export const RES_POST_ADGROUPS_PROFIT = 'RES_POST_ADGROUPS_PROFIT'
 
 export const reqAdgroupsProfiles = ( ) => {
     return {
@@ -102,7 +108,9 @@ export function fetchAdgroupsProfiles( params ) {
                     }
                 }
             },
-            success: data => dispatch(resAdgroupsProfiles( data ))
+            success: data => {
+                dispatch(resAdgroupsProfiles( data ))
+            }
         })
     }
 }
@@ -438,6 +446,71 @@ export function fetchAdgroupsRealTime( params ) {
         })
     }
 }
+
+export const reqAdgroupsProfit = ( ) => {
+    return {
+        type: REQ_ADGROUPS_PROFIT,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resAdgroupsProfit = ( data ) => {
+    return {
+        type: RES_ADGROUPS_PROFIT,
+        data: {
+            ...data,
+            isFetching: false
+        }
+    }
+}
+export function fetchAdgroupsProfit( params ) {
+    return dispatch => {
+        dispatch(reqAdgroupsProfit( ));
+        return ajax({
+            api: `/sources/adgroups/${ params.adgroupId }/realRoi`,
+            format: json => {
+                const { realRoi } = json.data
+                return {
+                    itemProfit: realRoi ? realRoi.itemProfit : null,
+                    itemPrice: realRoi ? realRoi.itemPrice : null
+                }
+            },
+            success: data => dispatch(resAdgroupsProfit( data ))
+        })
+    }
+}
+export const reqPostAdgroupsProfit = ( ) => {
+    return {
+        type: REQ_POST_ADGROUPS_PROFIT,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPostAdgroupsProfit = ( itemProfit ) => {
+    return {
+        type: RES_POST_ADGROUPS_PROFIT,
+        data: {
+            itemProfit,
+            isFetching: false
+        }
+    }
+}
+export function postAdgroupsProfit( params ) {
+    return dispatch => {
+        dispatch(reqPostAdgroupsProfit( ));
+        return ajax({
+            api: `/sources/adgroups/realRoi`,
+            body: pick(params, [ 'campaignId', 'adgroupId', 'itemId', 'itemPrice', 'itemProfit' ]),
+            format: json => {
+                return pick(params, [ 'itemPrice', 'itemProfit' ])
+            },
+            success: data => dispatch(resPostAdgroupsProfit( data ))
+        })
+    }
+}
+
 const defaultState = {
     adgroup: {},
     daemonSettingMap: {},
@@ -453,6 +526,10 @@ export default function keywordHeadReducer( state = defaultState, action ) {
         case RES_ADGROUPS_PROFILES:
         case REQ_ADGROUPS_REALTIME:
         case RES_ADGROUPS_REALTIME:
+        case REQ_ADGROUPS_PROFIT:
+        case RES_ADGROUPS_PROFIT:
+        case REQ_POST_ADGROUPS_PROFIT:
+        case RES_POST_ADGROUPS_PROFIT:
             return {
                 ...state,
                 ...action.data

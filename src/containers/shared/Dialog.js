@@ -19,7 +19,8 @@ export function SimpleDialog({
     title = '弹窗',
     hasForm = false,
     sid = null,
-    single = true
+    single = true,
+    footer
 }) {
     return ( WrappedComponent ) => {
         return ( props ) => {
@@ -66,6 +67,7 @@ export function SimpleDialog({
                             visible
                             wrapClassName={wrapClassName}
                             title={title}
+                            footer={footer}
                             maskClosable={maskClosable}
                             width={width}
                             zIndex={zIndex}>
@@ -97,12 +99,18 @@ export function Dialog({
             }
             close = ( ) => {
                 let rf = this.refs.wc.getWrappedInstance( );
+                if ( hasForm ) {
+                    rf = rf.refs.wrappedComponent.refs.formWrappedComponent
+                }
                 rf.closeCallback && rf.closeCallback( );
                 this.hide( )
             }
             ok = ( ) => {
                 let r = true;
                 let rf = this.refs.wc.getWrappedInstance( );
+                if ( hasForm ) {
+                    rf = rf.refs.wrappedComponent.refs.formWrappedComponent
+                }
                 rf.okCallback && (r = rf.okCallback( this.hide ));
                 if ( r ) {
                     this.hide( )

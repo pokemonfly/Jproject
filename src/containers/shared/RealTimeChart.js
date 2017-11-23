@@ -16,7 +16,7 @@ import DateRangePicker from './DateRangePicker';
 import './RealTimeChart.less';
 import { add, divide } from '@/utils/math';
 
-// signupTime
+// signupTime  订购时间
 const Option = Select.Option;
 const TIME_F = "YYYY-MM-DD";
 const keyMap = (( obj ) => {
@@ -39,7 +39,8 @@ export default class RealTimeChart extends React.Component {
             fromDate: moment( ).subtract( 7, 'd' ).format( TIME_F ),
             toDate: moment( ).format( TIME_F ),
             chartData: {
-                type: 'realTimeReport'
+                type: 'realTimeReport',
+                isLowVer: props.isLowVer
             }
         }
     }
@@ -200,9 +201,9 @@ export default class RealTimeChart extends React.Component {
     }
     render( ) {
         const {
-            keyName,
-            valueA,
-            valueB,
+            keyName = '-',
+            valueA = '-',
+            valueB = '-',
             limitHour,
             selectArr,
             isSum,

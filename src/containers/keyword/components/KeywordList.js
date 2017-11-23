@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import Trigger from '@/containers/shared/Trigger';
 import Table from '@/containers/shared/Table'
 import { bindActionCreators } from 'redux';
+import PubSub from 'pubsub-js';
 import {
     Radio,
     Menu,
@@ -28,6 +29,7 @@ import EditMatch from './EditMatch'
 import EditOptimization from './EditOptimization'
 import EditMultiWordPrice from './EditMultiWordPrice'
 import KeywordExtraBar from './KeywordExtraBar'
+import AddUserWord from './AddUserWord'
 import './KeywordList.less'
 
 const { Column, ColumnGroup } = Table;
@@ -159,6 +161,13 @@ export default class KeywordList extends React.Component {
     }
 
     componentWillMount( ) {
+        this.getKeywordData( )
+        PubSub.subscribe( 'keyword.list.fresh', this.getKeywordData )
+    }
+    componentWillUnmount( ) {
+        PubSub.unsubscribe( 'keyword.list.fresh' );
+    }
+    getKeywordData = ( ) => {
         const { query } = this.props
         this.props.fetchKeywordList( query );
         this.props.fetchKeywordSeparate( query );
@@ -169,7 +178,6 @@ export default class KeywordList extends React.Component {
     setTableRef = ( table ) => {
         this.table = table;
     }
-
     clear = ( ) => {
         this.table.clearCheckbox( )
     }
@@ -599,7 +607,9 @@ export default class KeywordList extends React.Component {
             <div className="filter-extra-bar">
                 {modeSw}
                 <Button type="primary">智能淘词</Button>
-                <Button type="primary">指定加词</Button>
+                <Trigger popup={( <AddUserWord/> )}>
+                    <Button type="primary">指定加词</Button>
+                </Trigger>
             </div>
         )
         return (
@@ -616,9 +626,9 @@ export default class KeywordList extends React.Component {
                             selectedRowKeys={selectedRowKeys}
                             keywordMap={this.props.keyword.keywordMap}
                             api={this.props.postKeyword}></EditMultiWordPrice>
-                        <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}>
+                        <Trigger popup={( <DelKeyword selectedRowKeys={selectedRowKeys} keywordMap={this.props.keyword.keywordMap} afterCb={this.clear}/> )}>
                             <Button type="primary">删除关键词</Button>
-                        </DelKeyword>
+                        </Trigger>
                         <Trigger popup={( <EditMatch type='scope'/> )}>
                             <Button type="primary">修改匹配方式</Button>
                         </Trigger>

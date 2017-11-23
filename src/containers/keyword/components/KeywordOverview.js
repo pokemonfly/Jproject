@@ -76,7 +76,8 @@ export default class KeywordOverview extends React.Component {
     state = {
         dataType: 0,
         chartSw: false,
-        isRealTime: this.props.query.fromDate == this.props.query.toDate && this.props.query.fromDate == TODAY
+        isRealTime: this.props.query.fromDate == this.props.query.toDate && this.props.query.fromDate == TODAY,
+        isLowVer: true
     }
     componentWillMount( ) {
         if ( this.state.isRealTime ) {
@@ -296,7 +297,7 @@ export default class KeywordOverview extends React.Component {
         return null
     }
     getContent( ) {
-        const { chartSw, isRealTime } = this.state
+        const { chartSw, isRealTime, isLowVer } = this.state
         let { fromDate, toDate } = this.props.query;
         if ( this.props.adgroup.isFetching ) {
             return (
@@ -310,7 +311,7 @@ export default class KeywordOverview extends React.Component {
                 <Layout className="keyword-overview-content">
                     <TweenBar dataSource={dataSource} config={keyMap}></TweenBar>
                     {chartSw && !isRealTime && ( <Chart option={this.getChartData( )}/> )}
-                    {chartSw && isRealTime && ( <RealTimeChart ref="realTime" onChange={this.onRealTimeChange} data={this.getRealTimeData( )}/> )}
+                    {chartSw && isRealTime && ( <RealTimeChart isLowVer={isLowVer} ref="realTime" onChange={this.onRealTimeChange} data={this.getRealTimeData( )}/> )}
                     <div className="chart-sw" onClick={this.switchChartShow}>
                         <span>{chartSw ? '收起' : '展开'}历史趋势图
                             <Icon type={chartSw ? "xiangshang" : "xiangxia"}/></span>

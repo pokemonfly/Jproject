@@ -1,5 +1,5 @@
 import React from 'react';
-import { Popconfirm, Form, Checkbox } from 'antd';
+import { Form, Checkbox, Layout, Button } from 'antd';
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
 import { deleteKeyword } from './KeywordListRedux'
@@ -36,7 +36,7 @@ export default class DelKeyword extends React.Component {
             notification['error']({ message: '批量操作', description: '请您至少勾选一个关键词进行操作' });
         }
     }
-    onConfirm = ( ) => {
+    onSubmit = ( ) => {
         const obj = this.props.form.getFieldsValue( )
         const { selectedRowKeys, keywordMap } = this.props;
         const result = selectedRowKeys.map(i => ({
@@ -54,37 +54,31 @@ export default class DelKeyword extends React.Component {
             never = true
         } = this.props;
         const { optimizeStatus, word, len } = this.state
-        const content = (
-            <Form>
-                {len == 1 && (
-                    <span>删除关键词：{word}</span>
-                )}
-                {len > 1 && (
-                    <span>{`确定要删除${ len }个词吗？一旦删除，所有数据将无法恢复！`}</span>
-                )}
-                {never && ( optimizeStatus == 1 || optimizeStatus == 2 ) && (
-                    <FormItem style={{
-                        margin: 0
-                    }}>
-                        {getFieldDecorator( 'isInBlackList' )(
-                            <Checkbox >不再投放此关键词</Checkbox>
-                        )}
-                    </FormItem>
-                )}
-                {!never && (
-                    <p>删除后所有数据将无法恢复！ 确定要删除该关键词吗？</p>
-                )}
-            </Form>
-        )
         return (
-            <Popconfirm
-                placement="bottomLeft"
-                title={content}
-                visible={this.state.visible}
-                onVisibleChange={this.onVisibleChange}
-                onConfirm={this.onConfirm}>
-                {this.props.children}
-            </Popconfirm>
+            <Layout className="float-panel">
+                <Form>
+                    {len == 1 && (
+                        <span className="header">删除关键词：{word}</span>
+                    )}
+                    {len > 1 && (
+                        <span className="header">{`确定要删除${ len }个词吗？一旦删除，所有数据将无法恢复！`}</span>
+                    )}
+                    {never && ( optimizeStatus == 1 || optimizeStatus == 2 ) && (
+                        <FormItem>
+                            {getFieldDecorator( 'isInBlackList' )(
+                                <Checkbox >不再投放此关键词</Checkbox>
+                            )}
+                        </FormItem>
+                    )}
+                    {!never && (
+                        <p>删除后所有数据将无法恢复！ 确定要删除该关键词吗？</p>
+                    )}
+                </Form>
+                <div className="footer">
+                    <Button type="primary" onClick={this.onSubmit}>确定</Button>
+                    <a onClick={this.props.onClose} className="cancel-btn">取消</a>
+                </div>
+            </Layout>
         )
     }
 }

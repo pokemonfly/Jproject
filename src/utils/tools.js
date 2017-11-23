@@ -99,11 +99,11 @@ export function formatRealTimeReport( reportArr, keyMap, showKey ) {
     showKey = showKey || Object.keys( keyMap );
     let dataMap = {},
         nameMap = {},
-        isNoData = false;
+        hasData = false;
     showKey.forEach(key => {
         nameMap[key] = keyMap[key].name;
         dataMap[key] = reportArr.map(report => {
-            isNoData = isNoData || !report.length
+            hasData = hasData || report.length
             return report.map(obj => {
                 return [
                     moment( obj.date ).get( 'h' ),
@@ -117,10 +117,16 @@ export function formatRealTimeReport( reportArr, keyMap, showKey ) {
             legendUnitMap[keyMap[key].name] = keyMap[key].unit;
             return keyMap[key].name
         });
-    return { legend, legendUnitMap, dataMap, nameMap, isNoData }
+    return {
+        legend,
+        legendUnitMap,
+        dataMap,
+        nameMap,
+        isNoData: !hasData
+    }
 }
 /** 右上角 的贴条提示
- params  obj / string / string,string / string,string,string
+ params  obj / description / message,description / type,message,description
 */
 export function notify( ...args ) {
     let obj
@@ -130,8 +136,7 @@ export function notify( ...args ) {
             message: args[1],
             description: args[2]
         }
-    }
-    if ( args.length == 2 ) {
+    } else if ( args.length == 2 ) {
         obj = {
             message: args[0],
             description: args[1]
@@ -148,9 +153,10 @@ export function notify( ...args ) {
     let {
         type = 'success',
         message = '操作成功',
-        description
+        description,
+        duration = 3
     } = obj
-    notification[type]({ message, description, duration: 3 });
+    notification[type]({ message, description, duration });
 }
 
 // 计数器

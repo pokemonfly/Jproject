@@ -1,8 +1,9 @@
-// import ajax from '../../../utils/ajax'
 import ajax from '@/utils/ajax'
 import { formatReport, notify } from '@/utils/tools'
 import { normalize, schema } from 'normalizr'
 import { omit, capitalize, pick, difference, isArray } from 'lodash'
+import PubSub from 'pubsub-js';
+
 const { Entity } = schema;
 // 关键词列表
 export const REQ_KEYWORD_LIST = 'REQ_KEYWORD_LIST'
@@ -18,6 +19,9 @@ export const RES_POST_KEYWORD = 'RES_POST_KEYWORD'
 //删词
 export const REQ_DEL_KEYWORD = 'REQ_DEL_KEYWORD'
 export const RES_DEL_KEYWORD = 'RES_DEL_KEYWORD'
+// 加词
+export const REQ_PUT_KEYWORD = 'REQ_PUT_KEYWORD'
+export const RES_PUT_KEYWORD = 'RES_PUT_KEYWORD'
 
 export const reqKeywordList = ( ) => {
     return {
@@ -347,6 +351,64 @@ export function deleteKeyword( params, keys ) {
     }
 }
 
+export const reqPutKeyword = ( ) => {
+    return {
+        type: REQ_PUT_KEYWORD,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPutKeyword = ({ needFresh, msg }) => {
+    if ( needFresh ) {
+        PubSub.publish( 'keyword.list.fresh' )
+        // TODO 少一个刷新后按时间排序  addAutoKeyword.js:120
+    }
+    if ( msg ) {
+        notify({ type: 'error', message: '加词出错', description: msg, duration: 10 })
+    } else {
+        notify( '加词成功' )
+    }
+    return {
+        type: RES_PUT_KEYWORD,
+        data: {
+            isFetching: false
+        }
+    }
+}
+export function putKeyword( params, keys ) {
+    /* params : [ 'campaignId' 'adgroupId' 'mobileIsDefaultPrice' 'word' 'maxPrice' 'matchScope' ]*/
+    return dispatch => {
+        dispatch(reqPutKeyword( ))
+        return ajax({
+            api: '/sources/keywords',
+            method: 'put',
+            body: params,
+            format: json => {
+                let needFresh = true,
+                    msg = '';
+                if ( json.success ) {
+                    const { failedKeywords, repeatKeywords, subMsg, apiResp } = json.data
+                    if ( failedKeywords ) {
+                        msg = subMsg || '添加失败，请换个时间重试'
+                        if ( apiResp && apiResp.subMsg ) {
+                            msg += '(' + apiResp.subMsg + ')'
+                        }
+                        msg += ': [' + failedKeywords.join( '、 ' ) + ']';
+                        needFresh = failedKeywords.length != keys.length
+                    }
+                    if ( repeatKeywords ) {
+                        msg += '[' + repeatKeywords.map( e => e.word ).join( '、 ' ) + ']';
+                        needFresh = repeatKeywords.length != keys.length
+                    }
+                    return { needFresh, msg }
+                }
+            },
+            success: ( data ) => dispatch(resPutKeyword( data ))
+        })
+    }
+}
+
 const defaultState = {
     pagination: {},
     filters: {},
@@ -361,6 +423,10 @@ export default function keywordReducer( state = defaultState, action ) {
         case RES_KEYWORD_SEPARATE:
         case KEYWORD_TABLE_CHANGE:
         case REQ_POST_KEYWORD:
+        case REQ_DEL_KEYWORD:
+        case RES_DEL_KEYWORD:
+        case REQ_PUT_KEYWORD:
+        case RES_PUT_KEYWORD:
             return {
                 ...state,
                 ...action.data

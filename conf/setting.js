@@ -26,7 +26,7 @@ const config = {
     api_login_str: '/system/login_back.htm?userNick=' +
     /* 这里是用户名  */
     'tp_%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80'
-    // 'menpop'
+    // 'ajin101'
     /**/
     +
             '&admin_nick=%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80:%E6%9D%A8%E6%81%BA&from=opr&platform=staticResources',

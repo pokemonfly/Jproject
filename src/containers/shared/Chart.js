@@ -6,7 +6,9 @@ import {
     isEmpty,
     forIn,
     zipObject,
-    isEqual
+    isEqual,
+    find,
+    result
 } from 'lodash'
 import echarts from 'echarts/lib/echarts'
 import 'echarts/lib/chart/line'
@@ -272,12 +274,10 @@ export default class Chart extends React.Component {
             this.props.onLegendChange && this.props.onLegendChange(this.state.activeLegend || opt.legend[0])
             return this._getNoDataOption( '暂时没有实时数据' );
         }
-        const hours = opt.isLowVer ? 8 : 24;
         let series = [ ];
         forIn(opt.dataMap, ( v, k ) => {
             series = series.concat(v.map(( i, ind ) => ({
                 type: 'line',
-                // yAxisIndex: ind,
                 name: opt.nameMap[k],
                 lineStyle: {
                     normal: {
@@ -287,14 +287,27 @@ export default class Chart extends React.Component {
                 encode: {
                     tooltip: 1
                 },
-                label: {
-                    normal: {
-                        formatter: '{c}'
-                    }
-                },
-                data: i
+                data: i.map(i => i.concat( ind )) // 为了区分数据是哪个系的 有可能只有一天的数据
             })))
         })
+        let xAxisData
+        if ( opt.isLowVer ) {
+            let firstHour = result( find(series, i => {
+                return i.data.length
+            }), 'data[0][0]' )
+            xAxisData = Array( 8 ).fill( firstHour ).map( ( i, d ) => i + d * 3 )
+            // 修正数据的x轴对齐
+            series.forEach(row => {
+                if ( row.data.length ) {
+                    row.data.forEach(pt => {
+                        pt[3] = pt[0];
+                        pt[0] = Math.floor( pt[0] / 3 )
+                    })
+                }
+            })
+        } else {
+            xAxisData = Array( 24 ).fill( 0 ).map( ( i, d ) => d )
+        }
         let selected = zipObject(opt.legend, Array( opt.legend.length ).fill( false ));
         let r = {
             ...baseOption,
@@ -304,7 +317,7 @@ export default class Chart extends React.Component {
                 bottom: '10px'
             },
             xAxis: {
-                data: Array( hours ).fill( 0 ).map( ( i, d ) => d ),
+                data: xAxisData,
                 boundaryGap: false,
                 splitLine: {
                     show: false
@@ -316,10 +329,13 @@ export default class Chart extends React.Component {
             series
         }
         r.tooltip.formatter = ( arr ) => {
-            let h = [ ];
-            h.push( arr[0].value[0] + '时  ' + arr[0].seriesName );
-            arr.forEach(( i, ind ) => {
-                h.push(this.getTooltipMarker(realTimeColors[ind]) + opt.keyName[ind] + ' : ' + i.value[1] + opt.legendUnitMap[i.seriesName])
+            /* 通常24小时的数据  arr[0].data =  [x轴位置（=真实时间）， 数据， 数据对应哪天]
+                低级版本 只有8个小时 arr[0].data =  [x轴位置， 数据， 数据对应哪天，真实时间] */
+            let h = [],
+                hour = arr[0].data.length == 4 ? arr[0].data[3] : arr[0].data[0];
+            h.push( hour + '时  ' + arr[0].seriesName );
+            arr.forEach(i => {
+                h.push(this.getTooltipMarker(realTimeColors[i.data[2]]) + opt.keyName[i.data[2]] + ' : ' + i.value[1] + opt.legendUnitMap[i.seriesName])
             })
             return h.join( '<br/>' );
         }
