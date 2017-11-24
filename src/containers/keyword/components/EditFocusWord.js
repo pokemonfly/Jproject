@@ -11,28 +11,17 @@ import DropdownButton from '@/containers/shared/DropdownButton'
 }, dispatch ) ) )
 @Form.create()
 @DropdownButton
-export default class EditMatch extends React.Component {
+export default class EditFocusWord extends React.Component {
     static defaultProps = {
-        getMenu: function () {
-            if ( this.isMandate ) {
-                return [
-                    {
-                        key: 1,
-                        name: '修改匹配方式'
-                    }, {
-                        key: 2,
-                        name: '修改匹配优化方式'
-                    }
-                ]
-            } else {
-                return [
-                    {
-                        key: 1,
-                        name: '修改匹配方式'
-                    }
-                ]
+        menu: [
+            {
+                key: 1,
+                name: '添加重点关注词'
+            }, {
+                key: 2,
+                name: '取消重点关注词'
             }
-        },
+        ],
         width: "260px"
     }
 
@@ -62,34 +51,28 @@ export default class EditMatch extends React.Component {
     render() {
         const { getFieldDecorator } = this.props.form;
         const { activeKey } = this.props
-
+        const { changOpt, never } = this.state
         return ( <Layout className="float-panel edit-match">
             {
                 activeKey == 1 && ( <Form>
                     <p className="header">匹配方式修改为：</p>
-                    <Form.Item className="sep-line">
-                        {
-                            getFieldDecorator( 'matchScope', { initialValue: 4 } )( <Radio.Group>
-                                <Radio value={4}>广泛匹配</Radio>
-                                <br/>
-                                <Radio value={1}>精确匹配</Radio>
-                            </Radio.Group> )
-                        }
-                    </Form.Item>
+                    <span>{`确定将${ len }个词加入重点关注词吗`}？</span>
+                    {
+                        changOpt > 0 && never && ( <Form.Item className="sep-line">
+                            <span>加入重点关注词，该批词设为</span>
+                            {
+                                getFieldDecorator( 'matchScope', {
+                                    initialValue: false,
+                                    valuePropName: 'checked'
+                                } )( <Checkbox>不自动优化（{changOpt}）</Checkbox> )
+                            }
+                        </Form.Item> )
+                    }
                 </Form> )
             }
             {
                 activeKey == 2 && ( <Form>
-                    <p className="header">匹配方式优化修改为：</p>
-                    <Form.Item className="sep-line">
-                        {
-                            getFieldDecorator( 'matchScopeOp', { initialValue: 1 } )( <Radio.Group>
-                                <Radio value={1}>优化</Radio>
-                                <br/>
-                                <Radio value={0}>不优化</Radio>
-                            </Radio.Group> )
-                        }
-                    </Form.Item>
+                    <p className="header">{`确定取消被选中的${ len }个重点关注词吗？`}</p>
                 </Form> )
             }
             <div className="footer">

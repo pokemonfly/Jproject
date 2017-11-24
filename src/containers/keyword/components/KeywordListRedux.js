@@ -16,14 +16,19 @@ export const KEYWORD_TABLE_CHANGE = 'KEYWORD_TABLE_CHANGE'
 //修改设置
 export const REQ_POST_KEYWORD = 'REQ_POST_KEYWORD'
 export const RES_POST_KEYWORD = 'RES_POST_KEYWORD'
+export const REQ_POST_KEYWORD_SETTING = 'REQ_POST_KEYWORD_SETTING'
+export const RES_POST_KEYWORD_SETTING = 'RES_POST_KEYWORD_SETTING'
 //删词
 export const REQ_DEL_KEYWORD = 'REQ_DEL_KEYWORD'
 export const RES_DEL_KEYWORD = 'RES_DEL_KEYWORD'
 // 加词
 export const REQ_PUT_KEYWORD = 'REQ_PUT_KEYWORD'
 export const RES_PUT_KEYWORD = 'RES_PUT_KEYWORD'
+//  修改匹配优化方式
+export const REQ_POST_KEYWORD_MATCHSCOPE = 'REQ_POST_KEYWORD_MATCHSCOPE'
+export const RES_POST_KEYWORD_MATCHSCOPE = 'RES_POST_KEYWORD_MATCHSCOPE'
 
-export const reqKeywordList = ( ) => {
+export const reqKeywordList = () => {
     return {
         type: REQ_KEYWORD_LIST,
         data: {
@@ -35,23 +40,23 @@ export const resKeywordList = ( data ) => {
     return {
         type: RES_KEYWORD_LIST,
         data: {
-            ...omit(data.result, [ 'mobileAutoGrabStatusMap', 'mobileStatusMap', 'pcAutoGrabStatusMap', 'pcStatusMap', 'strategy' ]),
+            ...omit( data.result, [ 'mobileAutoGrabStatusMap', 'mobileStatusMap', 'pcAutoGrabStatusMap', 'pcStatusMap', 'strategy' ] ),
             keywordMap: data.entities.keyword,
             isFetching: false
         }
     }
 }
 // TODO ?
-export const keywordTableChange = ( pagination, filters, sorter ) => ({
+export const keywordTableChange = ( pagination, filters, sorter ) => ( {
     type: KEYWORD_TABLE_CHANGE,
     data: {
         pagination,
         filters,
         sorter
     }
-})
+} )
 
-const keyword = new Entity('keyword', {}, {
+const keyword = new Entity( 'keyword', {}, {
     idAttribute: 'keywordId',
     processStrategy: ( obj, parent ) => {
         // 宝贝级别关闭 优先
@@ -85,11 +90,11 @@ const keyword = new Entity('keyword', {}, {
                 mobileAuto: parent.mobileAutoGrabStatusMap[obj.keywordId],
                 mobile: parent.mobileStatusMap[obj.keywordId],
                 pcAuto: parent.pcAutoGrabStatusMap[obj.keywordId],
-                pc: parent.pcStatusMap[obj.keywordId]
+                pc: parent.pcStatusMap[ obj.keywordId ]
             }
         }
     }
-});
+} );
 
 function _getOptimizeStatus( setting, isMandate ) {
     const { isOptimizeByConfig, isOptimizeChangePrice, isOptimizeChangeMobilePrice, isOptimizeGenerateWord } = setting
@@ -157,8 +162,8 @@ function _mixinStatus( adgroup, keyword ) {
 
 export function fetchKeywordList( params ) {
     return dispatch => {
-        dispatch(reqKeywordList( ))
-        return ajax({
+        dispatch( reqKeywordList() )
+        return ajax( {
             api: '/sources/keywords',
             body: params,
             format: json => {
@@ -166,15 +171,15 @@ export function fetchKeywordList( params ) {
                 // 宝贝的优化状态
                 const { adgroup } = json.data
                 adgroup.optimizeStatus = _getOptimizeStatus( adgroup.daemonOptimizeSetting, adgroup.isMandate )
-                obj = normalize(json.data, {keywords: [ keyword ]});
+                obj = normalize( json.data, { keywords: [ keyword ] } );
                 return obj;
             },
-            success: data => dispatch(resKeywordList( data )),
+            success: data => dispatch( resKeywordList( data ) ),
             error: err => console.error( err )
-        })
+        } )
     }
 }
-export const reqKeywordSeparate = ( ) => {
+export const reqKeywordSeparate = () => {
     return {
         type: REQ_KEYWORD_SEPARATE,
         data: {
@@ -191,11 +196,11 @@ export const resKeywordSeparate = ( data ) => {
         }
     }
 }
-function _mergeReport(wordsVo = {}, reportVo = {}) {
+function _mergeReport( wordsVo = {}, reportVo = {} ) {
     let obj = {}
     reportVo.cpc = reportVo.price
     reportVo.coverage = reportVo.cvr
-    for (let key in pick(reportVo, [
+    for ( let key in pick( reportVo, [
         'cpc',
         'ctr',
         'pv',
@@ -203,8 +208,8 @@ function _mergeReport(wordsVo = {}, reportVo = {}) {
         'competition',
         'coverage',
         'payCount'
-    ])) {
-        obj['day' + capitalize( key )] = reportVo[key]
+    ] ) ) {
+        obj['day' + capitalize( key )] = reportVo[ key ]
     }
 
     return {
@@ -228,10 +233,10 @@ function _sumReport( a, b ) {
         },
         avgPosSum = 0;
     for ( let key in b ) {
-        if (result.hasOwnProperty( key )) {
-            result[key] += b[key]
+        if ( result.hasOwnProperty( key ) ) {
+            result[ key ] += b[ key ]
         } else {
-            result[key] = b[key]
+            result[ key ] = b[ key ]
         }
     }
     result.ctr = dev( result.click, result.impressions ) * 100
@@ -240,7 +245,7 @@ function _sumReport( a, b ) {
     result.realRoi = dev( result.pay, result.cost )
     // 平均展现排名
     avgPosSum = multi( a.avgPos, a.impressions ) + multi( b.avgPos, b.impressions )
-    result.avgPos = Math.ceil(dev( avgPosSum, result.impressions ));
+    result.avgPos = Math.ceil( dev( avgPosSum, result.impressions ) );
     result.dayCtr = dev( result.dayClick, result.dayPv ) * 100
     // 全网转化率 = 全网成交数/全网点击指数
     result.dayCvr = dev( result.dayPayCount, result.dayClick ) * 100
@@ -248,7 +253,7 @@ function _sumReport( a, b ) {
     return result
 }
 
-const keywordDetail = new Entity('keywordDetail', {}, {
+const keywordDetail = new Entity( 'keywordDetail', {}, {
     processStrategy: ( obj, parent ) => {
         const wordsVo = obj.detailWordsDataVO,
             reportVo = obj.detailReportVO,
@@ -267,30 +272,30 @@ const keywordDetail = new Entity('keywordDetail', {}, {
             outside: _sumReport( pcOutside, pcOutside )
         }
         for ( let i in result ) {
-            formatReport(result[i])
+            formatReport( result[ i ] )
         }
         return result
     }
-})
+} )
 export function fetchKeywordSeparate( params ) {
     return dispatch => {
-        dispatch(reqKeywordSeparate( ))
-        return ajax({
+        dispatch( reqKeywordSeparate() )
+        return ajax( {
             api: '/sources/keywords/detailData',
             body: params,
             format: json => {
                 let obj;
                 // 宝贝的优化状态
                 const { adgroup } = json.data
-                obj = normalize(json.data, {keywordDetailInfos: [ keywordDetail ]});
+                obj = normalize( json.data, { keywordDetailInfos: [ keywordDetail ] } );
                 return obj;
             },
-            success: data => dispatch(resKeywordSeparate( data ))
-        })
+            success: data => dispatch( resKeywordSeparate( data ) )
+        } )
     }
 }
 
-export const reqPostKeyword = ( ) => {
+export const reqPostKeyword = () => {
     return {
         type: REQ_POST_KEYWORD,
         data: {
@@ -308,20 +313,50 @@ export const resPostKeyword = ( data ) => {
         mergeItems: data
     }
 }
-export function postKeyword( params, keys ) {
+export function postKeyword( params ) {
     let body = isArray( params ) ? params : [ params ]
     return dispatch => {
-        dispatch(reqPostKeyword( ))
-        return ajax({
+        dispatch( reqPostKeyword() )
+        return ajax( {
             api: '/sources/keywords',
             method: 'post',
             body: body,
-            success: ( ) => dispatch(resPostKeyword( body ))
-        })
+            success: () => dispatch( resPostKeyword( body ) )
+        } )
+    }
+}
+export const reqPostKeywordSetting = () => {
+    return {
+        type: REQ_POST_KEYWORD_SETTING,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPostKeywordSetting = ( data ) => {
+    notify( '设置成功' )
+    return {
+        type: RES_POST_KEYWORD_SETTING,
+        data: {
+            isFetching: false
+        },
+        mergeItems: data
+    }
+}
+export function postKeywordSetting( params ) {
+    let body = isArray( params ) ? params : [ params ]
+    return dispatch => {
+        dispatch( reqPostKeywordSetting() )
+        return ajax( {
+            api: '/sources/keywords/setting',
+            method: 'post',
+            body: body,
+            success: () => dispatch( resPostKeywordSetting( body ) )
+        } )
     }
 }
 
-export const reqDelKeyword = ( ) => {
+export const reqDelKeyword = () => {
     return {
         type: REQ_DEL_KEYWORD,
         data: {
@@ -341,17 +376,17 @@ export const resDelKeyword = ( data ) => {
 }
 export function deleteKeyword( params, keys ) {
     return dispatch => {
-        dispatch(reqDelKeyword( ))
-        return ajax({
+        dispatch( reqDelKeyword() )
+        return ajax( {
             api: '/sources/keywords',
             method: 'delete',
             body: params,
-            success: ( ) => dispatch(resDelKeyword( keys ))
-        })
+            success: () => dispatch( resDelKeyword( keys ) )
+        } )
     }
 }
 
-export const reqPutKeyword = ( ) => {
+export const reqPutKeyword = () => {
     return {
         type: REQ_PUT_KEYWORD,
         data: {
@@ -359,13 +394,13 @@ export const reqPutKeyword = ( ) => {
         }
     }
 }
-export const resPutKeyword = ({ needFresh, msg }) => {
+export const resPutKeyword = ( { needFresh, msg } ) => {
     if ( needFresh ) {
         PubSub.publish( 'keyword.list.fresh' )
         // TODO 少一个刷新后按时间排序  addAutoKeyword.js:120
     }
     if ( msg ) {
-        notify({ type: 'error', message: '加词出错', description: msg, duration: 10 })
+        notify( { type: 'error', message: '加词出错', description: msg, duration: 10 } )
     } else {
         notify( '加词成功' )
     }
@@ -379,8 +414,8 @@ export const resPutKeyword = ({ needFresh, msg }) => {
 export function putKeyword( params, keys ) {
     /* params : [ 'campaignId' 'adgroupId' 'mobileIsDefaultPrice' 'word' 'maxPrice' 'matchScope' ]*/
     return dispatch => {
-        dispatch(reqPutKeyword( ))
-        return ajax({
+        dispatch( reqPutKeyword() )
+        return ajax( {
             api: '/sources/keywords',
             method: 'put',
             body: params,
@@ -404,8 +439,39 @@ export function putKeyword( params, keys ) {
                     return { needFresh, msg }
                 }
             },
-            success: ( data ) => dispatch(resPutKeyword( data ))
-        })
+            success: ( data ) => dispatch( resPutKeyword( data ) )
+        } )
+    }
+}
+
+export const reqPostKeywordMatchScope = () => {
+    return {
+        type: REQ_POST_KEYWORD_MATCHSCOPE,
+        data: {
+            isFetching: true
+        }
+    }
+}
+export const resPostKeywordMatchScope = ( data ) => {
+    notify( '设置成功' )
+    return {
+        type: RES_POST_KEYWORD_MATCHSCOPE,
+        data: {
+            isFetching: false
+        },
+        mergeItems: data
+    }
+}
+export function postKeywordMatchScope( params ) {
+    let body = isArray( params ) ? params : [ params ]
+    return dispatch => {
+        dispatch( reqPostKeywordMatchScope() )
+        return ajax( {
+            api: '/sources/keywords/batchUpdateMatchScope',
+            method: 'post',
+            body: body,
+            success: () => dispatch( resPostKeywordMatchScope( body ) )
+        } )
     }
 }
 
@@ -423,8 +489,9 @@ export default function keywordReducer( state = defaultState, action ) {
         case RES_KEYWORD_SEPARATE:
         case KEYWORD_TABLE_CHANGE:
         case REQ_POST_KEYWORD:
+        case REQ_POST_KEYWORD_SETTING:
+        case REQ_POST_KEYWORD_MATCHSCOPE:
         case REQ_DEL_KEYWORD:
-        case RES_DEL_KEYWORD:
         case REQ_PUT_KEYWORD:
         case RES_PUT_KEYWORD:
             return {
@@ -438,10 +505,12 @@ export default function keywordReducer( state = defaultState, action ) {
                 keywords: difference( state.keywords, action.deletedItems )
             }
         case RES_POST_KEYWORD:
+        case RES_POST_KEYWORD_SETTING:
+        case RES_POST_KEYWORD_MATCHSCOPE:
             let keywordMap = state.keywordMap;
-            action.mergeItems.forEach(o => {
+            action.mergeItems.forEach( o => {
                 Object.assign( keywordMap[o.keywordId], o )
-            });
+            } );
             return {
                 ...state,
                 ...action.data,
