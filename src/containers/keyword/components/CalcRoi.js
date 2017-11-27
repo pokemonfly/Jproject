@@ -30,12 +30,15 @@ export class CalcRoiDialog extends React.Component {
         let r = true
         this.props.form.validateFields( ['price'], ( err ) => {
             r = !err
+            if ( r ) {
+                this.calc()
+            }
         } )
         return r;
     }
     calc = () => {
         this.props.form.validateFields( ( err, formObj ) => {
-            if ( !err ) {
+            if ( !err && formObj.profit ) {
                 let st = {
                     price: +formObj.price,
                     profit: +formObj.profit
@@ -75,12 +78,12 @@ export class CalcRoiDialog extends React.Component {
                 span: 6
             },
             wrapperCol: {
-                span: 8
+                span: 6
             }
         };
         const formTailLayout = {
             wrapperCol: {
-                span: 8,
+                span: 6,
                 offset: 6
             }
         };
