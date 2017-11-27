@@ -1,5 +1,5 @@
 // 覆盖组件
-module.exports = ( ) => {
+module.exports = () => {
     return {
         // Colors
         'primary-color': '#51b95b',
@@ -28,6 +28,7 @@ module.exports = ( ) => {
         // Border color
         "border-color": "#cccccc",
         "border-color-base": "#cccccc",
+        "border-color-light": "#e3e3e3",
         // avatar
         'avatar-size-lg': '60px',
         'avatar-size-base': '30px',

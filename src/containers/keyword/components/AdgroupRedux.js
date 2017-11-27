@@ -36,7 +36,7 @@ export const RES_ADGROUPS_PROFIT = 'RES_ADGROUPS_PROFIT'
 export const REQ_POST_ADGROUPS_PROFIT = 'REQ_POST_ADGROUPS_PROFIT'
 export const RES_POST_ADGROUPS_PROFIT = 'RES_POST_ADGROUPS_PROFIT'
 
-export const reqAdgroupsProfiles = ( ) => {
+export const reqAdgroupsProfiles = () => {
     return {
         type: REQ_ADGROUPS_PROFILES,
         data: {
@@ -55,11 +55,11 @@ export const resAdgroupsProfiles = ( data ) => {
 }
 export function fetchAdgroupsProfiles( params ) {
     return dispatch => {
-        dispatch(reqAdgroupsProfiles( ))
+        dispatch( reqAdgroupsProfiles() )
         const time = params.fromDate + '-' + params.toDate;
-        return ajax({
+        return ajax( {
             api: `/sources/ddgroups/${ params.adgroupId }/profiles`,
-            body: pick(params, [ 'campaignId', 'adgroupId', 'fromDate', 'toDate' ]),
+            body: pick( params, [ 'campaignId', 'adgroupId', 'fromDate', 'toDate' ] ),
             format: json => {
                 const { adgroupProfiles, platform } = json.data;
                 const { adgroup, item } = adgroupProfiles.adgroupItem
@@ -109,14 +109,14 @@ export function fetchAdgroupsProfiles( params ) {
                 }
             },
             success: data => {
-                dispatch(resAdgroupsProfiles( data ))
+                dispatch( resAdgroupsProfiles( data ) )
             }
-        })
+        } )
     }
 }
 
 // 修改宝贝状态
-export const reqPostAdgroups = ( ) => {
+export const reqPostAdgroups = () => {
     return {
         type: REQ_POST_ADGROUPS,
         data: {
@@ -145,20 +145,20 @@ const transMap = {
 export function postAdgroupsStatus( params ) {
     let body = isArray( params ) ? params : [ params ]
     return dispatch => {
-        dispatch(reqPostAdgroups( ));
-        return ajax({
+        dispatch( reqPostAdgroups() );
+        return ajax( {
             api: `/sources/ddgroups`,
             method: 'post',
             body: body,
             format: json => {
                 // 先按照只会修改一条处理   返回的结构可能不一致  容错
-                if (getFromObj(json, [ 'data', 'result', params.adgroupId ]) === true || ( !json.data && json.success )) {
+                if ( getFromObj( json, [ 'data', 'result', params.adgroupId ] ) === true || ( !json.data && json.success ) ) {
                     let c = {}
-                    mapKeys(transMap, ( val, key ) => {
+                    mapKeys( transMap, ( val, key ) => {
                         if ( key in params ) {
-                            c[val] = +params[key]
+                            c[ val ] = +params[ key ]
                         }
-                    })
+                    } )
                     return {
                         ...params,
                         ...c
@@ -167,12 +167,12 @@ export function postAdgroupsStatus( params ) {
                     return null
                 }
             },
-            success: data => dispatch(resPostAdgroups( data ))
-        })
+            success: data => dispatch( resPostAdgroups( data ) )
+        } )
     }
 }
 
-export const reqPostAdgroupsOptimization = ( ) => {
+export const reqPostAdgroupsOptimization = () => {
     return {
         type: REQ_POST_ADGROUPS_OPTIMIZATION,
         data: {
@@ -192,8 +192,8 @@ export const resPostAdgroupsOptimization = ( data ) => {
 }
 export function postAdgroupsOptimization( params ) {
     return dispatch => {
-        dispatch(reqPostAdgroupsOptimization( ));
-        return ajax({
+        dispatch( reqPostAdgroupsOptimization() );
+        return ajax( {
             api: `/sources/optimizationSettings/ddgroup/submit`,
             method: 'post',
             body: params,
@@ -204,12 +204,12 @@ export function postAdgroupsOptimization( params ) {
                     return null
                 }
             },
-            success: data => dispatch(resPostAdgroupsOptimization( data ))
-        })
+            success: data => dispatch( resPostAdgroupsOptimization( data ) )
+        } )
     }
 }
 
-export const reqBlackword = ( ) => {
+export const reqBlackword = () => {
     return {
         type: REQ_BLACKWORD,
         data: {
@@ -229,10 +229,10 @@ export const resBlackword = ( data ) => {
 // matchPattern = 0 为 不再投放词  （默认不传
 export function fetchBlackword( params ) {
     return dispatch => {
-        dispatch(reqBlackword( ));
-        return ajax({
+        dispatch( reqBlackword() );
+        return ajax( {
             api: `/sources/blackKeywords`,
-            body: pick(params, [ 'campaignId', 'adgroupId', 'matchPattern' ]),
+            body: pick( params, [ 'campaignId', 'adgroupId', 'matchPattern' ] ),
             format: json => {
                 const words = json.data.blackKeywords,
                     isNever = 'matchPattern' in params;
@@ -241,15 +241,15 @@ export function fetchBlackword( params ) {
                         [isNever ? 'neverlist' : 'blacklist']: words.map( obj => obj.word )
                     }
                 } else {
-                    return [ ]
+                    return []
                 }
             },
-            success: data => dispatch(resBlackword( data ))
-        })
+            success: data => dispatch( resBlackword( data ) )
+        } )
     }
 }
 
-export const reqPostBlackword = ( ) => {
+export const reqPostBlackword = () => {
     return {
         type: REQ_POST_BLACKWORD,
         data: {
@@ -268,8 +268,8 @@ export const resPostBlackword = ( data ) => {
 }
 export function postBlackword( params, cb ) {
     return dispatch => {
-        dispatch(reqPostBlackword( ));
-        return ajax({
+        dispatch( reqPostBlackword() );
+        return ajax( {
             api: `/sources/blackKeywords`,
             method: 'post',
             body: params,
@@ -281,14 +281,14 @@ export function postBlackword( params, cb ) {
                 }
             },
             success: data => {
-                dispatch(resPostBlackword( data ))
-                cb && cb( )
+                dispatch( resPostBlackword( data ) )
+                cb && cb()
             }
-        })
+        } )
     }
 }
 
-export const reqDelNeverword = ( ) => {
+export const reqDelNeverword = () => {
     return {
         type: REQ_DEL_NEVERWORD,
         data: {
@@ -307,27 +307,27 @@ export const resDelNeverword = ( data ) => {
 }
 export function delNeverword( params, cb ) {
     return dispatch => {
-        dispatch(reqDelNeverword( ));
-        return ajax({
+        dispatch( reqDelNeverword() );
+        return ajax( {
             api: `/sources/blackKeywords/neverPutKeywords`,
             method: 'delete',
             body: params,
             format: json => {
                 if ( json.success ) {
-                    return {neverlist: [ ]}
+                    return { neverlist: [] }
                 } else {
-                    return { }
+                    return {}
                 }
             },
             success: data => {
-                dispatch(resDelNeverword( data ))
-                cb && cb( )
+                dispatch( resDelNeverword( data ) )
+                cb && cb()
             }
-        })
+        } )
     }
 }
 
-export const reqSellwords = ( ) => {
+export const reqSellwords = () => {
     return {
         type: REQ_SELLWORDS,
         data: {
@@ -346,10 +346,10 @@ export const resSellwords = ( data ) => {
 }
 export function fetchSellwords( params ) {
     return dispatch => {
-        dispatch(reqSellwords( ));
-        return ajax({
+        dispatch( reqSellwords() );
+        return ajax( {
             api: `/sources/extensionKeywords`,
-            body: pick(params, [ 'campaignId', 'adgroupId' ]),
+            body: pick( params, [ 'campaignId', 'adgroupId' ] ),
             format: json => {
                 const obj = json.data.extensionKeywords
                 if ( obj ) {
@@ -358,15 +358,15 @@ export function fetchSellwords( params ) {
                         onlyGenerate: json.data.isOptimizeExtensionword
                     }
                 } else {
-                    return { }
+                    return {}
                 }
             },
-            success: data => dispatch(resSellwords( data ))
-        })
+            success: data => dispatch( resSellwords( data ) )
+        } )
     }
 }
 
-export const reqPutSellwords = ( ) => {
+export const reqPutSellwords = () => {
     return {
         type: REQ_PUT_SELLWORDS,
         data: {
@@ -387,31 +387,31 @@ export const resPutSellwords = ( data ) => {
 export function putSellwords( params ) {
     //  scope /单个（广告组级别）：传2 / 批量（计划级别）：传1
     return dispatch => {
-        dispatch(reqPutSellwords( ));
-        return ajax({
+        dispatch( reqPutSellwords() );
+        return ajax( {
             api: `/sources/extensionKeywords/new`,
             method: 'put',
-            body: pick(params, [
+            body: pick( params, [
                 'campaignId',
                 'adgroupId',
                 'word',
                 'isOverWrite',
                 'onlyGenerateExtend',
                 'scope'
-            ]),
+            ] ),
             format: json => {
                 if ( json.success ) {
                     return { sellwordsList: params.word, onlyGenerate: params.onlyGenerateExtend }
                 } else {
-                    return { }
+                    return {}
                 }
             },
-            success: data => dispatch(resPutSellwords( data ))
-        })
+            success: data => dispatch( resPutSellwords( data ) )
+        } )
     }
 }
 
-export const reqAdgroupsRealTime = ( ) => {
+export const reqAdgroupsRealTime = () => {
     return {
         type: REQ_ADGROUPS_REALTIME,
         data: {
@@ -430,24 +430,24 @@ export const resAdgroupsRealTime = ( data ) => {
 }
 export function fetchAdgroupsRealTime( params ) {
     return dispatch => {
-        dispatch(reqAdgroupsRealTime( ))
-        return ajax({
+        dispatch( reqAdgroupsRealTime() )
+        return ajax( {
             api: `/sources/reports/ddgroup/realTime/api/single`,
-            body: pick(params, [ 'adgroupId', 'campaignId' ]),
+            body: pick( params, [ 'adgroupId', 'campaignId' ] ),
             format: json => {
                 const key = params.fromDate + '-' + params.toDate
                 if ( json.success ) {
                     return { realTime: json.data.reports }
                 } else {
-                    return { };
+                    return {};
                 }
             },
-            success: data => dispatch(resAdgroupsRealTime( data ))
-        })
+            success: data => dispatch( resAdgroupsRealTime( data ) )
+        } )
     }
 }
 
-export const reqAdgroupsProfit = ( ) => {
+export const reqAdgroupsProfit = () => {
     return {
         type: REQ_ADGROUPS_PROFIT,
         data: {
@@ -466,21 +466,21 @@ export const resAdgroupsProfit = ( data ) => {
 }
 export function fetchAdgroupsProfit( params ) {
     return dispatch => {
-        dispatch(reqAdgroupsProfit( ));
-        return ajax({
+        dispatch( reqAdgroupsProfit() );
+        return ajax( {
             api: `/sources/adgroups/${ params.adgroupId }/realRoi`,
             format: json => {
                 const { realRoi } = json.data
                 return {
-                    itemProfit: realRoi ? realRoi.itemProfit : null,
-                    itemPrice: realRoi ? realRoi.itemPrice : null
+                    itemProfit: realRoi ? realRoi.itemProfit: null,
+                    itemPrice: realRoi ? realRoi.itemPrice: null
                 }
             },
-            success: data => dispatch(resAdgroupsProfit( data ))
-        })
+            success: data => dispatch( resAdgroupsProfit( data ) )
+        } )
     }
 }
-export const reqPostAdgroupsProfit = ( ) => {
+export const reqPostAdgroupsProfit = () => {
     return {
         type: REQ_POST_ADGROUPS_PROFIT,
         data: {
@@ -492,22 +492,23 @@ export const resPostAdgroupsProfit = ( itemProfit ) => {
     return {
         type: RES_POST_ADGROUPS_PROFIT,
         data: {
-            itemProfit,
+            ...itemProfit,
             isFetching: false
         }
     }
 }
 export function postAdgroupsProfit( params ) {
     return dispatch => {
-        dispatch(reqPostAdgroupsProfit( ));
-        return ajax({
+        dispatch( reqPostAdgroupsProfit() );
+        return ajax( {
             api: `/sources/adgroups/realRoi`,
-            body: pick(params, [ 'campaignId', 'adgroupId', 'itemId', 'itemPrice', 'itemProfit' ]),
+            method: 'post',
+            body: pick( params, [ 'campaignId', 'adgroupId', 'itemId', 'itemPrice', 'itemProfit' ] ),
             format: json => {
-                return pick(params, [ 'itemPrice', 'itemProfit' ])
+                return pick( params, [ 'itemPrice', 'itemProfit' ] )
             },
-            success: data => dispatch(resPostAdgroupsProfit( data ))
-        })
+            success: data => dispatch( resPostAdgroupsProfit( data ) )
+        } )
     }
 }
 

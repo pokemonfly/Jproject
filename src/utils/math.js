@@ -4,9 +4,12 @@ import math from 'mathjs';
 
 export function add( val1, val2 ) {
     let r = math.add( val1, val2 );
-    return + math.format(r, { precision: 14 });
+    return + math.format( r, { precision: 14 } );
 }
 export function divide( val1, val2 ) {
+    if ( !val1 || !val2 ) {
+        return 0;
+    }
     let r = math.divide( val1, val2 );
-    return + math.format(r, { precision: 14 });
+    return + math.format( r, { precision: 14 } );
 }

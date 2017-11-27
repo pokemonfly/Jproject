@@ -32,4 +32,34 @@ http://lodashjs.com/docs/
 ## prettydiff配置
 https://github.com/Glavin001/atom-beautify/blob/master/src/beautifiers/prettydiff.coffee
 
-## PureComponent 
+## PureComponent
+
+## 校验
+getFieldDecorator( 'profit', {
+    initialValue: profit,
+    validateFirst: true,
+    validateTrigger: 'onBlur',
+    rules: [
+        {
+            required: true,
+            message: '请输入商品利润'
+        }, {
+            type: "number",
+            min: 0.01,
+            transform: v => +v,
+            range: true,
+            message: '请输入正确的商品利润'
+        }
+    ]
+} )( <Input addonAfter="元"/> )
+
+=====or ===========
+ rules: [{ validator: this.checkPrice }],
+
+ checkPrice = (rule, value, callback) => {
+    if (value.number > 0) {
+      callback();
+      return;
+    }
+    callback('Price must greater than zero!');
+  }

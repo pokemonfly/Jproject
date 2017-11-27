@@ -1,0 +1,57 @@
+.calc-roi {
+    .ant-alert {
+        margin-bottom: 12px;
+    }
+    .row-descri {
+        display: inline-block;
+        width  : 120px;
+    }
+    .result-tag {
+        font-size    : 12px;
+        padding      : 2px 4px;
+        line-height  : 12px;
+        margin-left  : 20px;
+        border-radius: 3px;
+        &.good {
+            border: 1px solid @success-color;
+            color : @success-color;
+        }
+        &.bad {
+            border: 1px solid @error-color;
+            color : @error-color;
+        }
+    }
+    .opt-tag {
+        background   : @border-color-light;
+        padding      : 4px 10px;
+        border       : 1px solid @border-color-light;
+        border-radius: 3px;
+        color        : @text-color-lighter;
+        margin-right : 4px;
+    }
+    .opt-link {
+        color          : @error-color;
+        border         : 1px solid @error-color;
+        margin-left    : 20px;
+        position       : relative;
+        text-decoration: inherit;
+        padding        : 0 5px 0 15px;
+        display        : inline-block;
+        height         : 22px;
+        margin-top     : -2px;
+        vertical-align : middle;
+        line-height    : 20px;
+        border-radius  : 3px;
+        &:before {
+            content        : '';
+            background     : url("../../../static/images/wangwangColor.png");
+            display        : inline-block;
+            width          : 30px;
+            height         : 30px;
+            background-size: contain;
+            top            : -6px;
+            left           : -15px;
+            position       : absolute;
+        }
+    }
+}
