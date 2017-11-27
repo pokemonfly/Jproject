@@ -1,6 +1,7 @@
 import React from 'react';
 import { Input, Icon as AntdIcon } from 'antd'
 import Icon from '@/containers/shared/Icon'
+import './EditableText.less';
 
 export default class EditableText extends React.Component {
     state = {
@@ -8,62 +9,61 @@ export default class EditableText extends React.Component {
         editable: false
     }
     componentWillReceiveProps( nextProps ) {
-        this.setState({
+        this.setState( {
             value: nextProps.value || ''
-        })
+        } )
+    }
+    getValue = () => {
+        return this.state.value
     }
     onChange = ( e ) => {
         const value = e.target.value;
-        this.setState({ value });
+        this.setState( {
+            value
+        }, () => {
+            // 触发父元素的检查
+            if ( this.props.onChange ) {
+                this.props.onChange( this.state.value );
+            }
+        } );
     }
-    check = ( ) => {
+    check = () => {
         let r = true;
-        if ( this.props.onChange ) {
-            r = this.props.onChange( this.state.valueue );
+        if ( this.props.onCommit ) {
+            r = this.props.onCommit( this.state.value );
         }
         if ( r !== false ) {
-            this.setState({ editable: false });
+            this.setState( { editable: false, lastValue: this.state.value } );
         }
     }
-    cancel = ( ) => {
-        this.setState({
+    cancel = () => {
+        this.setState( {
             editable: false,
-            value: this.props.value || ''
-        });
+            value: this.state.lastValue || this.props.value || ''
+        }, () => {
+            // 触发父元素的检查
+            if ( this.props.onChange ) {
+                this.props.onChange( this.state.value );
+            }
+        } );
     }
-    edit = ( ) => {
-        this.setState({ editable: true });
+    edit = () => {
+        this.setState( { editable: true, lastValue: this.state.value } );
     }
-    render( ) {
+    render() {
         const { editable, value } = this.state
         const { width } = this.props
-        return editable ? (
-            <span>
-                <Input value={value} onChange={this.onChange} style={{
+        return editable ? ( <span className="editable-text">
+            <Input value={value} onChange={this.onChange} style={{
                     width: width - 10
                 }}/>
-                <AntdIcon
-                    type="check"
-                    className="editable-cell-icon-check"
-                    onClick={this.check}
-                    style={{
-                    marginLeft: 3
-                }}/>
-                <AntdIcon
-                    type="close"
-                    className="editable-cell-icon-check"
-                    onClick={this.cancel}
-                    style={{
-                    marginLeft: 3
-                }}/>
-            </span>
-        ) : (
-            <span style={{
+            <AntdIcon type="check" className="editable-cell-icon-check check" onClick={this.check}/>
+            <AntdIcon type="close" className="editable-cell-icon-check close" onClick={this.cancel}/>
+        </span> ) : ( <span style={{
                 width: width
-            }}>
-                {value.toString( )}
-                <Icon type="xiugaibi" className="edit-icon" onClick={this.edit}/>
-            </span>
-        )
+            }} className="editable-text">
+            {value.toString()}
+            <Icon type="xiugaibi" className="edit-icon" onClick={this.edit}/>
+        </span> )
     }
 }
