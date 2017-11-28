@@ -1,20 +1,50 @@
 .one-key-optimize {
     .select {
         display: inline-block;
-        width: 80px;
+        width  : 80px;
+        margin: 0 8px;
     }
     .radio-group {
         width: 100%;
     }
     .sub-text {
-        color: @text-color-lighter;
+        color : @text-color-lighter;
         margin: 0 8px;
     }
-    > * , > .ant-radio-group > *{
-        margin-bottom: 12px
+    > *,
+    > .ant-radio-group > * {
+        margin-bottom: 12px;
     }
     .iconfont:not(.icon-wenhao) {
-        color: @primary-color;
+        color       : @primary-color;
         margin-right: 4px;
+    }
+    .icon-wenhao {
+        color: @text-color-lighter;
+    }
+    .rule-sw {
+        float : right;
+        color : @primary-color;
+        cursor: pointer;
+    }
+    .detail-setting {
+        padding: 12px 22px 0;
+        .mgl {
+            margin-left: 16px;
+        }
+        .wna-tag {
+            width  : 100px;
+            display: inline-block;
+        }
+        .spe-tag {
+            width  : 70px;
+            display: inline-block;
+        }
+    }
+    .detail-setting,
+    .detail-setting-sw {
+        & > *:not(:last-child) {
+            margin-bottom: 12px;
+        }
     }
 }

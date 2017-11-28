@@ -6,7 +6,7 @@ import { pick } from 'lodash'
 export const REQ_POST_ONEKEYOPTIMIZATIONS = 'REQ_POST_ONEKEYOPTIMIZATIONS'
 export const RES_POST_ONEKEYOPTIMIZATIONS = 'RES_POST_ONEKEYOPTIMIZATIONS'
 
-export const reqPostOneKeyOptimizations = ( ) => {
+export const reqPostOneKeyOptimizations = () => {
     return {
         type: REQ_POST_ONEKEYOPTIMIZATIONS,
         data: {
@@ -15,6 +15,7 @@ export const reqPostOneKeyOptimizations = ( ) => {
     }
 }
 export const resPostOneKeyOptimizations = ( data ) => {
+    notify( '一键优化提交成功' );
     return {
         type: RES_POST_ONEKEYOPTIMIZATIONS,
         data: {
@@ -37,16 +38,16 @@ export const resPostOneKeyOptimizations = ( data ) => {
 */
 export function postOneKeyOptimizations( params ) {
     return dispatch => {
-        dispatch(reqPostOneKeyOptimizations( ));
-        return ajax({
+        dispatch( reqPostOneKeyOptimizations() );
+        return ajax( {
             api: `/sources/cusService/oneKeyOptimizations`,
             method: 'post',
             body: params,
             format: json => {
                 return json
             },
-            success: data => dispatch(resPostOneKeyOptimizations( data ))
-        })
+            success: data => dispatch( resPostOneKeyOptimizations( data ) )
+        } )
     }
 }
 

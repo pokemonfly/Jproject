@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { omit } from 'lodash'
 import './Icon.less'
 
+// TODO SVG 支持
 const Icon = ( props ) => {
     const {
         type,
