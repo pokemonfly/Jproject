@@ -7,6 +7,11 @@
 import React, {Component} from 'react';
 import {Breadcrumb, Menu, Dropdown, Icon} from 'antd';
 import {Link} from 'react-router'
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux'
+
+import {fetchCampaignList} from '../Campaign/CampaignRedux'
+import {fetchEngineList} from '../Engine/EngineRedux'
 
 import "./Breadcrumb.less"
 
@@ -58,7 +63,19 @@ function itemRender(route, params, routes, paths) {
     return last ? <span>{route.title}</span> : <Link to={paths.join('/')}>{route.title}</Link>
 }
 
+
+@connect(state => ({
+    campagin: state.campagin,
+    engine: state.engine
+}),dispatch => (bindActionCreators({
+    fetchCampaignList,
+    fetchEngineList
+}, dispatch)))
 export default class BreadcrumbEX extends React.Component {
+    componentDidMount() {
+        this.props.fetchCampaignList()
+        this.props.fetchEngineList()
+    }
     render() {
         return (
             <Breadcrumb className="breadcrumb">

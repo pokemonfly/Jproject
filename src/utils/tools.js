@@ -173,3 +173,21 @@ export function counter( num, finishCb ) {
 export function encodeHTML( source ) {
     return String( source ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' ).replace( /'/g, '&#39;' );
 }
+
+/**
+ * 找到数组中key对应的value的index
+ * @param arr
+ * @param key
+ * @param value
+ * @returns {number}
+ */
+export function findIndex(arr = [], key, value) {
+    var i = -1;
+    for (let n = 0; n < arr.length; n++) {
+        if (arr[n][key] === value) {
+            i = n
+            break
+        }
+    }
+    return i
+}

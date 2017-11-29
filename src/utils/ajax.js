@@ -1,17 +1,18 @@
 import fetch from 'isomorphic-fetch'
 
-function toQueryString( paramsObject ) {
-    return Object.keys( paramsObject ).map( key => `${ encodeURIComponent( key ) }=${ encodeURIComponent(paramsObject[key]) }` ).join( '&' );
+function toQueryString(paramsObject) {
+    return Object.keys(paramsObject).map(key => `${ encodeURIComponent(key) }=${ encodeURIComponent(paramsObject[key]) }`).join('&');
 }
+
 // 简单封装下共通处理的ajax
-export default({
-    api,
-    success,
-    error,
-    format,
-    method = 'GET',
-    body
-}) => {
+export default ({
+                    api,
+                    success,
+                    error,
+                    format,
+                    method = 'GET',
+                    body
+                }) => {
     let cfg = {
         method,
         credentials: 'include',
@@ -21,20 +22,20 @@ export default({
             'Accept': 'application/json'
         }
     };
-    if ( body ) {
-        if ( cfg.method == 'GET' ) {
-            api += '?' + toQueryString( body )
+    if (body) {
+        if (cfg.method == 'GET') {
+            api += '?' + toQueryString(body)
         } else {
-            cfg.body = JSON.stringify( body )
+            cfg.body = JSON.stringify(body)
         }
     }
-    return fetch( api, cfg ).then(response => response.json( )).then(json => {
-        if ( json.success ) {
+    return fetch(api, cfg).then(response => response.json()).then(json => {
+        if (json.success) {
             return json
         } else {
             throw json
         }
     }).then(format || (json => {
         return json
-    })).then( success ).catch(error || (err => console.error( err )))
+    })).then(success).catch(error || (err => console.error(err)))
 }
