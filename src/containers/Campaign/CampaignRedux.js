@@ -23,26 +23,28 @@ const MANDATE_STATUS_DEFAULT = {
 
 
 export default function campaignReducer(state = {data: []}, action) {
-    let campaignId = action.data.campaignId, index
+    let campaignId, index
     switch (action.type) {
         case REQ_GET_CAMPAIGN_LIST:
-            break;
         case RES_GET_CAMPAIGN_LIST:
             return {
                 ...state,
                 ...action.data
             }
         case UPDATE_CAMPAIGN_BUDGET:
+            campaignId = action.data.campaignId
             index = findIndex(state.data, 'campaignId', campaignId)
             Object.assign({}, state.data[index], {
                 budget: action.budget
             })
             return Object.assign({}, state)
         case CLOSE_CAMPAIGN_OPTIMIZATION:
+            campaignId = action.data.campaignId
             index = findIndex(state.data, 'campaignId', campaignId)
             Object.assign(state.data[index], MANDATE_STATUS_DEFAULT)
             return Object.assign({}, state)
         case UPDATE_CAMPAIGN_TITLE:
+            campaignId = action.data.campaignId
             index = findIndex(state.data, 'campaignId', campaignId)
             Object.assign(state.data[index], {
                 title: action.title

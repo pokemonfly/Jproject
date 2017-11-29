@@ -18,14 +18,13 @@ const AUTO_ENGINE_ING = {
     typeName: '托管中'
 }
 
-
 const REQ_ENGINE_LIST = 'REQ_ENGINE_LIST'
 const RES_ENGINE_LIST = 'RES_ENGINE_LIST'
 const DELETE_ENGINE = 'DELETE_ENGINE'   // 取消一个引擎
 const ADD_AUTO_ENGINE = 'ADD_AUTO_ENGINE'   // 添加一个引擎
 
 export default function engineReducer(state = {data: []}, action) {
-    let engineNo = action.data.engineNo, index
+    let engineNo, index
     switch (action.type) {
         case REQ_ENGINE_LIST:
             return state
@@ -35,10 +34,12 @@ export default function engineReducer(state = {data: []}, action) {
                 ...action.data
             }
         case DELETE_ENGINE:
+            engineNo = action.data.engineNo
             index = findIndex(state.data, 'engineNo', engineNo)
             Object.assign(state.data[index], ENGINE_DEFAULT)
             return Object.assign({}, state)
         case ADD_AUTO_ENGINE:
+            engineNo = action.data.engineNo
             index = findIndex(state.data, 'engineNo', engineNo)
             state.data[index] = Object.assign({}, AUTO_ENGINE_ING, {engineNo: engineNo})
             return Object.assign({}, state)

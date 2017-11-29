@@ -41,7 +41,6 @@ export default class MenuEX extends React.Component {
 
     render() {
         let {user, menu, manual, campaignMap, engine} = this.props;
-        console.warn(this.props)
         let mode = this.props.sider.collapsed ?
             'vertical' :
             "inline";

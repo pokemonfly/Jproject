@@ -66,15 +66,12 @@ function itemRender(route, params, routes, paths) {
 
 @connect(state => ({
     campagin: state.campagin,
-    engine: state.engine
 }),dispatch => (bindActionCreators({
     fetchCampaignList,
-    fetchEngineList
 }, dispatch)))
 export default class BreadcrumbEX extends React.Component {
     componentDidMount() {
         this.props.fetchCampaignList()
-        this.props.fetchEngineList()
     }
     render() {
         return (

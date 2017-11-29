@@ -97,6 +97,7 @@
     "immutable": "^3.8.1",
     "invariant": "^2.2.2",
     "ip": "^1.1.2",
+    "jquery": "^3.2.1",
     "less": "~2.7.2",
     "less-loader": "~2.2.3",
     "less-plugin-npm-import": "^2.1.0",
