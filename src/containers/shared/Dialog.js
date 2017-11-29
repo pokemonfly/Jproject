@@ -11,7 +11,7 @@ import {
 let _cache = {}
 
 // 组件弹窗化 并显示
-export function SimpleDialog({
+export function SimpleDialog( {
     wrapClassName = '',
     maskClosable = true,
     width = 320,
@@ -20,60 +20,60 @@ export function SimpleDialog({
     hasForm = false,
     sid = null,
     single = true,
-    footer
-}) {
-    return ( WrappedComponent ) => {
-        return ( props ) => {
+    noFooter = false
+} ) {
+    return( WrappedComponent ) => {
+        return( props ) => {
             // 防止重复弹窗
-            if (sid && single && _cache[sid]) {
+            if ( sid && single && _cache[ sid ] ) {
                 return
             }
             // 追加DOM
             let div = document.createElement( 'div' );
             document.body.appendChild( div );
-            _cache[sid] = div
+            _cache[ sid ] = div
 
-            function remove( ) {
+            function remove() {
                 const unmountResult = ReactDOM.unmountComponentAtNode( div );
                 if ( unmountResult && div.parentNode ) {
                     div.parentNode.removeChild( div );
                 }
-                if (_cache[sid]) {
-                    delete _cache[sid]
+                if ( _cache[ sid ] ) {
+                    delete _cache[ sid ]
                 }
             }
 
             class HOC extends React.Component {
-                componentDidMount( ) {
+                componentDidMount() {
                     // https://github.com/ant-design/ant-design/pull/2992  很绝望
                     this.wc = hasForm ? this.refs.wc.refs.wrappedComponent.refs.formWrappedComponent : this.refs.wc
                 }
-                close = ( ) => {
-                    this.wc.closeCallback && this.wc.closeCallback( );
-                    remove( )
+                close = () => {
+                    this.wc.closeCallback && this.wc.closeCallback();
+                    remove()
                 }
-                ok = ( ) => {
+                ok = () => {
                     let r = true;
-                    this.wc.okCallback && (r = this.wc.okCallback( remove ));
+                    this.wc.okCallback && ( r = this.wc.okCallback( remove ) );
                     if ( r ) {
-                        remove( )
+                        remove()
                     }
                 }
-                render( ) {
-                    return (
-                        <Modal
-                            onCancel={this.close}
-                            onOk={this.ok}
-                            visible
-                            wrapClassName={wrapClassName}
-                            title={title}
-                            footer={footer}
-                            maskClosable={maskClosable}
-                            width={width}
-                            zIndex={zIndex}>
-                            <WrappedComponent {...props} ref="wc"/>
-                        </Modal>
-                    )
+                render() {
+                    let p = {
+                        visible: true,
+                        width,
+                        maskClosable,
+                        title,
+                        wrapClassName,
+                        zIndex
+                    }
+                    if ( noFooter ) {
+                        p.footer = null
+                    }
+                    return ( <Modal onCancel={this.close} onOk={this.ok} {... p}>
+                        <WrappedComponent {...props} ref="wc"/>
+                    </Modal> )
                 }
             }
             ReactDOM.render( ( <HOC/> ), div );
@@ -81,7 +81,7 @@ export function SimpleDialog({
     }
 }
 
-export function Dialog({
+export function Dialog( {
     wrapClassName = '',
     maskClosable = true,
     width = 320,
@@ -91,51 +91,49 @@ export function Dialog({
     hasConnect = true,
     sid = null,
     single = true
-}) {
-    return ( WrappedComponent ) => {
+} ) {
+    return( WrappedComponent ) => {
         return class HOC extends React.Component {
             state = {
                 visible: false
             }
-            close = ( ) => {
-                let rf = this.refs.wc.getWrappedInstance( );
+            close = () => {
+                let rf = this.refs.wc.getWrappedInstance();
                 if ( hasForm ) {
                     rf = rf.refs.wrappedComponent.refs.formWrappedComponent
                 }
-                rf.closeCallback && rf.closeCallback( );
-                this.hide( )
+                rf.closeCallback && rf.closeCallback();
+                this.hide()
             }
-            ok = ( ) => {
+            ok = () => {
                 let r = true;
-                let rf = this.refs.wc.getWrappedInstance( );
+                let rf = this.refs.wc.getWrappedInstance();
                 if ( hasForm ) {
                     rf = rf.refs.wrappedComponent.refs.formWrappedComponent
                 }
-                rf.okCallback && (r = rf.okCallback( this.hide ));
+                rf.okCallback && ( r = rf.okCallback( this.hide ) );
                 if ( r ) {
-                    this.hide( )
+                    this.hide()
                 }
             }
-            show = ( ) => {
-                this.setState({ visible: true })
+            show = () => {
+                this.setState( { visible: true } )
             }
-            hide = ( ) => {
-                this.setState({ visible: false })
+            hide = () => {
+                this.setState( { visible: false } )
             }
-            render( ) {
-                return (
-                    <Modal
-                        onCancel={this.close}
-                        onOk={this.ok}
-                        visible={this.state.visible}
-                        wrapClassName={wrapClassName}
-                        title={title}
-                        maskClosable={maskClosable}
-                        width={width}
-                        zIndex={zIndex}>
-                        <WrappedComponent {...this.props} ref="wc"/>
-                    </Modal>
-                )
+            render() {
+                return ( <Modal
+                    onCancel={this.close}
+                    onOk={this.ok}
+                    visible={this.state.visible}
+                    wrapClassName={wrapClassName}
+                    title={title}
+                    maskClosable={maskClosable}
+                    width={width}
+                    zIndex={zIndex}>
+                    <WrappedComponent {...this.props} ref="wc"/>
+                </Modal> )
             }
         }
     }

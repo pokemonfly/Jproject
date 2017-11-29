@@ -1,6 +1,6 @@
 import ajax from '@/utils/ajax'
 import { formatReport, notify } from '@/utils/tools'
-import { pick, get as getFromObj, isArray, mapKeys } from 'lodash'
+import { pick, get as getFromObj, isArray, mapKeys, merge } from 'lodash'
 
 // 关键词列表
 export const REQ_ADGROUPS_PROFILES = 'REQ_ADGROUPS_PROFILES'
@@ -128,10 +128,8 @@ export const resPostAdgroups = ( data ) => {
     notify( '设置成功' )
     return {
         type: RES_POST_ADGROUPS,
-        adgroup: {
-            ...data
-        },
         data: {
+            ...data,
             isPosting: false
         }
     }
@@ -184,8 +182,8 @@ export const resPostAdgroupsOptimization = ( data ) => {
     notify( '设置成功' )
     return {
         type: RES_POST_ADGROUPS_OPTIMIZATION,
-        ...data,
         data: {
+            ...data,
             isPosting: false
         }
     }
@@ -423,7 +421,9 @@ export const resAdgroupsRealTime = ( data ) => {
     return {
         type: RES_ADGROUPS_REALTIME,
         data: {
-            ...data,
+            report: {
+                ...data
+            },
             isFetching: false
         }
     }
@@ -437,7 +437,7 @@ export function fetchAdgroupsRealTime( params ) {
             format: json => {
                 const key = params.fromDate + '-' + params.toDate
                 if ( json.success ) {
-                    return { realTime: json.data.reports }
+                    return { [ key ]: json.data.reports }
                 } else {
                     return {};
                 }
@@ -518,58 +518,12 @@ const defaultState = {
     report: {},
     blacklist: [],
     neverlist: [],
-    sellwordsList: [],
-    realTime: {}
+    sellwordsList: []
 }
-export default function keywordHeadReducer( state = defaultState, action ) {
-    switch ( action.type ) {
-        case REQ_ADGROUPS_PROFILES:
-        case RES_ADGROUPS_PROFILES:
-        case REQ_ADGROUPS_REALTIME:
-        case RES_ADGROUPS_REALTIME:
-        case REQ_ADGROUPS_PROFIT:
-        case RES_ADGROUPS_PROFIT:
-        case REQ_POST_ADGROUPS_PROFIT:
-        case RES_POST_ADGROUPS_PROFIT:
-            return {
-                ...state,
-                ...action.data
-            }
-        case REQ_POST_ADGROUPS:
-        case RES_POST_ADGROUPS:
-            return {
-                ...state,
-                adgroup: {
-                    ...state.adgroup,
-                    ...action.adgroup
-                },
-                ...action.data
-            }
-        case REQ_POST_ADGROUPS_OPTIMIZATION:
-        case RES_POST_ADGROUPS_OPTIMIZATION:
-            return {
-                ...state,
-                daemonSettingMap: {
-                    ...state.daemonSettingMap,
-                    ...action.daemonSettingMap
-                },
-                ...action.data
-            }
-        case REQ_BLACKWORD:
-        case RES_BLACKWORD:
-        case REQ_POST_BLACKWORD:
-        case RES_POST_BLACKWORD:
-        case REQ_DEL_NEVERWORD:
-        case RES_DEL_NEVERWORD:
-        case REQ_SELLWORDS:
-        case RES_SELLWORDS:
-        case REQ_PUT_SELLWORDS:
-        case RES_PUT_SELLWORDS:
-            return {
-                ...state,
-                ...action.data
-            }
-        default:
-            return state
+export default function AdgroupReducer( state = defaultState, action ) {
+    if ( action.data ) {
+        return merge( {}, state, action.data )
+    } else {
+        return state
     }
 }

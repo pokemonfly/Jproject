@@ -1,12 +1,14 @@
 import React from 'react';
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux';
+import classNames from 'classnames'
 import {
     Layout,
     Checkbox,
     Select,
     Tooltip,
     InputNumber,
+    Input,
     Button,
     Alert,
     Form,
@@ -22,7 +24,7 @@ import { postOneKeyOptimizations } from './OneKeyRedux'
 import './OneKeyOptimize.less'
 const Option = Select.Option;
 
-//TODO  缺少积分兑换逻辑  联动的检查 确认弹窗  后续轮询
+//TODO  缺少积分兑换逻辑  联动的检查剩一半 确认弹窗  后续轮询  优化宝贝数量达到上限
 @Dialog( { title: '一键优化', width: 800, hasForm: true, hasConnect: true } )
 @connect( state => ( { query: state.location.query } ), dispatch => ( bindActionCreators( {
     postOneKeyOptimizations
@@ -35,6 +37,15 @@ export default class OneKeyOptimize extends React.Component {
     }
     state = {
         ruleSw: false
+    }
+    componentDidUpdate() {
+        if ( this._forceCheck ) {
+            this.props.form.validateFields( { force: true } );
+            this._forceCheck = false
+        }
+    }
+    reset() {
+        this.props.form.resetFields()
     }
     onClickRuleSw = () => {
         this.setState( {
@@ -103,8 +114,10 @@ export default class OneKeyOptimize extends React.Component {
                         -1;
                         commitObj.changeMobilePriceType = formObj.wirelessChangePriceType ? 2:
                         -1;
+                        // isChangeTag 不传接口500
                         commitObj = {
                             ...commitObj,
+                            isChangeTag: false,
                             ...pick( formObj, [ 'wnaPercentage', 'isChangeTag' ] )
                         }
                         // 全网均价的上限
@@ -165,6 +178,17 @@ export default class OneKeyOptimize extends React.Component {
             }
         } )
     }
+    inputMaker( name, cfg, com ) {
+        const { getFieldError, getFieldDecorator } = this.props.form;
+        const clz = classNames( { 'has-error': getFieldError( name ) } )
+        return ( <span className={clz}>
+            {getFieldDecorator( name, cfg )( com )}
+        </span> )
+    }
+
+    forceCheck = () => {
+        this._forceCheck = true;
+    }
     render() {
         const { ruleSw } = this.state
         const { isMandate } = this.props
@@ -204,17 +228,44 @@ export default class OneKeyOptimize extends React.Component {
             <Row>
                 <Col {...colLeftCfg}>
                     {
-                        getFieldDecorator( 'del7NoImpression', { valuePropName: 'checked' } )( <Checkbox>
-                            删除 {getFieldDecorator( 'noImpressionDay', { initialValue: 7 } )( <InputNumber {...inputDayCfg}/> )}
+                        getFieldDecorator( 'del7NoImpression', { valuePropName: 'checked' } )( <Checkbox onChange={this.forceCheck}>
+                            删除 {
+                                this.inputMaker( 'noImpressionDay', {
+                                    initialValue: 7,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'del7NoImpression' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...inputDayCfg}/> ) )
+                            }
                             天没展现词
                         </Checkbox> )
                     }
                 </Col>
                 <Col {...colRightCfg}>
                     {
-                        getFieldDecorator( 'rule1', { valuePropName: 'checked' } )( <Checkbox>
-                            {getFieldDecorator( 'rule1Day', { initialValue: 7 } )( <InputNumber {...inputDayCfg}/> )}
-                            天点击率小于 {getFieldDecorator( 'rule1Per', { initialValue: 1 } )( <InputNumber {...perCfg}/> )}
+                        getFieldDecorator( 'rule1', { valuePropName: 'checked' } )( <Checkbox onChange={this.forceCheck}>
+                            {
+                                this.inputMaker( 'rule1Day', {
+                                    initialValue: 7,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'rule1' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...inputDayCfg}/> ) )
+                            }
+                            天点击率小于 {
+                                this.inputMaker( 'rule1Per', {
+                                    initialValue: 1,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'rule1' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...perCfg}/> ) )
+                            }
                             %
                         </Checkbox> )
                     }
@@ -223,17 +274,44 @@ export default class OneKeyOptimize extends React.Component {
             <Row>
                 <Col {...colLeftCfg}>
                     {
-                        getFieldDecorator( 'del14NoClick', { valuePropName: 'checked' } )( <Checkbox>
-                            删除 {getFieldDecorator( 'noClickDay', { initialValue: 14 } )( <InputNumber {...inputDayCfg}/> )}
+                        getFieldDecorator( 'del14NoClick', { valuePropName: 'checked' } )( <Checkbox onChange={this.forceCheck}>
+                            删除 {
+                                this.inputMaker( 'noClickDay', {
+                                    initialValue: 14,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'del14NoClick' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...inputDayCfg}/> ) )
+                            }
                             天没点击词
                         </Checkbox> )
                     }
                 </Col>
                 <Col {...colRightCfg}>
                     {
-                        getFieldDecorator( 'rule2', { valuePropName: 'checked' } )( <Checkbox>
-                            {getFieldDecorator( 'rule2Day', { initialValue: 7 } )( <InputNumber {...inputDayCfg}/> )}
-                            天点击率小于宝贝点击率的 {getFieldDecorator( 'rule2Per', { initialValue: 100 } )( <InputNumber {...perCfg}/> )}
+                        getFieldDecorator( 'rule2', { valuePropName: 'checked' } )( <Checkbox onChange={this.forceCheck}>
+                            {
+                                this.inputMaker( 'rule2Day', {
+                                    initialValue: 7,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'rule2' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...inputDayCfg}/> ) )
+                            }
+                            天点击率小于宝贝点击率的 {
+                                this.inputMaker( 'rule2Per', {
+                                    initialValue: 100,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'rule2' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...perCfg}/> ) )
+                            }
                             %
                         </Checkbox> )
                     }
@@ -242,9 +320,27 @@ export default class OneKeyOptimize extends React.Component {
             <Row>
                 <Col {...colLeftCfg} span={20}>
                     {
-                        getFieldDecorator( 'rule5', { valuePropName: 'checked' } )( <Checkbox>
-                            {getFieldDecorator( 'rule5Day', { initialValue: 7 } )( <InputNumber {...inputDayCfg}/> )}
-                            天点击率小于行业点击率的 {getFieldDecorator( 'rule5Per', { initialValue: 100 } )( <InputNumber {...perCfg}/> )}
+                        getFieldDecorator( 'rule5', { valuePropName: 'checked' } )( <Checkbox onChange={this.forceCheck}>
+                            {
+                                this.inputMaker( 'rule5Day', {
+                                    initialValue: 7,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'rule5' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...inputDayCfg}/> ) )
+                            }
+                            天点击率小于行业点击率的 {
+                                this.inputMaker( 'rule5Per', {
+                                    initialValue: 100,
+                                    rules: [
+                                        {
+                                            required: getFieldValue( 'rule5' )
+                                        }
+                                    ]
+                                }, ( <InputNumber {...perCfg}/> ) )
+                            }
                             %
                         </Checkbox> )
                     }
@@ -404,7 +500,7 @@ export default class OneKeyOptimize extends React.Component {
                             优化创意标题
                             <Tooltip
                                 title={( <span>
-                                    1. 系统会尽可能添加4个创意标题来优化质量分, 并可能相应添加4个创意图, 所以会出现重复创意图 & #xa;
+                                    1. 系统会尽可能添加4个创意标题来优化质量分, 并可能相应添加4个创意图, 所以会出现重复创意图
                                     <br/>
                                     2. 请放心, 系统在添加创意图时, 会优先选择效果较好的创意图, 所以不会对宝贝的效果造成影响.
                                 </span> )}

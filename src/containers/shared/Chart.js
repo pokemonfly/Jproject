@@ -59,14 +59,14 @@ const realTimeColors = [ "#94b854", "#24b0de" ];
 
 export default class Chart extends React.Component {
     state = {}
-    componentWillMount( ) {
-        this.getOption( )
+    componentWillMount() {
+        this.getOption()
     }
-    componentDidMount( ) {
-        this.draw( )
+    componentDidMount() {
+        this.draw()
     }
     shouldComponentUpdate( nextProps, nextState ) {
-        if (isEqual( nextProps.option, this.props.option )) {
+        if ( isEqual( nextProps.option, this.props.option ) ) {
             return false;
         }
         return true;
@@ -74,35 +74,35 @@ export default class Chart extends React.Component {
     componentWillUpdate( nextProps, nextState ) {
         this.getOption( nextProps );
     }
-    componentDidUpdate( ) {
-        this.draw( )
+    componentDidUpdate() {
+        this.draw()
     }
-    onResize = ( ) => {
-        this.echart && this.echart.resize( )
+    onResize = () => {
+        this.echart && this.echart.resize()
     }
-    draw = ( ) => {
+    draw = () => {
         const option = this.state.option;
         this.echart = echarts.init( this.chart )
-        if (!isEmpty( option )) {
+        if ( !isEmpty( option ) ) {
             console.log( option )
             this.echart.setOption( option, true );
         }
         if ( this.props.option.isLoading ) {
-            this.showLoading( )
+            this.showLoading()
         } else {
-            this.hideLoading( )
+            this.hideLoading()
         }
-        this.bindEvent( );
+        this.bindEvent();
     }
-    showLoading( ) {
-        this.echart.showLoading( )
+    showLoading() {
+        this.echart.showLoading()
     }
-    hideLoading( ) {
-        this.echart.hideLoading( )
+    hideLoading() {
+        this.echart.hideLoading()
     }
-    bindEvent( ) {
+    bindEvent() {
         if ( !this._bindEvent ) {
-            this.echart.on('legendselectchanged', ( e ) => {
+            this.echart.on( 'legendselectchanged', ( e ) => {
                 const { type } = this.props.option
                 let option;
                 if ( type == 'dayReport' ) {
@@ -113,33 +113,33 @@ export default class Chart extends React.Component {
                 }
                 console.log( option )
                 this.echart.setOption( option, true );
-            })
+            } )
             window.addEventListener( "resize", this.onResize, false );
             this._bindEvent = true
         }
     }
     fixLegend( config, name ) {
         if ( config.legend ) {
-            forIn(config.legend.selected, ( v, k ) => {
-                config.legend.selected[k] = k == name
-            });
+            forIn( config.legend.selected, ( v, k ) => {
+                config.legend.selected[ k ] = k == name
+            } );
             this.state.activeLegend = name;
             this.props.onLegendChange && this.props.onLegendChange( name )
         }
         return config
     }
     // 动态修正y轴左右位置
-    fixYAxis(config, selLegend = {}) {
+    fixYAxis( config, selLegend = {} ) {
         let idx = [],
             isLeft = true,
             offset = 0;
         config.legend.selected = selLegend;
-        config.series.forEach(( o, i ) => {
-            if (selLegend[o.name]) {
+        config.series.forEach( ( o, i ) => {
+            if ( selLegend[ o.name ] ) {
                 idx.push( i )
             }
-        })
-        config.yAxis.forEach(( o, i ) => {
+        } )
+        config.yAxis.forEach( ( o, i ) => {
             if ( idx.indexOf( i ) > -1 ) {
                 o.show = true;
                 o.position = isLeft ? 'left' : 'right';
@@ -155,10 +155,10 @@ export default class Chart extends React.Component {
             } else {
                 o.offset = 0
             }
-        })
+        } )
         return config;
     }
-    componentWillUnmount( ) {
+    componentWillUnmount() {
         echarts.dispose( this.chart )
         window.removeEventListener( "resize", this.onResize, false );
     }
@@ -177,25 +177,28 @@ export default class Chart extends React.Component {
     }
     // 按天显示的报表数据
     getDayReport( opt ) {
+        if ( !opt.series.length ) {
+            return {}
+        }
         const { fromDate, toDate, mandateDate } = opt;
         let timeArr = [],
-            yAxis = [ ];
+            yAxis = [];
         // 给series data标记时间 用
-        for ( let fromTime = moment( fromDate ), toTime = moment( toDate ); fromTime.isSameOrBefore( toTime ); ) {
-            timeArr.push(+ fromTime.format( 'x' ));
+        for (let fromTime = moment( fromDate ), toTime = moment( toDate ); fromTime.isSameOrBefore( toTime );) {
+            timeArr.push( +fromTime.format( 'x' ) );
             fromTime.add( 1, 'd' )
         }
-        opt.series.forEach(( s, ind ) => {
+        opt.series.forEach( ( s, ind ) => {
             let obj = {
                 show: false,
                 splitNumber: 7,
                 axisLabel: {
-                    formatter: s.unit ? '{value}' + s.unit : '{value}'
+                    formatter: s.unit ? '{value}' + s.unit: '{value}'
                 }
             }
             yAxis.push( obj )
-        })
-        let series = opt.series.map(( i, ind ) => ({
+        } )
+        let series = opt.series.map( ( i, ind ) => ( {
             type: 'line',
             smooth: true,
             yAxisIndex: ind,
@@ -205,13 +208,13 @@ export default class Chart extends React.Component {
                 }
             },
             name: i.name,
-            data: i.data.map(( val, ind ) => [ timeArr[ind], val ])
-        }));
+            data: i.data.map( ( val, ind ) => [ timeArr[ind], val ] )
+        } ) );
         let selectedLegend = {}
 
         // 竖虚线
         if ( mandateDate ) {
-            series.push({
+            series.push( {
                 type: 'line',
                 markLine: {
                     symbol: 'circle',
@@ -234,16 +237,16 @@ export default class Chart extends React.Component {
                         ]
                     ]
                 }
-            })
+            } )
         }
 
         let r = {
             ...baseOption,
             legend: {
-                data: opt.series.map(i => {
-                    selectedLegend[i.name] = opt.defaultLegends ? includes( opt.defaultLegends, i.name ) : true;
+                data: opt.series.map( i => {
+                    selectedLegend[ i.name ] = opt.defaultLegends ? includes( opt.defaultLegends, i.name ): true;
                     return i.name
-                }),
+                } ),
                 selected: selectedLegend,
                 bottom: '10px'
             },
@@ -268,47 +271,47 @@ export default class Chart extends React.Component {
     // 实时报表
     getRealTimeReport( opt ) {
         if ( !opt.dataMap ) {
-            return { }
+            return {}
         }
         if ( opt.isNoData ) {
-            this.props.onLegendChange && this.props.onLegendChange(this.state.activeLegend || opt.legend[0])
+            this.props.onLegendChange && this.props.onLegendChange( this.state.activeLegend || opt.legend[ 0 ] )
             return this._getNoDataOption( '暂时没有实时数据' );
         }
-        let series = [ ];
-        forIn(opt.dataMap, ( v, k ) => {
-            series = series.concat(v.map(( i, ind ) => ({
+        let series = [];
+        forIn( opt.dataMap, ( v, k ) => {
+            series = series.concat( v.map( ( i, ind ) => ( {
                 type: 'line',
                 name: opt.nameMap[k],
                 lineStyle: {
                     normal: {
-                        color: realTimeColors[ind]
+                        color: realTimeColors[ ind ]
                     }
                 },
                 encode: {
                     tooltip: 1
                 },
-                data: i.map(i => i.concat( ind )) // 为了区分数据是哪个系的 有可能只有一天的数据
-            })))
-        })
+                data: i.map( i => i.concat( ind ) ) // 为了区分数据是哪个系的 有可能只有一天的数据
+            } ) ) )
+        } )
         let xAxisData
         if ( opt.isLowVer ) {
-            let firstHour = result( find(series, i => {
+            let firstHour = result( find( series, i => {
                 return i.data.length
-            }), 'data[0][0]' )
+            } ), 'data[0][0]' )
             xAxisData = Array( 8 ).fill( firstHour ).map( ( i, d ) => i + d * 3 )
             // 修正数据的x轴对齐
-            series.forEach(row => {
+            series.forEach( row => {
                 if ( row.data.length ) {
-                    row.data.forEach(pt => {
-                        pt[3] = pt[0];
-                        pt[0] = Math.floor( pt[0] / 3 )
-                    })
+                    row.data.forEach( pt => {
+                        pt[ 3 ] = pt[ 0 ];
+                        pt[ 0 ] = Math.floor( pt[ 0 ] / 3 )
+                    } )
                 }
-            })
+            } )
         } else {
             xAxisData = Array( 24 ).fill( 0 ).map( ( i, d ) => d )
         }
-        let selected = zipObject(opt.legend, Array( opt.legend.length ).fill( false ));
+        let selected = zipObject( opt.legend, Array( opt.legend.length ).fill( false ) );
         let r = {
             ...baseOption,
             legend: {
@@ -332,19 +335,20 @@ export default class Chart extends React.Component {
             /* 通常24小时的数据  arr[0].data =  [x轴位置（=真实时间）， 数据， 数据对应哪天]
                 低级版本 只有8个小时 arr[0].data =  [x轴位置， 数据， 数据对应哪天，真实时间] */
             let h = [],
-                hour = arr[0].data.length == 4 ? arr[0].data[3] : arr[0].data[0];
-            h.push( hour + '时  ' + arr[0].seriesName );
-            arr.forEach(i => {
-                h.push(this.getTooltipMarker(realTimeColors[i.data[2]]) + opt.keyName[i.data[2]] + ' : ' + i.value[1] + opt.legendUnitMap[i.seriesName])
-            })
+                hour = arr[ 0 ].data.length == 4 ? arr[ 0 ].data[ 3 ] : arr[ 0 ].data[ 0 ];
+            h.push( hour + '时  ' + arr[ 0 ].seriesName );
+            arr.forEach( i => {
+                h.push( this.getTooltipMarker( realTimeColors[ i.data[ 2 ] ] ) + opt.keyName[ i.data[ 2 ] ] + ' : ' + i.value[ 1 ] + opt.legendUnitMap[ i.seriesName ] )
+            } )
             return h.join( '<br/>' );
         }
-        r = this.fixLegend(r, this.state.activeLegend || opt.legend[0])
+        r = this.fixLegend( r, this.state.activeLegend || opt.legend[ 0 ] )
         return r;
     }
     // https://github.com/ecomfe/echarts/blob/8d44355b53833ae0b9a42f3872e6bac699190a9e/src/util/format.js
     getTooltipMarker( color, extraCssText ) {
-        return color ? '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + encodeHTML( color ) + ';' + ( extraCssText || '' ) + '"></span>' : '';
+        return color ? '<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' + encodeHTML( color ) + ';' +
+                ( extraCssText || '' ) + '"></span>' : '';
     }
     _getNoDataOption( str ) {
         return {
@@ -363,24 +367,22 @@ export default class Chart extends React.Component {
             yAxis: {
                 show: false
             },
-            series: [ ]
+            series: []
         };
     }
     showNoData( str ) {
         var msgOption = this._getNoDataOption( str )
-        this.echart.hideLoading( )
+        this.echart.hideLoading()
         this.echart.setOption( msgOption, true )
     }
-    render( ) {
+    render() {
         const {
             width = "100%",
             height = "300px"
         } = this.props
-        return (
-            <div ref={chart => this.chart = chart} style={{
+        return ( <div ref={chart => this.chart = chart} style={{
                 width,
                 height
-            }}></div>
-        )
+            }}></div> )
     }
 }

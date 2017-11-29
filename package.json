@@ -101,7 +101,6 @@
     "less-plugin-npm-import": "^2.1.0",
     "lodash": "^4.17.4",
     "mathjs": "^3.17.0",
-    "node-sass": "^3.10.1",
     "nodemon": "^1.10.2",
     "normalizr": "^3.2.3",
     "postcss-loader": "^1.1.0",

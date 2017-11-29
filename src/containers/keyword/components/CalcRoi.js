@@ -20,7 +20,7 @@ import { fetchAdgroupsProfiles, fetchAdgroupsProfit, postAdgroupsProfit } from '
 import { add, divide } from '@/utils/math';
 import './CalcRoi.less'
 
-@SimpleDialog( { title: 'ROI盈亏点', width: 580, hasForm: true, sid: "CalcRoi", footer: null } )
+@SimpleDialog( { title: 'ROI盈亏点', width: 580, hasForm: true, sid: "CalcRoi", noFooter: true } )
 @Form.create( { withRef: true } )
 export class CalcRoiDialog extends React.Component {
     state = {

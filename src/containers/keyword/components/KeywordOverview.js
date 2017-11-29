@@ -62,16 +62,16 @@ const REAL_TIME_CHART_KEY = [
     "favCount",
     "cartTotal"
 ];
-const TODAY = moment( ).format( 'YYYY-MM-DD' )
+const TODAY = moment().format( 'YYYY-MM-DD' )
 
-@connect(state => ({ location: state.location, query: state.location.query, adgroup: state.keyword.adgroup, report: state.keyword.report }), dispatch => (bindActionCreators( {
+@connect( state => ( { location: state.location, query: state.location.query, adgroup: state.keyword.adgroup, report: state.keyword.report } ), dispatch => ( bindActionCreators( {
     fetchAdgroupsDayReport,
     fetchAdgroupsDayDeviceReport,
     fetchAdgroupsProfiles,
     fetchAdgroupsRealTime,
     fetchAdgroupsRealTimeReport,
     fetchAdgroupsRealTimeDeviceReport
-}, dispatch )))
+}, dispatch ) ) )
 export default class KeywordOverview extends React.Component {
     state = {
         dataType: 0,
@@ -79,14 +79,14 @@ export default class KeywordOverview extends React.Component {
         isRealTime: this.props.query.fromDate == this.props.query.toDate && this.props.query.fromDate == TODAY,
         isLowVer: true
     }
-    componentWillMount( ) {
+    componentWillMount() {
         if ( this.state.isRealTime ) {
             this.props.fetchAdgroupsRealTime( this.props.query );
-            this.props.fetchAdgroupsRealTimeReport({
+            this.props.fetchAdgroupsRealTimeReport( {
                 ...this.props.query,
                 fromDate: TODAY,
                 toDate: TODAY
-            })
+            } )
             this._loadRealTime = true;
         }
     }
@@ -95,69 +95,69 @@ export default class KeywordOverview extends React.Component {
         if ( !isEqual( this.props.query, nextProps.query ) && this.state.chartSw ) {
             this.checkAndGetData( nextProps );
         }
-        this.setState({
+        this.setState( {
             isRealTime: nextProps.query.fromDate == nextProps.query.toDate && nextProps.query.fromDate == TODAY
-        }, ( ) => {
+        }, () => {
             // 切换到实时页面时
             if ( isEmpty( this.props.adgroup.realTime ) && this.state.isRealTime && !this._loadRealTime ) {
                 this.props.fetchAdgroupsRealTime( this.props.query );
                 this._loadRealTime = true;
             }
-        })
+        } )
     }
     checkAndGetData( props = this.props ) {
         const { dataType } = this.state;
         const { report, fetchAdgroupsDayReport, fetchAdgroupsDayDeviceReport, query } = props;
         const { adgroupId, fromDate, toDate } = query;
-        const data = report[REPORT_TYPE[dataType]][`${ fromDate }-${ toDate }` ];
+        const data = report[ REPORT_TYPE[ dataType ] ][ `${ fromDate}-${ toDate }` ];
         const api = dataType == 0 ? fetchAdgroupsDayReport : fetchAdgroupsDayDeviceReport
         const fetchType = dataType == 0 ? 'day' : 'device';
         if ( !data && report.isFetching != fetchType ) {
-            api({
+            api( {
                 adgroupId, fromDate, toDate, needSevenDaysData: true // TODO 来源不明
-            })
+            } )
             return false
         }
         return true;
     }
-    setDate({ fromDate, toDate }) {
+    setDate( { fromDate, toDate } ) {
         const { location } = this.props
-        hashHistory.push({
+        hashHistory.push( {
             ...location,
             query: {
                 ...location.query,
                 fromDate,
                 toDate
             }
-        });
+        } );
     }
-    onClickDataType = ({ key }) => {
+    onClickDataType = ( { key } ) => {
         this.state.dataType = key;
-        this.checkAndGetData( );
-        this.setState({ dataType: key });
+        this.checkAndGetData();
+        this.setState( { dataType: key } );
     }
     onTabChange = ( key ) => {
         if ( key == 'detail' ) {
-            this.setDate({
-                fromDate: moment( ).subtract( 7, 'days' ).format( 'YYYY-MM-DD' ),
-                toDate: moment( ).subtract( 1, 'days' ).format( 'YYYY-MM-DD' )
-            })
+            this.setDate( {
+                fromDate: moment().subtract( 7, 'days' ).format( 'YYYY-MM-DD' ),
+                toDate: moment().subtract( 1, 'days' ).format( 'YYYY-MM-DD' )
+            } )
         } else {
-            this.setDate({ fromDate: TODAY, toDate: TODAY })
+            this.setDate( { fromDate: TODAY, toDate: TODAY } )
         }
     }
-    switchChartShow = ( ) => {
+    switchChartShow = () => {
         const { chartSw } = this.state;
-        !chartSw && this.checkAndGetData( );
-        this.setState({
+        !chartSw && this.checkAndGetData();
+        this.setState( {
             chartSw: !chartSw
-        })
+        } )
     }
-    getChartData = ( ) => {
+    getChartData = () => {
         const { dataType } = this.state;
         const { report, query } = this.props;
         const { fromDate, toDate } = query;
-        const data = report[REPORT_TYPE[dataType]][`${ fromDate }-${ toDate }` ];
+        const data = report[ REPORT_TYPE[ dataType ] ][ `${ fromDate}-${ toDate }` ];
         let cfg = {
             type: 'dayReport',
             defaultLegends: [
@@ -165,7 +165,7 @@ export default class KeywordOverview extends React.Component {
             ],
             fromDate,
             toDate,
-            series: [ ]
+            series: []
         }
         if ( report.isFetching ) {
             return {
@@ -173,7 +173,7 @@ export default class KeywordOverview extends React.Component {
                 ...cfg
             }
         }
-        if (moment( fromDate ).isBefore(moment( report.mandateDate ))) {
+        if ( moment( fromDate ).isBefore( moment( report.mandateDate ) ) ) {
             // 当前页面能看到优化日时，显示
             cfg.mandateDate = report.mandateDate
         }
@@ -187,65 +187,65 @@ export default class KeywordOverview extends React.Component {
         const {
             isSum = false,
             mode = 'day',
-            compareDate = moment( ).subtract( 1, 'd' ).format( "YYYY-MM-DD" ),
+            compareDate = moment().subtract( 1, 'd' ).format( "YYYY-MM-DD" ),
             fromDate,
             toDate
         } = sta;
-        const range = `${ fromDate }-${ toDate }`
+        const range = `${ fromDate}-${ toDate }`
         if ( mode == 'day' && !isSum ) {
             // 日期对比 今天和指定日
             if ( TODAY in report.realTime && compareDate in report.realTime ) {
                 return formatRealTimeReport( [
-                    report.realTime[TODAY], report.realTime[compareDate]
+                    report.realTime[TODAY], report.realTime[ compareDate ]
                 ], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                this.props.fetchAdgroupsRealTimeReport({
+                this.props.fetchAdgroupsRealTimeReport( {
                     ...query,
                     fromDate: compareDate,
                     toDate: compareDate
-                })
+                } )
             }
         }
         if ( mode == 'day' && isSum ) {
             // 数天 分时累加
             if ( range in report.realTime ) {
-                return formatRealTimeReport( [report.realTime[range]], keyMap, REAL_TIME_CHART_KEY )
+                return formatRealTimeReport( [report.realTime[ range ]], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                this.props.fetchAdgroupsRealTimeReport({
+                this.props.fetchAdgroupsRealTimeReport( {
                     ...query,
                     fromDate,
                     toDate,
                     isSummaryByHour: true
-                })
+                } )
             }
         }
         if ( mode == 'device' && !isSum ) {
             // 设备对比
             if ( TODAY in report.realTimePc && TODAY in report.realTimeMobile ) {
                 return formatRealTimeReport( [
-                    report.realTimePc[TODAY], report.realTimeMobile[TODAY]
+                    report.realTimePc[TODAY], report.realTimeMobile[ TODAY ]
                 ], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                this.props.fetchAdgroupsRealTimeDeviceReport({
+                this.props.fetchAdgroupsRealTimeDeviceReport( {
                     ...query,
                     fromDate: TODAY,
                     toDate: TODAY
-                })
+                } )
             }
         }
         if ( mode == 'device' && isSum ) {
             //数天 设备累积对比
             if ( range in report.realTimePc && range in report.realTimeMobile ) {
                 return formatRealTimeReport( [
-                    report.realTimePc[range], report.realTimeMobile[range]
+                    report.realTimePc[range], report.realTimeMobile[ range ]
                 ], keyMap, REAL_TIME_CHART_KEY )
             } else {
-                this.props.fetchAdgroupsRealTimeDeviceReport({
+                this.props.fetchAdgroupsRealTimeDeviceReport( {
                     ...query,
                     fromDate,
                     toDate,
                     isSummaryByHour: true
-                })
+                } )
             }
         }
         return null
@@ -254,34 +254,34 @@ export default class KeywordOverview extends React.Component {
         const { report, query } = this.props;
         if ( this.refs.realTime ) {
             const isFetching = report.isFetching;
-            const sta = state || this.refs.realTime.getStatus( );
+            const sta = state || this.refs.realTime.getStatus();
             const {
                 isSum = false,
                 mode = 'day',
-                compareDate = moment( ).subtract( 1, 'd' ).format( "YYYY-MM-DD" ),
+                compareDate = moment().subtract( 1, 'd' ).format( "YYYY-MM-DD" ),
                 fromDate,
                 toDate
             } = sta;
-            const range = `${ fromDate }-${ toDate }`
+            const range = `${ fromDate}-${ toDate }`
             if ( mode == 'day' && !isSum ) {
                 // 日期对比 今天和指定日
                 if ( TODAY in report.realTime && compareDate in report.realTime ) {
                     return formatRealTimeReport( [
-                        report.realTime[TODAY], report.realTime[compareDate]
+                        report.realTime[TODAY], report.realTime[ compareDate ]
                     ], keyMap, REAL_TIME_CHART_KEY )
                 }
             }
             if ( mode == 'day' && isSum ) {
                 // 数天 分时累加
                 if ( range in report.realTime ) {
-                    return formatRealTimeReport( [report.realTime[range]], keyMap, REAL_TIME_CHART_KEY )
+                    return formatRealTimeReport( [report.realTime[ range ]], keyMap, REAL_TIME_CHART_KEY )
                 }
             }
             if ( mode == 'device' && !isSum ) {
                 // 设备对比
                 if ( TODAY in report.realTimePc && TODAY in report.realTimeMobile ) {
                     return formatRealTimeReport( [
-                        report.realTimePc[TODAY], report.realTimeMobile[TODAY]
+                        report.realTimePc[TODAY], report.realTimeMobile[ TODAY ]
                     ], keyMap, REAL_TIME_CHART_KEY )
                 }
             }
@@ -289,76 +289,66 @@ export default class KeywordOverview extends React.Component {
                 //数天 设备累积对比
                 if ( range in report.realTimePc && range in report.realTimeMobile ) {
                     return formatRealTimeReport( [
-                        report.realTimePc[range], report.realTimeMobile[range]
+                        report.realTimePc[range], report.realTimeMobile[ range ]
                     ], keyMap, REAL_TIME_CHART_KEY )
                 }
             }
         }
         return null
     }
-    getContent( ) {
+    getContent() {
         const { chartSw, isRealTime, isLowVer } = this.state
         let { fromDate, toDate } = this.props.query;
         if ( this.props.adgroup.isFetching ) {
-            return (
-                <Layout className="keyword-overview-content">
-                    loading...
-                </Layout>
-            );
+            return ( <Layout className="keyword-overview-content">
+                loading...
+            </Layout> );
         } else {
-            const dataSource = !isRealTime ? this.props.adgroup.report[`${ fromDate }-${ toDate }`] : this.props.adgroup.realTime;
-            return (
-                <Layout className="keyword-overview-content">
-                    <TweenBar dataSource={dataSource} config={keyMap}></TweenBar>
-                    {chartSw && !isRealTime && ( <Chart option={this.getChartData( )}/> )}
-                    {chartSw && isRealTime && ( <RealTimeChart isLowVer={isLowVer} ref="realTime" onChange={this.onRealTimeChange} data={this.getRealTimeData( )}/> )}
-                    <div className="chart-sw" onClick={this.switchChartShow}>
-                        <span>{chartSw ? '收起' : '展开'}历史趋势图
-                            <Icon type={chartSw ? "xiangshang" : "xiangxia"}/></span>
-                    </div>
-                </Layout>
-            )
+            const dataSource = this.props.adgroup.report[ `${ fromDate}-${ toDate }` ] || {}
+            return ( <Layout className="keyword-overview-content">
+                <TweenBar dataSource={dataSource} config={keyMap}></TweenBar>
+                {chartSw && !isRealTime && ( <Chart option={this.getChartData()}/> )}
+                {chartSw && isRealTime && ( <RealTimeChart isLowVer={isLowVer} ref="realTime" onChange={this.onRealTimeChange} data={this.getRealTimeData()}/> )}
+                <div className="chart-sw" onClick={this.switchChartShow}>
+                    <span>{chartSw ? '收起' : '展开'}历史趋势图
+                        <Icon type={chartSw ? "xiangshang" : "xiangxia"}/></span>
+                </div>
+            </Layout> )
         }
     }
-    getTabBar( ) {
+    getTabBar() {
         const { dataType, isRealTime } = this.state
         const { fromDate, toDate } = this.props.query
-        const menu = (
-            <Menu onClick={this.onClickDataType}>
-                <Menu.Item key="0">{DATA_TYPE['0']}</Menu.Item>
-                <Menu.Divider/>
-                <Menu.Item key="1">{DATA_TYPE['1']}</Menu.Item>
-                <Menu.Item key="2">{DATA_TYPE['2']}</Menu.Item>
-            </Menu>
-        )
-        return (
-            <div className="keyword-float-panel">
-                {!isRealTime && (
-                    <Dropdown overlay={menu} trigger={[ 'click' ]}>
-                        <a className="ant-dropdown-link" href="#">
-                            {DATA_TYPE[dataType]}
-                            <Icon type="down"/>
-                        </a>
-                    </Dropdown>
-                )}
-                <DateRangePicker {...{fromDate, toDate}}/>
-            </div>
-        )
+        const menu = ( <Menu onClick={this.onClickDataType}>
+            <Menu.Item key="0">{DATA_TYPE[ '0' ]}</Menu.Item>
+            <Menu.Divider/>
+            <Menu.Item key="1">{DATA_TYPE[ '1' ]}</Menu.Item>
+            <Menu.Item key="2">{DATA_TYPE[ '2' ]}</Menu.Item>
+        </Menu> )
+        return ( <div className="keyword-float-panel">
+            {
+                !isRealTime && ( <Dropdown overlay={menu} trigger={[ 'click' ]}>
+                    <a className="ant-dropdown-link" href="#">
+                        {DATA_TYPE[ dataType ]}
+                        <Icon type="down"/>
+                    </a>
+                </Dropdown> )
+            }
+            <DateRangePicker {...{fromDate, toDate}}/>
+        </div> )
     }
-    render( ) {
+    render() {
         const { isRealTime } = this.state,
             activeKey = isRealTime ? 'realtime' : 'detail';
-        return (
-            <div className="keyword-overview">
-                <Tabs tabBarExtraContent={this.getTabBar( )} activeKey={activeKey} type="card" onChange={this.onTabChange}>
-                    <TabPane tab="宝贝概况" key="detail">
-                        {this.getContent( )}
-                    </TabPane>
-                    <TabPane tab="实时概况" key="realtime">
-                        {this.getContent( )}
-                    </TabPane>
-                </Tabs>
-            </div>
-        );
+        return ( <div className="keyword-overview">
+            <Tabs tabBarExtraContent={this.getTabBar()} activeKey={activeKey} type="card" onChange={this.onTabChange}>
+                <TabPane tab="宝贝概况" key="detail">
+                    {this.getContent()}
+                </TabPane>
+                <TabPane tab="实时概况" key="realtime">
+                    {this.getContent()}
+                </TabPane>
+            </Tabs>
+        </div> );
     }
 }
