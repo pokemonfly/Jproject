@@ -14,9 +14,11 @@ export default class BreadcrumbEX extends Component {
     constructor(props) {
         super(props)
     }
+
     render() {
         let {campaign, list, dropDownClick} = this.props
-        let breadcrumb       = getBreadcrumbItem(list, campaign, dropDownClick)
+
+        let breadcrumb = getBreadcrumbItem(list, campaign, dropDownClick)
 
         return (
             <Breadcrumb className="breadcrumb">
@@ -36,7 +38,8 @@ export default class BreadcrumbEX extends Component {
 function getBreadcrumbItem(list, campaign, dropDownClick) {
     let items = list.map((elem, index) => {
         if (elem.href) {
-            return <Breadcrumb.Item key={index}><Link to={elem.href}>{elem.title}</Link></Breadcrumb.Item>
+            return <Breadcrumb.Item key={index}><Link
+                to={elem.href}>{elem.title}</Link></Breadcrumb.Item>
         } else {
             return <Breadcrumb.Item key={index}>{elem.title}</Breadcrumb.Item>
         }
@@ -58,34 +61,39 @@ function getBreadcrumbItem(list, campaign, dropDownClick) {
 function getMenuItem(campaign, dropDownClick) {
     let activeData
     let items = campaign.list.map(elem => {
+        let key = elem.isMandate ? elem.engineNo + '_auto' : elem.campaignId + '_manual'
         if (elem.campaignId.toString() === campaign.campaignIdActive) {
             activeData = elem
         }
-
-        let key = elem.isMandate ? elem.engineNo + '_auto' : elem.campaignId + '_manual'
         return (
             <Menu.Item key={key}>
-                <Link to={{pathname: '/list', query: {campaignId: elem.campaignId}}}><Tag>{elem.tagName}</Tag> {elem.title}</Link>
+                <Link to={{
+                    pathname: '/list',
+                    query: {campaignId: elem.campaignId}
+                }}><Tag>{elem.tagName}</Tag> {elem.title}</Link>
             </Menu.Item>
         )
     })
 
 
-    if (activeData.isMandate) {
-        return (
-            <Dropdown overlay={<Menu onClick={dropDownClick}>{items}</Menu>}>
-                <a className="ant-dropdown-link">
-                    <Tag>{activeData.tagName}</Tag>{activeData.title} （计划加入自动优化：{activeData.createTimeFormat}）<Icon type="down"/>
-                </a>
-            </Dropdown>
-        )
-    } else {
-        return (
-            <Dropdown overlay={<Menu>{items}</Menu>}>
-                <a className="ant-dropdown-link">
-                    <Tag>{activeData.tagName}</Tag>{activeData.title} <Icon type="down"/>
-                </a>
-            </Dropdown>
-        )
+    if (activeData) {
+        if (activeData.isMandate) {
+            return (
+                <Dropdown overlay={<Menu onClick={dropDownClick}>{items}</Menu>}>
+                    <a className="ant-dropdown-link">
+                        <Tag>{activeData.tagName}</Tag>{activeData.title} （计划加入自动优化：{activeData.createTimeFormat}）<Icon
+                        type="down"/>
+                    </a>
+                </Dropdown>
+            )
+        } else {
+            return (
+                <Dropdown overlay={<Menu onClick={dropDownClick}>{items}</Menu>}>
+                    <a className="ant-dropdown-link">
+                        <Tag>{activeData.tagName}</Tag>{activeData.title} <Icon type="down"/>
+                    </a>
+                </Dropdown>
+            )
+        }
     }
 }

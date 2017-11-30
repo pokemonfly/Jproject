@@ -10,7 +10,7 @@ export const createRoutes = ( store ) => ({
     component: Frame,
     indexRoute: Home( store ),
     childRoutes: [
-        Todo( store ), Root( store ), Adgroup(store), Keyword( store ),
+        Home(store), Todo( store ), Root( store ), Adgroup(store), Keyword( store ),
         //   PageNotFound(),   Redirect
     ]
 })

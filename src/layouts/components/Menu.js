@@ -6,12 +6,13 @@ import {bindActionCreators} from 'redux'
 import {Menu, Button} from 'antd';
 import classNames from 'classnames'
 import {Link} from 'react-router'
+import {isEqual} from 'lodash'
 
 import Icon from 'containers/shared/Icon'
 import MENU_CONFIG from 'utils/config/Menu'
+import {findIndex} from "utils/tools";
 import {fetchEngineList, addAutoEngine} from 'containers/Engine/EngineRedux'
 import {fetchCampaignList} from 'containers/Campaign/CampaignRedux'
-import {updateCurrent, updateCurrentByIndex} from "./MenuRedux"
 
 const {Item, SubMenu} = Menu
 
@@ -23,20 +24,17 @@ const OPEN_KEYS_DEFAULT = []
 @connect(state => ({
     location: state.location,
     user: state.user,
-    menu: state.menu,
     sider: state.layout.sider,
     engine: state.engine.data,
     campaign: state.campaign.data
 }), dispatch => (bindActionCreators({
     fetchEngineList,
     fetchCampaignList,
-    addAutoEngine,
-    updateCurrent,
-    updateCurrentByIndex
+    addAutoEngine
 }, dispatch)))
 export default class MenuEX extends React.Component {
     state = {
-        openKeys: Object.assign([], OPEN_KEYS_DEFAULT)
+        openKeys: getOpenKeysDefault()
     };
 
     componentWillMount() {
@@ -45,27 +43,29 @@ export default class MenuEX extends React.Component {
     }
 
     handleClick  = (e) => {
-        this.props.updateCurrent(e.keyPath)
-        if (e.keyPath.length === 1) {
-            this.props.updateCurrentByIndex(undefined, 1)
-        }
+        this.setState({
+            openKeys: e.keyPath
+        })
     }
     onOpenChange = (openKeys) => {
-        this.props.updateCurrentByIndex(openKeys[1], 1)
+        this.setState({
+            openKeys
+        })
     }
 
     render() {
-        let {user, menu, engine, campaign} = this.props;
+        let {user, engine, campaign, location, sider} = this.props;
 
-        let mode     = this.props.sider.collapsed ? 'vertical' : "inline";
-        let menuClz  = classNames({menu: true, collapsed: this.props.sider.collapsed})
+        let menuClz  = classNames({menu: true, collapsed: sider.collapsed})
         let menuList = getItems(engine, campaign)
         // TODO openKeys 只是针对总共有2级目录的处理
+        if (this.state.openKeys)
         return (
             <Menu onClick={this.handleClick}
-                  openKeys={[menu.current[1]]}
                   onOpenChange={this.onOpenChange}
-                  selectedKeys={menu.current} mode={mode}
+                  selectedKeys={this.state.openKeys}
+                  openKeys={[this.state.openKeys[1]]}
+                  mode={sider.collapsed ? 'vertical' : "inline"}
                   className={menuClz}>
                 {menuList}
             </Menu>
@@ -203,4 +203,42 @@ function getCampaignItems(campaign) {
             )
         }
     })
+}
+
+/**
+ * 通过当前location获得openKeys
+ * @param location
+ * @param engine
+ * @param campaign
+ * @returns {*}
+ */
+function getOpenKeys(location, engine, campaign) {
+    let index = -1
+    switch (location.pathname) {
+        case '/list':
+            index = findIndex(engine, 'campaignId', location.query.campaignId)
+            if (index === -1) {
+                index = findIndex(campaign, 'campaignId', location.query.campaignId)
+                if (index === -1) {
+                    return getOpenKeysDefault()
+                }
+                return [parseInt(campaign[index].campaignId, 10), 'manual']
+            }
+
+            return [parseInt(engine[index].engineNo, 10), 'auto']
+        default:
+            index = findIndex(MENU_CONFIG, 'href', location.pathname)
+            if (index === -1) {
+                return getOpenKeysDefault()
+            }
+            return [MENU_CONFIG[findIndex(MENU_CONFIG, 'href', location.pathname)].type]
+    }
+}
+
+/**
+ * 获得默认的openKeys
+ * @returns {*}
+ */
+function getOpenKeysDefault() {
+    return Object.assign([], OPEN_KEYS_DEFAULT)
 }

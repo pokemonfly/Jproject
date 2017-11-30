@@ -6,7 +6,7 @@
 
 const HOME = {
     'title': '首页',
-    'href': '/'
+    'href': '/index'
 };
 
 const TOOL = {
@@ -14,7 +14,7 @@ const TOOL = {
 }
 
 export default {
-    '/': [HOME],
+    '/index': [HOME],
     '/list': [HOME, {'title': '智能推广'}],
     '/cases': [HOME, {'title': '超级学堂'}, {'title': '操作案例'}],
     '/school/video': [HOME, {'title': '超级学堂'}, {'title': '课程中心'}],

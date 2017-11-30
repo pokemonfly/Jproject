@@ -182,9 +182,9 @@ export function encodeHTML( source ) {
  * @returns {number}
  */
 export function findIndex(arr = [], key, value) {
-    var i = -1;
+    var i = -1
     for (let n = 0; n < arr.length; n++) {
-        if (arr[n][key] === value) {
+        if (arr[n][key] == value) {
             i = n
             break
         }

@@ -8,8 +8,8 @@ export default [
     {
         iconName: 'shouye',
         name: '首页',
-        href: '/',
-        type: 'home',
+        href: '/index',
+        type: 'index',
     },
     {
         iconName: 'zhinengtuiguang',
