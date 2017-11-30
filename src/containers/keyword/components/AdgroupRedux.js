@@ -129,7 +129,9 @@ export const resPostAdgroups = ( data ) => {
     return {
         type: RES_POST_ADGROUPS,
         data: {
-            ...data,
+            adgroup: {
+                ...data
+            },
             isPosting: false
         }
     }
@@ -521,9 +523,31 @@ const defaultState = {
     sellwordsList: []
 }
 export default function AdgroupReducer( state = defaultState, action ) {
-    if ( action.data ) {
-        return merge( {}, state, action.data )
-    } else {
-        return state
+    switch ( action.type ) {
+        case REQ_ADGROUPS_PROFILES:
+        case RES_ADGROUPS_PROFILES:
+        case REQ_ADGROUPS_REALTIME:
+        case RES_ADGROUPS_REALTIME:
+        case REQ_ADGROUPS_PROFIT:
+        case RES_ADGROUPS_PROFIT:
+        case REQ_POST_ADGROUPS_PROFIT:
+        case RES_POST_ADGROUPS_PROFIT:
+        case REQ_POST_ADGROUPS:
+        case RES_POST_ADGROUPS:
+        case REQ_POST_ADGROUPS_OPTIMIZATION:
+        case RES_POST_ADGROUPS_OPTIMIZATION:
+        case REQ_BLACKWORD:
+        case RES_BLACKWORD:
+        case REQ_POST_BLACKWORD:
+        case RES_POST_BLACKWORD:
+        case REQ_DEL_NEVERWORD:
+        case RES_DEL_NEVERWORD:
+        case REQ_SELLWORDS:
+        case RES_SELLWORDS:
+        case REQ_PUT_SELLWORDS:
+        case RES_PUT_SELLWORDS:
+            return merge( {}, state, action.data )
+        default:
+            return state
     }
 }

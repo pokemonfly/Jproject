@@ -7,6 +7,9 @@ export default class Search extends Input.Search {
     constructor( props ) {
         super( props )
     }
+    clear() {
+        this.input && ( this.input.refs.input.value = '' )
+    }
     render() {
         const {
             className,

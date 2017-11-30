@@ -8,6 +8,7 @@ import {
     Checkbox,
     Tooltip
 } from 'antd'
+import { omit } from 'lodash'
 let _cache = {}
 
 // 组件弹窗化 并显示
@@ -90,7 +91,8 @@ export function Dialog( {
     hasForm = false,
     hasConnect = true,
     sid = null,
-    single = true
+    single = true,
+    noFooter = false
 } ) {
     return( WrappedComponent ) => {
         return class HOC extends React.Component {
@@ -116,6 +118,10 @@ export function Dialog( {
                     this.hide()
                 }
             }
+            setStatus = ( obj ) => {
+                this.setState( obj )
+                return this
+            }
             show = () => {
                 this.setState( { visible: true } )
             }
@@ -123,16 +129,18 @@ export function Dialog( {
                 this.setState( { visible: false } )
             }
             render() {
-                return ( <Modal
-                    onCancel={this.close}
-                    onOk={this.ok}
-                    visible={this.state.visible}
-                    wrapClassName={wrapClassName}
-                    title={title}
-                    maskClosable={maskClosable}
-                    width={width}
-                    zIndex={zIndex}>
-                    <WrappedComponent {...this.props} ref="wc"/>
+                let p = {
+                    width,
+                    maskClosable,
+                    title,
+                    wrapClassName,
+                    zIndex
+                }
+                if ( noFooter ) {
+                    p.footer = null
+                }
+                return ( <Modal {... p} onCancel={this.close} onOk={this.ok} visible={this.state.visible}>
+                    <WrappedComponent {...this.props} {...omit(this.state, ['visible'])} ref="wc"/>
                 </Modal> )
             }
         }
