@@ -9,9 +9,12 @@ import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux'
 
 import ROUTER from 'utils/config/Router'
+import {findIndex} from "utils/tools";
 import {fetchCampaignList} from 'containers/Campaign/CampaignRedux'
 import Breadcrumb from 'containers/shared/Breadcrumb'
-import {updateCurrent} from 'layouts/components/MenuRedux'
+import CampaignOverview from 'containers/Campaign/components/CampaignOverview'
+import AdgroupHead from 'containers/Adgroup/components/AdgroupHead'
+import AdgroupView from 'containers/Adgroup/components/AdgroupView'
 
 const PATHNAME = '/list'
 
@@ -19,27 +22,34 @@ const PATHNAME = '/list'
     campaign: state.campaign.data,
     location: state.location
 }), dispatch => (bindActionCreators({
-    fetchCampaignList,
-    updateCurrent
+    fetchCampaignList
 }, dispatch)))
 export default class Adgroup extends Component {
     componentWillMount() {
         this.props.fetchCampaignList()
     }
-    dropDownClick = (item) => {
-        console.log(item)
-        this.props.updateCurrent(item.key.split('_'))
-    }
     render() {
         let {campaign, location} = this.props
+        let campaignCurrent = getCampaign(campaign, location.query.campaignId)
         return (
             <div>
                 <Breadcrumb
                     list={ROUTER[PATHNAME]}
                     campaign={{list: campaign, index: 2, campaignIdActive: location.query.campaignId}}
-                    dropDownClick={this.dropDownClick}
                 />
+                <AdgroupHead campaign={campaignCurrent}/>
+                <CampaignOverview/>
+                <AdgroupView/>
             </div>
         );
     }
+}
+
+function getCampaign(campaign, id) {
+    var index = findIndex(campaign, 'campaignId', id)
+    if (index === -1) {
+        return {}
+    }
+
+    return campaign[index]
 }
