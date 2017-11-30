@@ -1,23 +1,39 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
-import { Layout } from 'antd';
+import './KeywordStyle.less';
+
+import React, {Component} from 'react';
+import {bindActionCreators} from 'redux';
+import {connect} from 'react-redux';
+import PubSub from 'pubsub-js';
+
+import {fetchCampaignList} from 'containers/Campaign/CampaignRedux'
 import KeywordHead from './components/KeywordHead';
 import KeywordOverview from './components/KeywordOverview';
 import KeywordView from './components/KeywordView';
-import PubSub from 'pubsub-js';
-import Breadcrumb from '@/containers/shared/Breadcrumb'
-import './KeywordStyle.less';
+import Breadcrumb from 'containers/shared/Breadcrumb'
+import ROUTER from 'utils/config/Router'
 
-@connect(state => ({ keyword: state.keyword }))
+const PATHNAME = '/keyword'
+
+@connect(state => ({
+    keyword: state.keyword,
+    campaign: state.campaign.data,
+    location: state.location
+}), dispatch => (bindActionCreators({
+    fetchCampaignList
+}, dispatch)))
 export default class Keyword extends Component {
-    componentDidUpdate( ) {
-        PubSub.publish( 'table.resize' )
+    componentDidUpdate() {
+        PubSub.publish('table.resize')
     }
-    render( ) {
+    componentWillMount() {
+        this.props.fetchCampaignList()
+    }
+    render() {
+        let {campaign, location} = this.props
         return (
             <div>
-                <Breadcrumb/>
+                <Breadcrumb list={ROUTER[PATHNAME]}
+                            campaign={{list: campaign, index: 2, campaignIdActive: location.query.campaignId}}/>
                 <KeywordHead></KeywordHead>
                 <KeywordOverview></KeywordOverview>
                 <KeywordView></KeywordView>
