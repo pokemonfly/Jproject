@@ -4,8 +4,12 @@
  * @time 2017/11/27
  */
 
+import moment from 'moment'
+
 import ajax from 'utils/ajax'
 import {findIndex} from 'utils/tools'
+import {CAMPAIGN_TAG} from "utils/config/CampaignTagName";
+import {YYYYMMDDHHmm} from 'utils/config/TimeFormat'
 
 const REQ_GET_CAMPAIGN_LIST               = 'REQ_GET_CAMPAIGN_LIST'
 const RES_GET_CAMPAIGN_LIST               = 'RES_GET_CAMPAIGN_LIST'
@@ -26,6 +30,7 @@ export default function campaignReducer(state = {data: []}, action) {
     let campaignId, index
     switch (action.type) {
         case REQ_GET_CAMPAIGN_LIST:
+            return state
         case RES_GET_CAMPAIGN_LIST:
             return {
                 ...state,
@@ -81,7 +86,24 @@ export function fetchCampaignList() {
         return ajax({
             api: '/sources/campaign',
             format: json => {
-                return json.data.campaigns
+                json.data.campaigns.forEach(elem => {
+                    elem.tagName = CAMPAIGN_TAG[elem.mandateType]
+                    elem.createTimeFormat = moment(elem.gmtCreate).format(YYYYMMDDHHmm);
+                })
+
+
+                // 计划以托管状态分为两组，对托管的计划组根据引擎编号进行排序，最后合并两组数据
+                let autoCampaign = json.data.campaigns.filter(elem => {
+                    return elem.isMandate
+                })
+                let unmandateCampaign = json.data.campaigns.filter(elem => {
+                    return !elem.isMandate
+                })
+                autoCampaign.sort((a, b) => {
+                    return a.engineNo < b.engineNo ? -1 : 1
+                })
+
+                return {data: autoCampaign.concat(unmandateCampaign)}
             },
             success: data => dispatch(resGetCampaignList(data))
         })
@@ -98,8 +120,8 @@ export function updateCampaignBudget(campaignId, budget) {
     return {
         type: UPDATE_CAMPAIGN_BUDGET,
         data: {
-            campaignId: campaignId,
-            budget: budget
+            campaignId,
+            budget
         }
     }
 }
@@ -114,8 +136,8 @@ export function updateCampaignOptimizationStatus(campaignId, status) {
     return {
         type: UPDATE_CAMPAIGN_OPTIMIZATION_STATUS,
         data: {
-            campaignId: campaignId,
-            status: status
+            campaignId,
+            status
         }
     }
 }
@@ -129,7 +151,7 @@ export function closeCampaignOptimization(campaignId) {
     return {
         type: CLOSE_CAMPAIGN_OPTIMIZATION,
         data: {
-            campaignId: campaignId,
+            campaignId,
         }
     }
 }
@@ -144,8 +166,8 @@ export function updateCampaignTitle(campaignId, title) {
     return {
         type: UPDATE_CAMPAIGN_TITLE,
         data: {
-            campaignId: campaignId,
-            title: title
+            campaignId,
+            title
         }
     }
 }

@@ -22,7 +22,7 @@ const config = {
     server_host: ip.address( ), // use string 'localhost' to prevent exposure on local network
     server_port: process.env.PORT || 3100,
 
-    api_server: 'http://f002.quicloud.cn',
+    api_server: 'http://f001.quicloud.cn',
     api_login_str: '/system/login_back.htm?userNick=' +
     /* 这里是用户名  */
     'tp_%E5%BF%AB%E4%BA%91%E7%A7%91%E6%8A%80'

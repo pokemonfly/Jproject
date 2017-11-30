@@ -1,5 +1,4 @@
 import {combineReducers} from 'redux'
 
-import campagin from './components/CampaignRedux'
+import campaign from 'containers/Campaign/CampaignRedux'
 
-export default combineReducers({campagin});

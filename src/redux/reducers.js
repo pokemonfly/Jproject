@@ -6,6 +6,8 @@ import {default as user} from './userBase'
 import {default as layout} from 'layouts/components/LayoutsRedux'
 
 import {default as engine} from 'containers/Engine/EngineRedux'
+import {default as campaign} from 'containers/Campaign/CampaignRedux'
+import {default as menu} from 'layouts/components/MenuRedux'
 
 export const makeRootReducer = (asyncReducers) => {
     return combineReducers({
@@ -14,6 +16,8 @@ export const makeRootReducer = (asyncReducers) => {
         user,
         layout,
         engine,
+        campaign,
+        menu,
         ...asyncReducers
     })
 }

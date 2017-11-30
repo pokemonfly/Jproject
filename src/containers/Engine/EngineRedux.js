@@ -77,7 +77,7 @@ export function deleteEngine(engineNo) {
     return {
         type: DELETE_ENGINE,
         data: {
-            engineNo: engineNo
+            engineNo
         }
     }
 }
@@ -91,7 +91,7 @@ export function addAutoEngine(engineNo) {
     return {
         type: ADD_AUTO_ENGINE,
         data: {
-            engineNo: engineNo
+            engineNo
         }
     }
 }

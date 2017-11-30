@@ -5,16 +5,40 @@
  */
 
 import React, {Component} from 'react';
-import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import {connect} from 'react-redux'
 
-import Breadcrumb from '@/containers/shared/Breadcrumb'
+import ROUTER from 'utils/config/Router'
+import {fetchCampaignList} from 'containers/Campaign/CampaignRedux'
+import Breadcrumb from 'containers/shared/Breadcrumb'
+import {updateCurrent} from 'layouts/components/MenuRedux'
 
-@connect(state => ({adgroup: state.adgroup}))
-export default class Keyword extends Component {
+const PATHNAME = '/list'
+
+@connect(state => ({
+    campaign: state.campaign.data,
+    location: state.location
+}), dispatch => (bindActionCreators({
+    fetchCampaignList,
+    updateCurrent
+}, dispatch)))
+export default class Adgroup extends Component {
+    componentWillMount() {
+        this.props.fetchCampaignList()
+    }
+    dropDownClick = (item) => {
+        console.log(item)
+        this.props.updateCurrent(item.key.split('_'))
+    }
     render() {
+        let {campaign, location} = this.props
         return (
             <div>
-                <Breadcrumb/>
+                <Breadcrumb
+                    list={ROUTER[PATHNAME]}
+                    campaign={{list: campaign, index: 2, campaignIdActive: location.query.campaignId}}
+                    dropDownClick={this.dropDownClick}
+                />
             </div>
         );
     }

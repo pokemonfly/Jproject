@@ -1,26 +1,30 @@
-import React from 'react';
-import { bindActionCreators } from 'redux';
-import { connect } from 'react-redux'
-import MHeader from './components/header';
-import { fetchUserInfo } from '../redux/userBase'
-import { Layout } from 'antd';
-import Sider from './components/Sider'
-import Menu from './components/Menu'
 import './FrameStyle.less'
 
-const { Header, Content } = Layout;
+import React from 'react';
+import {bindActionCreators} from 'redux';
+import {connect} from 'react-redux'
+import {Layout} from 'antd';
+
+import MHeader from './components/header';
+import {fetchUserInfo} from '../redux/userBase'
+import Sider from './components/Sider'
+import Menu from './components/Menu'
+
+const {Header, Content}  = Layout;
 Sider.__ANT_LAYOUT_SIDER = true;
 
-@connect( null, dispatch => ( bindActionCreators( {
+@connect(null, dispatch => ( bindActionCreators({
     fetchUserInfo
-}, dispatch ) ) )
+}, dispatch) ))
 export default class Frame extends React.Component {
-    constructor( props ) {
-        super( props )
+    constructor(props) {
+        super(props)
     }
+
     componentWillMount() {
         this.props.fetchUserInfo();
     }
+
     render() {
         return (
             <Layout>
@@ -39,22 +43,3 @@ export default class Frame extends React.Component {
         );
     }
 }
-
-/* <div className="frame">
-    <div className="header">
-
-    </div>
-    <Sider/>
-    <div className="container">
-        {this.props.children}
-    </div>
-</div> */
-/*    <Layout>
-          <Header>Header</Header>
-              <Layout>
-                <Sider>Sider</Sider>
-                <Content>Content</Content>
-              </Layout>
-          <Footer>Footer</Footer>
-    </Layout>
-    */

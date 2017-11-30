@@ -4,19 +4,12 @@
  * @time 2017/11/27
  */
 
-import {injectReducer} from '../../redux/reducers';
-
 export default (store) => ( {
-    path: 'adgroup',
+    path: 'list',
     getComponent(nextState, cb) {
         require.ensure([], (require) => {
-            const Adgroup = require('./Adgroup').default
-            const reducer = require('./AdgroupRedux').default
-            injectReducer(store, {
-                key: 'adgroup',
-                reducer
-            })
+            let Adgroup = require('./Adgroup').default
             cb(null, Adgroup)
-        }, 'adgroup');
+        }, 'list');
     }
 } )
