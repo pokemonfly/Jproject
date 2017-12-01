@@ -2,7 +2,12 @@ import fetch from 'isomorphic-fetch'
 import {isEqual} from 'lodash'
 
 function toQueryString(paramsObject) {
-    return Object.keys(paramsObject).map(key => `${ encodeURIComponent(key) }=${ encodeURIComponent(paramsObject[key]) }`).join('&');
+    return Object.keys(paramsObject).map(key => {
+        let value = paramsObject[key]
+        key       = key.replace(/adgroup/g, 'ddgroup')
+        value.replace(/adgroup/g, 'ddgroup')
+        return `${ encodeURIComponent(key) }=${ encodeURIComponent(value) }`
+    }).join('&');
 }
 
 // 请求队列
