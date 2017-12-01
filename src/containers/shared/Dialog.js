@@ -146,3 +146,57 @@ export function Dialog( {
         }
     }
 }
+
+export function DialogR( {
+    wrapClassName = '',
+    maskClosable = true,
+    width = 320,
+    zIndex = 1000,
+    title = '弹窗',
+    hasForm = false,
+    hasConnect = true,
+    sid = null,
+    single = true,
+    noFooter = false
+} ) {
+    return( WrappedComponent ) => {
+        return class HOC extends WrappedComponent {
+            constructor( p ) {
+                super( p )
+                this.state.visible = false
+            }
+            close = () => {
+                this.closeCallback && this.closeCallback();
+                this.hide()
+            }
+            ok = () => {
+                let r = true;
+                this.okCallback && ( r = this.okCallback( this.hide ) );
+                if ( r ) {
+                    this.hide()
+                }
+            }
+            show = () => {
+                this.setState( { visible: true } )
+            }
+            hide = () => {
+                this.setState( { visible: false } )
+            }
+            render() {
+                let p = {
+                    width,
+                    maskClosable,
+                    title,
+                    wrapClassName,
+                    zIndex
+                }
+                if ( noFooter ) {
+                    p.footer = null
+                }
+                return ( <Modal {... p} onCancel={this.close} onOk={this.ok} visible={this.state.visible}>
+                    {super.render()}
+                </Modal> )
+            }
+        }
+    }
+}
