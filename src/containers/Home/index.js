@@ -1,7 +1,7 @@
 import { injectReducer } from '../../redux/reducers';
 
 export default(store ) => ({
-    path: '',
+    path: 'index',
     getComponent( nextState, cb ) {
         require.ensure( [], ( require ) => {
             const Home = require( './home' ).default
@@ -11,6 +11,6 @@ export default(store ) => ({
                 reducer
             })
             cb( null, Home )
-        }, 'home' );
+        }, 'index' );
     }
 })
