@@ -9,7 +9,7 @@ HACK
 源： https://github.com/react-component/trigger/blob/master/src/index.js
 为了保证Trigger内部可以再次触发其他的trigger而不关闭
 */
-class TriggerHack extends Trigger {
+export class TriggerFix extends Trigger {
     componentWillMount() {
         super.componentWillMount()
         this.onDocumentClick = () => {
@@ -65,7 +65,7 @@ export default class TriggerEX extends React.Component {
     render() {
         // 给组件添加props
         const popup = React.cloneElement( this.props.popup, { onClose: this.onClose } )
-        return ( <TriggerHack
+        return ( <TriggerFix
             {...omit(this.props, ['context', 'popup', 'width'])}
             {...this.state}
             popupStyle={{
@@ -75,6 +75,6 @@ export default class TriggerEX extends React.Component {
             ignoreClz={[ 'ant-select-dropdown' ]}
             ref='trigger'>
             {this.props.children}
-        </TriggerHack> )
+        </TriggerFix> )
     }
 }

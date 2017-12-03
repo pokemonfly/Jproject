@@ -1,43 +1,45 @@
 import fetch from 'isomorphic-fetch'
-import {isEqual} from 'lodash'
+import { isEqual, isString } from 'lodash'
 
-function toQueryString(paramsObject) {
-    return Object.keys(paramsObject).map(key => {
+function toQueryString( paramsObject ) {
+    return Object.keys( paramsObject ).map(key => {
         let value = paramsObject[key]
-        key       = key.replace(/adgroup/g, 'ddgroup')
-        value.replace(/adgroup/g, 'ddgroup')
-        return `${ encodeURIComponent(key) }=${ encodeURIComponent(value) }`
-    }).join('&');
+        key = key.replace( /adgroup/g, 'ddgroup' )
+        if (isString( value )) {
+            value.replace( /adgroup/g, 'ddgroup' )
+        }
+        return `${ encodeURIComponent( key ) }=${ encodeURIComponent( value ) }`
+    }).join( '&' );
 }
 
 // 请求队列
 var fetchQueue = {}
 
-function getQueueFetch(key) {
+function getQueueFetch( key ) {
     return fetchQueue[key]
 }
 
-function addQueueFetch(key, success) {
+function addQueueFetch( key, success ) {
     if (fetchQueue[key]) {
-        fetchQueue[key].push(success)
+        fetchQueue[key].push( success )
     } else {
-        fetchQueue[key] = [success]
+        fetchQueue[key] = [ success ]
     }
 }
 
-function emptyQueueFetch(key) {
-    fetchQueue[key] = []
+function emptyQueueFetch( key ) {
+    fetchQueue[key] = [ ]
 }
 
 // 简单封装下共通处理的ajax
-export default ({
-                    api,
-                    success,
-                    error,
-                    format,
-                    method = 'GET',
-                    body
-                }) => {
+export default({
+    api,
+    success,
+    error,
+    format,
+    method = 'GET',
+    body
+}) => {
     let cfg = {
         method,
         credentials: 'include',
@@ -47,11 +49,11 @@ export default ({
             'Accept': 'application/json'
         }
     };
-    if (body) {
-        if (cfg.method == 'GET') {
-            api += '?' + toQueryString(body)
+    if ( body ) {
+        if ( cfg.method == 'GET' ) {
+            api += '?' + toQueryString( body )
         } else {
-            cfg.body = JSON.stringify(body)
+            cfg.body = JSON.stringify( body )
         }
     }
 
@@ -60,27 +62,27 @@ export default ({
         _api: api,
         _method: method
     })
-    let cbs = getQueueFetch(key)
-    if (cbs) {
-        cbs.push(success)
+    let cbs = getQueueFetch( key )
+    if ( cbs ) {
+        cbs.push( success )
         return null
     } else {
-        addQueueFetch(key, success)
-        cbs = getQueueFetch(key)
+        addQueueFetch( key, success )
+        cbs = getQueueFetch( key )
     }
 
-    return fetch(api, cfg).then(response => response.json()).then(json => {
-        if (json.success) {
+    return fetch( api, cfg ).then(response => response.json( )).then(json => {
+        if ( json.success ) {
             return json
         } else {
             throw json
         }
     }).then(format || (json => {
         return json
-    })).then((data) => {
-        cbs.forEach((cb) => {
-            cb(data)
+    })).then(( data ) => {
+        cbs.forEach(( cb ) => {
+            cb( data )
         })
-        emptyQueueFetch(key)
-    }).catch(error || (err => console.error(err)))
+        emptyQueueFetch( key )
+    }).catch(error || (err => console.error( err )))
 }

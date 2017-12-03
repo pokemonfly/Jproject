@@ -16,6 +16,9 @@ export default class DelKeyword extends React.Component {
     }
     getStateFromProps( props ) {
         const { selectedRowKeys, keywordMap } = props;
+        if ( !keywordMap ) {
+            return { word: 'test' }
+        }
         let word,
             optimizeStatus
         if ( selectedRowKeys.length ) {
@@ -23,7 +26,7 @@ export default class DelKeyword extends React.Component {
             word = keywordMap[ selectedRowKeys[ 0 ] ].word
             optimizeStatus = selectedRowKeys.map( i => keywordMap[ i ].optimizeStatus )[ 0 ]
         }
-        return { word, len: selectedRowKeys.length, optimizeStatus }
+        return { word, optimizeStatus }
     }
     componentWillReceiveProps( nextProps ) {
         this.setState( this.getStateFromProps( nextProps ) )
@@ -49,12 +52,17 @@ export default class DelKeyword extends React.Component {
         this.props.deleteKeyword( result, selectedRowKeys )
         this.props.afterCb();
     }
+    onClose = () => {
+        this.props.onClose()
+    }
     render() {
         const { getFieldDecorator } = this.props.form;
         const {
-            never = true
+            never = true,
+            selectedRowKeys
         } = this.props;
-        const { optimizeStatus, word, len } = this.state
+        const { optimizeStatus, word } = this.state
+        const len = selectedRowKeys.length
         return ( <Layout className="float-panel">
             <Form>
                 {len == 1 && ( <span className="header">删除关键词：{word}</span> )}
@@ -68,7 +76,7 @@ export default class DelKeyword extends React.Component {
             </Form>
             <div className="footer">
                 <Button type="primary" onClick={this.onSubmit}>确定</Button>
-                <a onClick={this.props.onClose} className="cancel-btn">取消</a>
+                <a onClick={this.onClose} className="cancel-btn">取消</a>
             </div>
         </Layout> )
     }

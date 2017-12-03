@@ -17,7 +17,11 @@ import { filterKeywordWord, changeReportCols, switchMoreDropdown } from './Keywo
 import Search from '@/containers/shared/Search'
 import More from '@/containers/shared/More'
 import { keywordReports } from '@/utils/constants'
+import PubSub from 'pubsub-js';
 import './KeywordView.less'
+// Test
+import DropdownIconBar from '@/containers/shared/DropdownIconBar'
+import DelKeyword from './DelKeyword'
 
 const { TabPane } = Tabs
 const Option = Select.Option;
@@ -33,7 +37,11 @@ export default class KeywordView extends React.Component {
     }
 
     onTabChange = ( activeKey ) => {
-        this.setState( { activeKey } );
+        this.setState( {
+            activeKey
+        }, () => {
+            PubSub.publish( 'table.resize' )
+        } );
     }
 
     handleVisibleChange( flag ) {
@@ -76,6 +84,33 @@ export default class KeywordView extends React.Component {
                 </TabPane>
                 <TabPane tab="搜索人群" key="searchCrowd">
                     <span>开发中</span>
+                    <DropdownIconBar
+                        selectedRowKeys={[ '1' ]}
+                        defaultCfg={{
+                            icon: 'shujutongji',
+                            popup: ( <DelKeyword/> )
+                        }}
+                        config={[
+                            {
+                                key: 0,
+                                icon: "jingzhundingwei",
+                                tooltip: '修改匹配方式'
+                            }, {
+                                key: 1,
+                                icon: 'shanchuheimingdan',
+                                tooltip: '黑名单',
+                                disableTooltip: '该词优化方式为只优化价格，黑名单功能不可用',
+                                cb: () => {
+                                    console.log( 'aaaa' )
+                                }
+                            }, {
+                                key: 2,
+                                icon: 'shanchu',
+                                tooltip: '删除关键词',
+                                popup: ( <DelKeyword/> )
+                            }
+                        ]}
+                        disableIcon={[ 2 ]}/>
                 </TabPane>
                 <TabPane tab="管理创意" key="creativeManage">
                     <span>开发中</span>
