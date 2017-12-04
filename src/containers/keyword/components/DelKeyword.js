@@ -16,9 +16,6 @@ export default class DelKeyword extends React.Component {
     }
     getStateFromProps( props ) {
         const { selectedRowKeys, keywordMap } = props;
-        if ( !keywordMap ) {
-            return { word: 'test' }
-        }
         let word,
             optimizeStatus
         if ( selectedRowKeys.length ) {
@@ -65,7 +62,9 @@ export default class DelKeyword extends React.Component {
         const len = selectedRowKeys.length
         return ( <Layout className="float-panel">
             <Form>
-                {len == 1 && ( <span className="header">删除关键词：{word}</span> )}
+                <Form.Item >
+                    {len == 1 && ( <span className="header">删除关键词：{word}</span> )}
+                </Form.Item>
                 {len > 1 && ( <span className="header">{`确定要删除${ len }个词吗？一旦删除，所有数据将无法恢复！`}</span> )}
                 {
                     never && ( optimizeStatus == 1 || optimizeStatus == 2 ) && ( <FormItem>

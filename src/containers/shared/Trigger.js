@@ -20,7 +20,7 @@ export class TriggerFix extends Trigger {
             const root = findDOMNode( this );
             const popupNode = this.getPopupDomNode();
             //  这里手动指定了无视的className
-            if ( target.offsetParent && this.props.ignoreClz.map( clz => hasClass( target.offsetParent, clz ) ).includes( true ) ) {
+            if ( target.offsetParent && this.props.ignoreClz && this.props.ignoreClz.map( clz => hasClass( target.offsetParent, clz ) ).includes( true ) ) {
                 return;
             }
             if ( !contains( root, target ) && !contains( popupNode, target ) ) {

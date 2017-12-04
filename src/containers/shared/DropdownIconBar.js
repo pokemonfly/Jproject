@@ -1,5 +1,5 @@
 import React from 'react';
-import className from 'classnames'
+import clzName from 'classnames'
 import { TriggerFix as Trigger } from './Trigger';
 import { Dropdown, Tooltip, Menu } from 'antd';
 import Icon from './Icon'
@@ -10,51 +10,64 @@ export default class DropdownIconBar extends React.Component {
         visible: false,
         popup: ( <span></span> )
     }
-    onDefaultIconClick = () => {
-        const {
-            config,
-            defaultCfg,
-            className,
-            ...other
-        } = this.props;
-        if ( defaultCfg.popup ) {
-            const fixedPopup = React.cloneElement( defaultCfg.popup, {
-                ...other,
+    onClosePopup = () => {
+        this.setState( { visible: false } )
+    }
+    onPopupVisibleChange = ( visible ) => {
+        this.setState( { visible } )
+    }
+    onIconClick = ( idx ) => {
+        const { config, className, popProps } = this.props;
+        const cfg = config[ idx ];
+        if ( cfg.popup ) {
+            const fixedPopup = React.cloneElement( cfg.popup, {
+                ...popProps,
                 onClose: this.onClosePopup
             } );
             this.setState( { popup: fixedPopup, visible: true } )
         }
+        if ( cfg.cb ) {
+            cfg.cb()
+        }
     }
-    onClosePopup = () => {
-        this.setState( { visible: false } )
-    }
-    onIconClick = () => {}
-    getPopup() {}
     render() {
-        const { config, defaultCfg, className } = this.props
+        const { config, className } = this.props
         const { popup, visible } = this.state
-        return ( <div className={className}>
-            <Dropdown.Button
-                trigger={[ 'click' ]}
-                className="dropdown-icon-bar"
-                size="small"
-                onClick={this.onDefaultIconClick}
-                overlay={( <Menu className="dropdown-icon-group" onIconClick={this.onIconClick}>
-                    {
-                        config.map( o => ( <MenuItem key={o.key}>
-                            <Tooltip title={o.tooltip} arrowPointAtCenter="arrowPointAtCenter">
-                                <Icon type={o.icon}/>
-                            </Tooltip>
-                        </MenuItem> ) )
-                    }
-                </Menu> )}>
-                <Icon type={defaultCfg.icon} size="small"/>
-            </Dropdown.Button>
-            <Trigger popup={popup} popupVisible={visible} popupStyle={{
-                    display: 'inline-block'
-                }}>
-                <span></span>
-            </Trigger>
-        </div> )
+        const defaultCfg = config[ 0 ];
+        const iconCfg = config.slice( 1 );
+        const triggerCfg = {
+            popupAlign: {
+                points: [
+                    'tl', 'bl'
+                ],
+                offset: [ 0, 4 ]
+            },
+            destroyPopupOnHide: true,
+            popupStyle: {
+                display: 'inline-block'
+            },
+            hideAction: ['click'],
+            onPopupVisibleChange: this.onPopupVisibleChange
+        }
+        const cn = clzName( className, { "force-show": visible } )
+        return ( <Trigger {...triggerCfg} popupVisible={visible} popup={popup}>
+            <span className={cn}>
+                <Dropdown.Button
+                    className="dropdown-icon-bar"
+                    size="small"
+                    onClick={this.onIconClick.bind( this, 0 )}
+                    overlay={( <Menu className="dropdown-icon-group" onIconClick={this.onIconClick}>
+                        {
+                            iconCfg.map( ( o, ind ) => ( <MenuItem key={ind}>
+                                <Tooltip title={o.tooltip} arrowPointAtCenter="arrowPointAtCenter">
+                                    <Icon type={o.icon} onClick={this.onIconClick.bind( this, ind + 1 )}/>
+                                </Tooltip>
+                            </MenuItem> ) )
+                        }
+                    </Menu> )}>
+                    <Icon type={defaultCfg.icon} size="small"/>
+                </Dropdown.Button>
+            </span>
+        </Trigger> )
     }
 }

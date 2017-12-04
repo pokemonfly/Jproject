@@ -99,31 +99,47 @@ export function Dialog( {
             state = {
                 visible: false
             }
-            close = () => {
-                let rf = this.refs.wc.getWrappedInstance();
+            componentDidMount() {
+                this.componentDidUpdate()
+            }
+            componentDidUpdate() {
+                if ( this.refs.wc ) {
+                    let rf = this.refs.wc
+                    if ( hasConnect ) {
+                        rf = rf.getWrappedInstance();
+                    }
                 if ( hasForm ) {
                     rf = rf.refs.wrappedComponent.refs.formWrappedComponent
+                    }
+                    this.rf = rf;
+                    this.rf.close = this.close;
                 }
-                rf.closeCallback && rf.closeCallback();
+            }
+            close = () => {
+                this.rf.closeCallback && this.rf.closeCallback();
                 this.hide()
             }
             ok = () => {
                 let r = true;
-                let rf = this.refs.wc.getWrappedInstance();
-                if ( hasForm ) {
-                    rf = rf.refs.wrappedComponent.refs.formWrappedComponent
-                }
-                rf.okCallback && ( r = rf.okCallback( this.hide ) );
+                this.rf.okCallback && ( r = this.rf.okCallback( this.hide ) );
                 if ( r ) {
                     this.hide()
                 }
             }
-            setStatus = ( obj ) => {
-                this.setState( obj )
-                return this
+            setStatus( obj ) {
+                this.rf && ( this.rf.setState( obj ) );
             }
-            show = () => {
-                this.setState( { visible: true } )
+            showWithState( obj ) {
+                this.setState( {
+                    visible: true
+                }, () => {
+                    this.setStatus( obj )
+                } )
+            }
+            show = ( cb ) => {
+                this.setState( {
+                    visible: true
+                }, cb )
             }
             hide = () => {
                 this.setState( { visible: false } )
@@ -146,7 +162,7 @@ export function Dialog( {
         }
     }
 }
-
+// 反向继承 试验中
 export function DialogR( {
     wrapClassName = '',
     maskClosable = true,
@@ -159,11 +175,15 @@ export function DialogR( {
     single = true,
     noFooter = false
 } ) {
-    return( WrappedComponent ) => {
-        return class HOC extends WrappedComponent {
+    return( WrappedComponent ) => class extends WrappedComponent {
+        static displayName = `HOC(${ getDisplayName( WrappedComponent ) })`;
             constructor( p ) {
-                super( p )
-                this.state.visible = false
+            super()
+            // this.state.visible = false
+        }
+        setStatus( obj ) {
+            this.setState( obj );
+            return this
             }
             close = () => {
                 this.closeCallback && this.closeCallback();
@@ -182,6 +202,12 @@ export function DialogR( {
             hide = () => {
                 this.setState( { visible: false } )
             }
+        _render() {
+            const elementsTree = super.render();
+            const props = Object.assign( {}, elementsTree.props, this.state, { getRef: this.props.getRef } )
+            const newElementsTree = React.cloneElement( elementsTree, props, elementsTree.props.children );
+            return newElementsTree;
+        }
             render() {
                 let p = {
                     width,
@@ -194,9 +220,11 @@ export function DialogR( {
                     p.footer = null
                 }
                 return ( <Modal {... p} onCancel={this.close} onOk={this.ok} visible={this.state.visible}>
-                    {super.render()}
+                {this._render()}
                 </Modal> )
             }
         }
     }
+function getDisplayName( WrappedComponent ) {
+    return WrappedComponent.displayName || WrappedComponent.name || 'Component';
 }
